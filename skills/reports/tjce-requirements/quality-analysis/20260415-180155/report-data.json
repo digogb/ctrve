@@ -1,0 +1,589 @@
+{
+  "meta": {
+    "skill_name": "tjce-requirements",
+    "skill_path": "skills/tjce-requirements",
+    "timestamp": "2026-04-15T18:01:55Z",
+    "scanner_count": 6,
+    "type": "agent"
+  },
+  "agent_profile": {
+    "icon": "",
+    "display_name": "Analista de Requisitos TJCE",
+    "title": "Analista de Requisitos do TJCE para PDS Unificado",
+    "portrait": "The Analista de Requisitos TJCE is a methodical, precision-driven judicial requirements analyst who refuses to tolerate ambiguity. Speaking in formal Portuguese with the vocabulary of Brazilian court systems, this agent stops mid-flow to interrogate vague requirements rather than fill gaps with assumptions. It produces the four mandatory PDS Unificado artifacts with ironclad traceability: every rule traces to a story, every message traces to a rule, and no cell is left to TODO."
+  },
+  "capabilities": [
+    {
+      "name": "Gerar Especificacao de Requisitos",
+      "file": "references/generate-requirements.md",
+      "status": "needs-attention",
+      "finding_count": 4,
+      "findings": [
+        {
+          "title": "No progression condition keywords in capability file",
+          "severity": "high",
+          "source": "structure-capabilities-prepass"
+        },
+        {
+          "title": "No config header with language variables",
+          "severity": "medium",
+          "source": "structure-capabilities-prepass"
+        },
+        {
+          "title": "Missing menu-code in frontmatter",
+          "severity": "medium",
+          "source": "prompt-craft"
+        },
+        {
+          "title": "Hardcoded output path bypasses configurable output_folder",
+          "severity": "low",
+          "source": "structure-analysis"
+        }
+      ]
+    }
+  ],
+  "narrative": "This agent demonstrates strong domain design with a rigorous traceability model and clean prompt architecture (2,809 tokens, zero waste patterns). Its primary opportunity is hardening the lifecycle beyond initial generation: adding progression markers to capability files, building context management for large systems, and extracting deterministic validation work into scripts.",
+  "grade": "Good",
+  "broken": [],
+  "opportunities": [
+    {
+      "name": "Missing Progression and Flow Control Markers",
+      "description": "The capability file generate-requirements.md contains meaningful procedural logic — two execution branches, a four-step sequential generation order, and a self-validation gate — but expresses all of this through natural language structure rather than explicit conditional keywords. Without explicit markers, automated tooling cannot parse the flow and future maintainers may miss branching logic.",
+      "severity": "high",
+      "impact": "Improves parsability for tooling, reduces maintainer confusion, and makes the generation flow explicit and auditable.",
+      "action": "Add explicit progression markers to generate-requirements.md at three decision points: (1) 'If interview mode...' / 'If PRD mode...' at the branch, (2) 'Proceed to [next artifact] only when [current artifact] is complete' at generation steps, (3) 'Do not output artifacts until all checklist items pass' at the validation gate.",
+      "finding_count": 3,
+      "findings": [
+        {
+          "title": "No progression condition keywords found in generate-requirements.md",
+          "file": "references/generate-requirements.md",
+          "line": 83,
+          "detail": "Progression is expressed through section headers and bullet structure rather than explicit conditional keywords",
+          "source": "structure-capabilities-prepass"
+        },
+        {
+          "title": "No progression keywords in artifact-templates.md (false positive)",
+          "file": "references/artifact-templates.md",
+          "line": 117,
+          "detail": "Template reference file — not a capability file. Scanner category error; no action needed for this file.",
+          "source": "structure-capabilities-prepass"
+        },
+        {
+          "title": "Progression markers absent from capability file",
+          "file": "references/generate-requirements.md",
+          "line": null,
+          "detail": "Behavior is conditional and sequential but uses natural language structure rather than explicit if/proceed/complete markers",
+          "source": "structure-analysis"
+        }
+      ]
+    },
+    {
+      "name": "Context Pressure and Session Resilience Gaps",
+      "description": "Multiple scanners identified that the agent has no strategy for managing context growth in large systems or recovering from interrupted sessions. Interview transcripts are carried verbatim through all four generation phases with no summarization step. There is no checkpointing, no partial output recovery, and no atomic write guarantee.",
+      "severity": "medium",
+      "impact": "Prevents degraded output quality for large systems, enables session resumption for multi-day requirements gathering, and reduces context waste during generation.",
+      "action": "Add three mechanisms to generate-requirements.md: (1) a transition step between interview and generation that synthesizes dialogue into a compact requirements brief, (2) guidance to write each artifact to disk immediately and reference files for cross-artifact checks, (3) an activation check in SKILL.md to scan for existing partial output and offer resume behavior.",
+      "finding_count": 5,
+      "findings": [
+        {
+          "title": "No context pressure guard for large systems",
+          "file": "references/generate-requirements.md",
+          "line": null,
+          "detail": "For systems with 50+ US and 100+ RN, artifact tables can consume significant context with no mitigation strategy",
+          "source": "execution-efficiency"
+        },
+        {
+          "title": "Interview transcript not summarized before generation",
+          "file": "references/generate-requirements.md",
+          "line": null,
+          "detail": "Full conversation history accumulates in context before generation begins; no compression step exists",
+          "source": "execution-efficiency"
+        },
+        {
+          "title": "No partial output recovery on session restart",
+          "file": "SKILL.md",
+          "line": null,
+          "detail": "If interrupted mid-generation, the agent cannot resume; restarts always start from input detection",
+          "source": "execution-efficiency"
+        },
+        {
+          "title": "No re-entry path after partial session",
+          "file": "references/generate-requirements.md",
+          "line": null,
+          "detail": "Sessions are stateless; no mechanism to save interview progress and resume later",
+          "source": "enhancement-opportunities"
+        },
+        {
+          "title": "Validation failure after generation with no rollback",
+          "file": "references/generate-requirements.md",
+          "line": null,
+          "detail": "Files may be left in inconsistent state if self-validation catches failures after partial writes",
+          "source": "enhancement-opportunities"
+        }
+      ]
+    },
+    {
+      "name": "Lifecycle Gaps: No Update or Review Capabilities",
+      "description": "The agent excels at creating requirements from scratch but has no flow for updating existing artifacts, validating third-party artifacts, or handling iterative review cycles. Real projects evolve and without these flows the agent is discarded after initial generation.",
+      "severity": "medium",
+      "impact": "Extends the agent's usefulness across the full project lifecycle, not just the initial specification phase.",
+      "action": "Add two new capabilities: (1) an update mode that detects existing artifacts and presents changes as diffs before applying, (2) a validation-only mode that audits existing artifacts for traceability and completeness without regenerating. Reference these in the Capabilities table.",
+      "finding_count": 4,
+      "findings": [
+        {
+          "title": "No flow for updating already-generated artifacts",
+          "file": "SKILL.md",
+          "line": null,
+          "detail": "Agent defines creation well but has no incremental update mechanism for evolving projects",
+          "source": "agent-cohesion"
+        },
+        {
+          "title": "No capability for autonomous validation of existing artifacts",
+          "file": "SKILL.md",
+          "line": null,
+          "detail": "A senior analyst persona should be able to review and audit third-party work",
+          "source": "agent-cohesion"
+        },
+        {
+          "title": "No diff view for iterative sessions",
+          "file": "references/generate-requirements.md",
+          "line": null,
+          "detail": "Running on PRD v2 generates complete new artifacts with no indication of what changed",
+          "source": "enhancement-opportunities"
+        },
+        {
+          "title": "Missing review mode in three-mode architecture",
+          "file": "SKILL.md",
+          "line": null,
+          "detail": "Interactive and headless modes exist but no review mode for analyzing existing artifacts",
+          "source": "enhancement-opportunities"
+        }
+      ]
+    },
+    {
+      "name": "Deterministic Validation Delegated to LLM",
+      "description": "Eleven deterministic operations are currently performed by the LLM at an estimated cost of 2,250-3,200 tokens per invocation. These include ID sequence validation, cross-reference integrity checks, placeholder detection, and message type coverage — all pure string/set operations.",
+      "severity": "medium",
+      "impact": "Extracting to scripts eliminates ~2,500 tokens of LLM tax per run, improves validation reliability, and enables CI integration.",
+      "action": "Create a scripts/ directory with post-processing validators. Start with the three P0 cross-reference scripts: validate-ids.py, check-rn-us-refs.py, check-msg-rn-refs.py (~1,050 tokens saved, implementable in under an hour).",
+      "finding_count": 6,
+      "findings": [
+        {
+          "title": "ID sequential validation delegated to LLM (SO-003)",
+          "file": "references/generate-requirements.md",
+          "line": 72,
+          "detail": "Sequential ID verification is a pure string/integer operation costing ~300 tokens",
+          "source": "script-opportunities"
+        },
+        {
+          "title": "Cross-reference RN to US check delegated to LLM (SO-004)",
+          "file": "references/generate-requirements.md",
+          "line": 64,
+          "detail": "Set membership check costing ~400 tokens; highest single-script saving",
+          "source": "script-opportunities"
+        },
+        {
+          "title": "Cross-reference MSG to RN check delegated to LLM (SO-005)",
+          "file": "references/generate-requirements.md",
+          "line": 66,
+          "detail": "Set membership check costing ~350 tokens",
+          "source": "script-opportunities"
+        },
+        {
+          "title": "Placeholder/empty cell detection delegated to LLM (SO-007)",
+          "file": "references/generate-requirements.md",
+          "line": 69,
+          "detail": "String matching against fixed forbidden patterns costing ~250 tokens",
+          "source": "script-opportunities"
+        },
+        {
+          "title": "Message type coverage check delegated to LLM (SO-006)",
+          "file": "references/generate-requirements.md",
+          "line": 68,
+          "detail": "Set coverage check costing ~150 tokens",
+          "source": "script-opportunities"
+        },
+        {
+          "title": "Assumptions file compilation delegated to LLM (SO-009)",
+          "file": "references/generate-requirements.md",
+          "line": 43,
+          "detail": "Regex scan for [ASSUMIDO] tags and file generation costing ~300 tokens",
+          "source": "script-opportunities"
+        }
+      ]
+    },
+    {
+      "name": "Missing Soft Gates and User Experience Polish",
+      "description": "The agent lacks soft gates at critical transition points: no scope confirmation before generation, no coverage map after reading a PRD, no onboarding preamble for first-timers, and no graceful handling of 'I don't know' answers during interviews.",
+      "severity": "medium",
+      "impact": "Reduces mid-generation rework, improves first-timer onboarding, and prevents scope misunderstandings.",
+      "action": "Add three mechanisms: (1) a pre-generation scope confirmation, (2) a coverage map after loading a PRD showing which areas are complete vs. incomplete, (3) a deferred item queue for unknown answers during interviews.",
+      "finding_count": 5,
+      "findings": [
+        {
+          "title": "No soft gate elicitation before generation",
+          "file": "references/generate-requirements.md",
+          "line": null,
+          "detail": "Agent begins generation as soon as it believes it has enough information without confirming scope with user",
+          "source": "enhancement-opportunities"
+        },
+        {
+          "title": "No intent-before-ingestion pattern when reading documents",
+          "file": "references/generate-requirements.md",
+          "line": null,
+          "detail": "In interactive mode with file input, the agent reads and proceeds without stating its interpretation first",
+          "source": "enhancement-opportunities"
+        },
+        {
+          "title": "No 'I don't know' recovery path during interviews",
+          "file": "references/generate-requirements.md",
+          "line": null,
+          "detail": "Interview has no graceful handling of provisional answers; user who says 'nao sei' is stuck",
+          "source": "enhancement-opportunities"
+        },
+        {
+          "title": "No onboarding preamble for first-timers",
+          "file": "SKILL.md",
+          "line": null,
+          "detail": "First-time users receive no explanation of the four PDS Unificado artifacts or interview process",
+          "source": "enhancement-opportunities"
+        },
+        {
+          "title": "No scope creep warning during interview",
+          "file": "references/generate-requirements.md",
+          "line": null,
+          "detail": "If user introduces new actors or areas mid-interview, scope expands silently with no alert",
+          "source": "enhancement-opportunities"
+        }
+      ]
+    }
+  ],
+  "strengths": [
+    {
+      "title": "Rigorous traceability model",
+      "detail": "The bidirectional traceability chain (US to RN to MSG) with self-validation is a genuine domain design strength. The generation order enforces dependency correctness — each artifact informs the next."
+    },
+    {
+      "title": "Zero-waste prompt architecture",
+      "detail": "2,809 tokens across three files with zero waste patterns, zero back-references, zero wall-of-text, and zero suggestive loading. Every instruction maps to an observable agent behavior."
+    },
+    {
+      "title": "Strong persona-capability alignment",
+      "detail": "The identity (methodical, precise, ambiguity-averse) directly drives behavioral rules — the no-placeholder prohibition, the stop-and-ask stance, and the self-validation gate all flow from the declared persona."
+    },
+    {
+      "title": "Clean intelligence placement",
+      "detail": "SKILL.md handles identity and routing, generate-requirements.md handles execution logic, artifact-templates.md handles format. No cross-contamination between layers."
+    },
+    {
+      "title": "Well-specified headless mode",
+      "detail": "Entry condition, input resolution, fallback error behavior, mid-generation ambiguity handling via [ASSUMIDO], and audit trail via assumptions.md — the headless path is complete."
+    },
+    {
+      "title": "Bilingual architecture done right",
+      "detail": "English for structural/meta instructions, Portuguese for domain content and persona voice, with consistent boundaries throughout the corpus."
+    },
+    {
+      "title": "Correct delegation of procedural detail",
+      "detail": "SKILL.md avoids over-specification by delegating all interview flow, generation order, and validation checklists to reference files."
+    }
+  ],
+  "detailed_analysis": {
+    "structure": {
+      "assessment": "All six required SKILL.md sections present in correct order. Single-capability routing table is valid with both referenced files confirmed. Frontmatter name lacks 'agent' convention and description omits 'product vision' as a trigger phrase. Output path hardcoded in generate-requirements.md bypasses configurable output_folder.",
+      "findings": [
+        {
+          "title": "Name 'tjce-requirements' should contain 'agent'",
+          "file": "SKILL.md",
+          "line": 1,
+          "severity": "medium",
+          "detail": "Name field does not follow the agent-{name} or {code}-agent-{name} convention",
+          "source": "structure-capabilities-prepass"
+        },
+        {
+          "title": "Description missing 'product vision' trigger phrase",
+          "file": "SKILL.md",
+          "line": null,
+          "severity": "low",
+          "detail": "Product Vision is a mandatory output but not listed as a routing trigger in the description",
+          "source": "structure-analysis"
+        },
+        {
+          "title": "Output path not using config variable",
+          "file": "references/generate-requirements.md",
+          "line": 12,
+          "severity": "low",
+          "detail": "Hardcoded spec/requirements/ path bypasses configurable {output_folder} variable",
+          "source": "structure-analysis"
+        }
+      ]
+    },
+    "persona": {
+      "assessment": "Prompt craft is strong with excellent token efficiency (2,809 tokens, zero pathological patterns). Overview is outcome-first, Identity is behaviorally grounded, Communication Style rules are terse and LLM-actionable. Missing menu-code in reference frontmatter and single-row Capabilities table adds unnecessary ceremony.",
+      "overview_quality": "appropriate",
+      "findings": [
+        {
+          "title": "Missing menu-code in generate-requirements.md frontmatter",
+          "file": "references/generate-requirements.md",
+          "line": 1,
+          "severity": "medium",
+          "detail": "BMad standard reference prompt contract requires menu-code field",
+          "source": "prompt-craft"
+        },
+        {
+          "title": "Single-row Capabilities table adds structural noise",
+          "file": "SKILL.md",
+          "line": 57,
+          "severity": "low",
+          "detail": "One capability does not benefit from table format; a single sentence would communicate identically with fewer tokens",
+          "source": "prompt-craft"
+        },
+        {
+          "title": "Overview missing theory-of-mind anchor for human caller",
+          "file": "SKILL.md",
+          "line": 8,
+          "severity": "low",
+          "detail": "A brief model of who is calling this agent would improve interview interactions",
+          "source": "prompt-craft"
+        }
+      ]
+    },
+    "cohesion": {
+      "assessment": "Persona-capability alignment is strong with 1:1 correspondence between identity traits and behavioral rules. Traceability constraints are identically stated across SKILL.md and generate-requirements.md (intentional, structurally justified). Gaps exist in post-delivery lifecycle and multi-document conflict handling.",
+      "dimensions": {
+        "persona_capability_alignment": {
+          "score": "strong",
+          "notes": "Identity traits (methodical, precise, ambiguity-averse) directly manifest as behavioral rules in capability files. No capabilities exceed the persona, no persona exceeds the capabilities."
+        }
+      },
+      "findings": [
+        {
+          "title": "No protocol for conflicting input documents",
+          "file": "SKILL.md",
+          "line": null,
+          "severity": "medium",
+          "detail": "When PRD contradicts a brief or multiple inputs disagree, agent has no defined disambiguation protocol",
+          "source": "agent-cohesion"
+        },
+        {
+          "title": "Acceptance criteria lack structured conventions",
+          "file": "references/artifact-templates.md",
+          "line": null,
+          "severity": "medium",
+          "detail": "User Story template includes acceptance criteria as free-form checkboxes with no granularity or coverage conventions",
+          "source": "agent-cohesion"
+        },
+        {
+          "title": "No judicial glossary referenced or included",
+          "file": "SKILL.md",
+          "line": null,
+          "severity": "medium",
+          "detail": "Agent operates in specialized judicial domain but carries no glossary; terminological consistency depends on current session only",
+          "source": "agent-cohesion"
+        }
+      ]
+    },
+    "efficiency": {
+      "assessment": "Adequate for its class. The sequential artifact generation order is a correctness requirement, not an efficiency failure. Primary opportunities are eager resource loading (eliminating two deferred reads) and context management for large systems. No blocking or critical findings.",
+      "findings": [
+        {
+          "title": "Reference files loaded lazily; could be loaded eagerly at activation",
+          "file": "SKILL.md",
+          "line": null,
+          "severity": "low",
+          "detail": "generate-requirements.md and artifact-templates.md could be loaded in parallel with config at activation",
+          "source": "execution-efficiency"
+        },
+        {
+          "title": "Self-validation is a sequential checklist; could be single-pass audit",
+          "file": "references/generate-requirements.md",
+          "line": 61,
+          "severity": "low",
+          "detail": "Seven validation checks are independent and could be evaluated as a single-pass batch",
+          "source": "execution-efficiency"
+        }
+      ]
+    },
+    "experience": {
+      "assessment": "Six user archetypes reveal recurring dead-ends in the interactive path, assumption walls in headless mode, and meaningful delight opportunities. The most critical gap is the absence of a soft gate at interview start — the agent can race into generation with insufficient information.",
+      "journeys": [
+        {
+          "archetype": "first-timer",
+          "summary": "Product manager from TJCE IT unfamiliar with PDS Unificado artifacts enters an interview with no explanation of what will be produced or how long it will take.",
+          "friction_points": [
+            "No explanation of the four output artifacts",
+            "No upfront interview length estimate",
+            "Exception detail level unclear"
+          ],
+          "bright_spots": [
+            "Agent's stop-and-ask behavior prevents runaway generation",
+            "Formal Portuguese register matches institutional context"
+          ]
+        },
+        {
+          "archetype": "expert",
+          "summary": "Senior analyst who has used the skill on 5+ projects wants fast generation with minimal interruption but cannot skip or customize the interview flow.",
+          "friction_points": [
+            "Cannot skip interview when providing verbal brief",
+            "Cannot customize artifact depth",
+            "No batch mode for multiple systems"
+          ],
+          "bright_spots": [
+            "Lean prompt architecture means fast loading",
+            "Headless mode available for repeat workflows"
+          ]
+        },
+        {
+          "archetype": "confused",
+          "summary": "Developer asked to run the requirements tool without domain knowledge enters an interview they cannot meaningfully answer.",
+          "friction_points": [
+            "No detection that respondent lacks domain authority",
+            "No redirect suggestion to appropriate stakeholder"
+          ],
+          "bright_spots": [
+            "Agent's ambiguity-halt behavior surfaces gaps quickly"
+          ]
+        },
+        {
+          "archetype": "edge-case",
+          "summary": "Analyst for a minimal single-actor read-only system finds the four-message-type constraint forces artificial confirmations.",
+          "friction_points": [
+            "Four message type constraint cannot be relaxed with justification",
+            "Single-actor system receives no explicit actor enumeration step"
+          ],
+          "bright_spots": [
+            "Traceability model still works correctly for small systems"
+          ]
+        },
+        {
+          "archetype": "hostile-environment",
+          "summary": "CI pipeline runs headless against an auto-generated PRD from Jira export with mixed languages, duplicates, and inconsistent terminology.",
+          "friction_points": [
+            "No input normalization or terminology mapping",
+            "Duplicate sections may produce conflicting rules",
+            "Mixed-language input may leave untranslated fragments"
+          ],
+          "bright_spots": [
+            "[ASSUMIDO] mechanism flags uncertainties"
+          ]
+        },
+        {
+          "archetype": "automator",
+          "summary": "DevOps engineer integrating the skill into CI/CD cannot distinguish success from failure states and lacks machine-readable output.",
+          "friction_points": [
+            "No exit code semantics defined",
+            "No machine-readable quality summary (JSON)",
+            "No --dry-run mode for validation without generation",
+            "assumptions.md has no stable schema"
+          ],
+          "bright_spots": [
+            "Headless flag exists as automation entry point",
+            "Self-validation checklist provides quality baseline"
+          ]
+        }
+      ],
+      "autonomous": {
+        "potential": "partially-adaptable",
+        "notes": "Headless mode exists with assumption flagging and audit trail, but lacks quality scoring, confidence gradients, exit code semantics, and input validation needed for true CI/CD integration."
+      },
+      "findings": [
+        {
+          "title": "Multiple PRDs in planning_artifacts directory has undefined behavior",
+          "file": "SKILL.md",
+          "line": null,
+          "severity": "medium",
+          "detail": "If multiple files exist in {planning_artifacts}, agent behavior is undefined — needs disambiguation prompt",
+          "source": "enhancement-opportunities"
+        },
+        {
+          "title": "Ambiguity questions lack source text quotes",
+          "file": "references/generate-requirements.md",
+          "line": null,
+          "severity": "low",
+          "detail": "When raising ambiguity, the specific triggering source text is not quoted — user must hunt for context",
+          "source": "enhancement-opportunities"
+        }
+      ]
+    },
+    "scripts": {
+      "assessment": "Eleven deterministic operations identified as script candidates, representing 2,250-3,200 tokens of LLM tax per invocation. No scripts/ directory currently exists. The three highest-value extractions (ID validation, RN-US cross-ref, MSG-RN cross-ref) save ~1,050 tokens combined and are implementable in under an hour.",
+      "token_savings": "~2,250-3,200 tokens/invocation",
+      "findings": [
+        {
+          "title": "Config loader could be a pre-processing script (SO-002)",
+          "file": "SKILL.md",
+          "line": 38,
+          "severity": "low",
+          "detail": "YAML parsing, merging, and variable resolution are fully deterministic; ~200 tokens saved",
+          "source": "script-opportunities"
+        },
+        {
+          "title": "Input file scanner could be a pre-processing script (SO-001)",
+          "file": "SKILL.md",
+          "line": 49,
+          "severity": "low",
+          "detail": "File enumeration and type detection are deterministic; ~150 tokens saved",
+          "source": "script-opportunities"
+        },
+        {
+          "title": "N/A exception justification validator could be a script (SO-011)",
+          "file": "references/artifact-templates.md",
+          "line": 91,
+          "severity": "low",
+          "detail": "Pattern matching for N/A justification format is deterministic; ~150 tokens saved",
+          "source": "script-opportunities"
+        }
+      ]
+    }
+  },
+  "recommendations": [
+    {
+      "rank": 1,
+      "action": "Add explicit progression markers (if/proceed/complete) to generate-requirements.md at the three main decision points: interview vs. PRD branch, sequential generation gates, and validation gate.",
+      "resolves": 3,
+      "effort": "low"
+    },
+    {
+      "rank": 2,
+      "action": "Build context management: add interview summarization step, write-to-disk-first guidance for large systems, and partial output recovery at activation.",
+      "resolves": 5,
+      "effort": "medium"
+    },
+    {
+      "rank": 3,
+      "action": "Extract the three highest-value validation scripts (validate-ids.py, check-rn-us-refs.py, check-msg-rn-refs.py) into a scripts/post/ directory, saving ~1,050 tokens per invocation.",
+      "resolves": 3,
+      "effort": "low"
+    },
+    {
+      "rank": 4,
+      "action": "Add soft gates: pre-generation scope confirmation, coverage map after reading PRD, and deferred item queue for unknown answers during interviews.",
+      "resolves": 5,
+      "effort": "medium"
+    },
+    {
+      "rank": 5,
+      "action": "Add incremental update and validation-only capabilities to extend the agent across the full project lifecycle.",
+      "resolves": 4,
+      "effort": "high"
+    },
+    {
+      "rank": 6,
+      "action": "Add menu-code field to generate-requirements.md frontmatter for BMad standards compliance.",
+      "resolves": 1,
+      "effort": "low"
+    },
+    {
+      "rank": 7,
+      "action": "Replace hardcoded spec/requirements/ path in generate-requirements.md with {output_folder}/requirements/ to respect config overrides.",
+      "resolves": 2,
+      "effort": "low"
+    },
+    {
+      "rank": 8,
+      "action": "Rename skill to tjce-agent-requirements to follow the {code}-agent-{name} naming convention, updating directory and all internal references.",
+      "resolves": 1,
+      "effort": "low"
+    }
+  ]
+}

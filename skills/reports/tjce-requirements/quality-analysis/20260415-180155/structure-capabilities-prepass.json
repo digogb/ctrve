@@ -1,0 +1,111 @@
+{
+  "scanner": "structure-capabilities-prepass",
+  "script": "prepass-structure-capabilities.py",
+  "version": "1.0.0",
+  "skill_path": "skills/tjce-requirements",
+  "timestamp": "2026-04-15T21:02:14.908559+00:00",
+  "status": "warning",
+  "metadata": {
+    "frontmatter": {
+      "name": "tjce-requirements",
+      "description": "Analista de Requisitos do TJCE para PDS Unificado. Use when the user asks to generate requirements, create user stories, business rules, or system messages for TJCE projects."
+    },
+    "sections": [
+      {
+        "level": 2,
+        "title": "Overview",
+        "line": 8
+      },
+      {
+        "level": 2,
+        "title": "Identity",
+        "line": 18
+      },
+      {
+        "level": 2,
+        "title": "Communication Style",
+        "line": 22
+      },
+      {
+        "level": 2,
+        "title": "Principles",
+        "line": 30
+      },
+      {
+        "level": 2,
+        "title": "On Activation",
+        "line": 36
+      },
+      {
+        "level": 3,
+        "title": "Input Detection",
+        "line": 46
+      },
+      {
+        "level": 2,
+        "title": "Capabilities",
+        "line": 57
+      }
+    ],
+    "is_memory_agent": false
+  },
+  "prompt_details": [
+    {
+      "file": "artifact-templates.md",
+      "has_config_header": false,
+      "has_progression": false
+    },
+    {
+      "file": "generate-requirements.md",
+      "has_config_header": false,
+      "has_progression": false
+    }
+  ],
+  "memory_paths": [],
+  "issues": [
+    {
+      "file": "SKILL.md",
+      "line": 1,
+      "severity": "medium",
+      "category": "frontmatter",
+      "issue": "Name \"tjce-requirements\" should contain \"agent\" (e.g., agent-{name} or {code}-agent-{name})"
+    },
+    {
+      "file": "artifact-templates.md",
+      "line": 1,
+      "severity": "medium",
+      "category": "config-header",
+      "issue": "No config header with language variables found"
+    },
+    {
+      "file": "artifact-templates.md",
+      "line": 117,
+      "severity": "high",
+      "category": "progression",
+      "issue": "No progression condition keywords found"
+    },
+    {
+      "file": "generate-requirements.md",
+      "line": 1,
+      "severity": "medium",
+      "category": "config-header",
+      "issue": "No config header with language variables found"
+    },
+    {
+      "file": "generate-requirements.md",
+      "line": 83,
+      "severity": "high",
+      "category": "progression",
+      "issue": "No progression condition keywords found"
+    }
+  ],
+  "summary": {
+    "total_issues": 5,
+    "by_severity": {
+      "critical": 0,
+      "high": 2,
+      "medium": 3,
+      "low": 0
+    }
+  }
+}

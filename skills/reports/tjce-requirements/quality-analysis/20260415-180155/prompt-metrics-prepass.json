@@ -1,0 +1,255 @@
+{
+  "scanner": "prompt-craft-prepass",
+  "script": "prepass-prompt-metrics.py",
+  "version": "1.0.0",
+  "skill_path": "skills/tjce-requirements",
+  "timestamp": "2026-04-15T21:02:35.384317+00:00",
+  "status": "info",
+  "is_memory_agent": false,
+  "skill_md_summary": {
+    "line_count": 62,
+    "token_estimate": 980,
+    "overview_lines": 9,
+    "table_count": 1,
+    "table_lines": 3,
+    "fenced_block_count": 0,
+    "fenced_block_lines": 0,
+    "section_count": 7
+  },
+  "prompt_health": {
+    "total_prompts": 2,
+    "prompts_with_config_header": 0,
+    "prompts_with_progression": 0
+  },
+  "aggregate": {
+    "total_files_scanned": 3,
+    "total_token_estimate": 2809,
+    "total_waste_patterns": 0,
+    "total_back_references": 0,
+    "total_suggestive_loading": 0,
+    "total_wall_of_text": 0
+  },
+  "resource_sizes": {},
+  "files": [
+    {
+      "file": "SKILL.md",
+      "line_count": 62,
+      "token_estimate": 980,
+      "sections": [
+        {
+          "level": 2,
+          "title": "Overview",
+          "line": 8
+        },
+        {
+          "level": 2,
+          "title": "Identity",
+          "line": 18
+        },
+        {
+          "level": 2,
+          "title": "Communication Style",
+          "line": 22
+        },
+        {
+          "level": 2,
+          "title": "Principles",
+          "line": 30
+        },
+        {
+          "level": 2,
+          "title": "On Activation",
+          "line": 36
+        },
+        {
+          "level": 3,
+          "title": "Input Detection",
+          "line": 46
+        },
+        {
+          "level": 2,
+          "title": "Capabilities",
+          "line": 57
+        }
+      ],
+      "table_count": 1,
+      "table_lines": 3,
+      "fenced_block_count": 0,
+      "fenced_block_lines": 0,
+      "waste_patterns": [],
+      "back_references": [],
+      "suggestive_loading": [],
+      "has_config_header": true,
+      "has_progression": true,
+      "wall_of_text": [],
+      "overview_lines": 9,
+      "is_skill_md": true
+    },
+    {
+      "file": "references/artifact-templates.md",
+      "line_count": 117,
+      "token_estimate": 817,
+      "sections": [
+        {
+          "level": 2,
+          "title": "1. Visao do Produto (`product-vision.md`)",
+          "line": 12
+        },
+        {
+          "level": 2,
+          "title": "Escopo",
+          "line": 17
+        },
+        {
+          "level": 3,
+          "title": "Funcionalidades Incluidas",
+          "line": 21
+        },
+        {
+          "level": 2,
+          "title": "Fora de Escopo",
+          "line": 26
+        },
+        {
+          "level": 2,
+          "title": "Premissas",
+          "line": 31
+        },
+        {
+          "level": 2,
+          "title": "Restricoes",
+          "line": 36
+        },
+        {
+          "level": 2,
+          "title": "2. Estorias de Usuario (`user-stories.md`)",
+          "line": 44
+        },
+        {
+          "level": 2,
+          "title": "{Area Funcional 1}",
+          "line": 49
+        },
+        {
+          "level": 3,
+          "title": "US-001 \u2014 {Titulo descritivo}",
+          "line": 51
+        },
+        {
+          "level": 3,
+          "title": "US-002 \u2014 {Titulo descritivo}",
+          "line": 64
+        },
+        {
+          "level": 2,
+          "title": "3. Regras de Negocio (`business-rules.md`)",
+          "line": 77
+        },
+        {
+          "level": 2,
+          "title": "4. Mensagens do Sistema (`messages.md`)",
+          "line": 96
+        }
+      ],
+      "table_count": 2,
+      "table_lines": 10,
+      "fenced_block_count": 4,
+      "fenced_block_lines": 59,
+      "waste_patterns": [],
+      "back_references": [],
+      "suggestive_loading": [],
+      "has_config_header": false,
+      "has_progression": false,
+      "wall_of_text": [],
+      "is_skill_md": false,
+      "prompt_frontmatter": {
+        "has_frontmatter": true,
+        "fields": {
+          "name": "artifact-templates",
+          "description": "Exact markdown templates for the four PDS Unificado requirement artifacts. Ensures format consistency across TJCE projects."
+        },
+        "missing_fields": [
+          "menu-code"
+        ]
+      }
+    },
+    {
+      "file": "references/generate-requirements.md",
+      "line_count": 83,
+      "token_estimate": 1012,
+      "sections": [
+        {
+          "level": 2,
+          "title": "What Success Looks Like",
+          "line": 10
+        },
+        {
+          "level": 2,
+          "title": "Traceability Constraints (Non-Negotiable)",
+          "line": 21
+        },
+        {
+          "level": 2,
+          "title": "Your Approach",
+          "line": 31
+        },
+        {
+          "level": 3,
+          "title": "When conducting an interview (interactive mode)",
+          "line": 33
+        },
+        {
+          "level": 3,
+          "title": "When generating from a PRD or brief",
+          "line": 39
+        },
+        {
+          "level": 3,
+          "title": "Generation Order",
+          "line": 46
+        },
+        {
+          "level": 3,
+          "title": "Artifact Formatting",
+          "line": 55
+        },
+        {
+          "level": 2,
+          "title": "After Generation",
+          "line": 59
+        },
+        {
+          "level": 3,
+          "title": "Self-Validation",
+          "line": 61
+        },
+        {
+          "level": 3,
+          "title": "Output Summary",
+          "line": 75
+        }
+      ],
+      "table_count": 0,
+      "table_lines": 0,
+      "fenced_block_count": 0,
+      "fenced_block_lines": 0,
+      "waste_patterns": [],
+      "back_references": [],
+      "suggestive_loading": [],
+      "has_config_header": false,
+      "has_progression": false,
+      "wall_of_text": [],
+      "is_skill_md": false,
+      "prompt_frontmatter": {
+        "has_frontmatter": true,
+        "fields": {
+          "name": "generate-requirements",
+          "description": "Core capability for generating the four mandatory PDS Unificado requirement artifacts with full traceability."
+        },
+        "missing_fields": [
+          "menu-code"
+        ]
+      }
+    }
+  ]
+}

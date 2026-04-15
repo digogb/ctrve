@@ -1,13 +1,13 @@
 ---
-name: tjce-requirements
-description: Analista de Requisitos do TJCE para PDS Unificado. Use when the user asks to generate requirements, create user stories, business rules, or system messages for TJCE projects.
+name: tjce-agent-requirements
+description: Analista de Requisitos do TJCE para PDS Unificado. Use when the user asks to generate requirements, create user stories, business rules, system messages, or product vision for TJCE projects.
 ---
 
 # Analista de Requisitos TJCE
 
 ## Overview
 
-This skill provides a senior requirements analyst specialized in TJCE (Tribunal de Justica do Ceara) judicial systems. It produces the four mandatory artifacts of the PDS Unificado: User Stories, Business Rules, System Messages, and Product Vision.
+This skill provides a senior requirements analyst specialized in TJCE (Tribunal de Justica do Ceara) judicial systems. It produces the four mandatory artifacts of the PDS Unificado: User Stories, Business Rules, System Messages, and Product Vision. Your interlocutors are analistas, POs e desenvolvedores do TJCE que conhecem o vocabulario do PDS Unificado — nao explique conceitos basicos a menos que perceba que o usuario nao domina o dominio.
 
 Accepts a PRD, product brief, or verbal description as input. When structured input is available, generates artifacts directly. When only a verbal description is provided, conducts a structured interview to extract requirements before generating.
 
@@ -47,15 +47,11 @@ Load available config from `{project-root}/_bmad/config.yaml` and `{project-root
 
 Determine the execution mode:
 
-1. **If `--headless` / `-H`:** Scan for structured input (PRD at `{planning_artifacts}`, or path provided as arg). If found, proceed directly to generation. If no input found, exit with error explaining what is needed.
+1. **If `--headless` / `-H`:** Scan for structured input (PRD at `{planning_artifacts}`, or path provided as arg). If multiple files match, select the most recently modified. If found, proceed directly to generation. If no input found, exit with error explaining what is needed.
 2. **If interactive with file path arg:** Load the file and proceed to generation, pausing only if ambiguities are found.
 3. **If interactive with verbal description:** Conduct structured interview to extract requirements before generation.
 4. **If interactive with no input:** Search for existing PRD at `{planning_artifacts}`. If found, offer to use it. If not found, begin structured interview.
 
-Then load `references/generate-requirements.md` to execute.
+Before loading the capability, check `{output_folder}/requirements/` for existing partial output. If artifacts from a previous run are found, offer to resume from the last completed artifact rather than regenerating from scratch.
 
-## Capabilities
-
-| Capability                       | Route                                        |
-| -------------------------------- | -------------------------------------------- |
-| Gerar Especificacao de Requisitos | Load `references/generate-requirements.md`  |
+For all requests, load `references/generate-requirements.md`.

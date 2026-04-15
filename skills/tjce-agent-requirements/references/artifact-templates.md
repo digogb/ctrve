@@ -1,5 +1,6 @@
 ---
 name: artifact-templates
+type: reference
 description: Exact markdown templates for the four PDS Unificado requirement artifacts. Ensures format consistency across TJCE projects.
 ---
 
@@ -70,7 +71,8 @@ Use these templates exactly. Do not alter headers, column order, or section stru
 - IDs sequenciais: US-001, US-002, US-003
 - Agrupar por area funcional
 - Cada estoria lista suas regras de negocio associadas
-- Criterios de aceitacao sao verificaveis (testavel com sim/nao)
+- Criterios de aceitacao sao verificaveis (testavel com sim/nao), devem cobrir o caminho feliz e pelo menos um caso excepcional
+- Minimo 2, maximo 7 criterios por estoria — se precisar de mais, a estoria deve ser dividida
 
 ---
 
@@ -114,3 +116,21 @@ Use these templates exactly. Do not alter headers, column order, or section stru
 - O conjunto completo de mensagens DEVE conter pelo menos um exemplo de cada tipo
 - Mensagens de erro devem ser claras sobre o que deu errado e o que o usuario pode fazer
 - Mensagens de confirmacao usam tom neutro: "Deseja confirmar {acao}?"
+
+---
+
+## 5. Matriz de Rastreabilidade (`traceability-matrix.md`)
+
+```markdown
+# Matriz de Rastreabilidade — {Nome do Sistema}
+
+| US | Titulo | RNs Vinculadas | MSGs Vinculadas | Cobertura |
+|----|--------|----------------|-----------------|-----------|
+| US-001 | {Titulo da estoria} | RN-001, RN-002 | MSG-001, MSG-002, MSG-003 | Completa |
+| US-002 | {Titulo da estoria} | RN-003 | MSG-004 | Completa |
+```
+
+**Convencoes:**
+- Uma linha por User Story
+- Coluna Cobertura: "Completa" se todas as RNs tem MSGs vinculadas, "Parcial" caso contrario
+- Serve como visao consolidada para revisao com stakeholders
