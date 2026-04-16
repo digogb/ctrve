@@ -22,32 +22,33 @@ Before executing, verify that BUILD artifacts are in place:
 
 - Test cases exist at `{output_folder}/tests/test-cases.md` OR test files exist in the codebase
 - If neither exists, inform the user that BUILD should run first, but do not block — the user may have tests from other sources
+- **RN traceability advisory:** If `{output_folder}/requirements/business-rules.md` is not available, warn the user that defect-to-RN traceability in the cycle report will be incomplete
 
 ## Test Execution
 
 **If Bash tool is available:**
 
-Run the test suites and capture output:
+Run the test suites and capture output (backend and frontend are independent — run in parallel when both exist):
 
 ```bash
-# Backend
-cd {project-root}/backend && python3 -m pytest -v --tb=short --cov --cov-report=term-missing 2>&1
-
-# Frontend
-cd {project-root}/frontend && npx jest --verbose --coverage 2>&1
+# Run both in parallel
+cd {project-root}/backend && python3 -m pytest -v --tb=short --cov --cov-report=term-missing 2>&1 > /tmp/verify-backend.txt &
+cd {project-root}/frontend && npx jest --verbose --coverage 2>&1 > /tmp/verify-frontend.txt &
+wait
 ```
 
 Then parse coverage:
 
 ```bash
-python3 scripts/parse-coverage.py <coverage-output> --threshold 80
+python3 scripts/parse-coverage.py /tmp/verify-backend.txt --threshold 80
+python3 scripts/parse-coverage.py /tmp/verify-frontend.txt --threshold 80
 ```
 
 **If Bash tool is NOT available:**
 
 Provide commands for the user to execute. Analyze pasted output.
 
-**Critical:** Report only real results from actual test execution. Never fabricate test outcomes, coverage numbers, or defect counts.
+**Progression gate:** Do not advance to Defect Classification until you have real test output — either from Bash execution above or pasted by the user. If no output is available, stop and request it. Never fabricate test outcomes, coverage numbers, or defect counts.
 
 ## Defect Classification — Esteira TJCE
 
@@ -80,6 +81,10 @@ Each execution produces a numbered cycle report at `{output_folder}/reports/test
   - **GO with caveats** if: zero Alta, Media items have workarounds documented, coverage ≥80%
   - **NO-GO** if: any Alta, or coverage <80%
 
+## Regression Scope
+
+When a cycle contains defects marked as **corrigido**, list their linked test cases as regression candidates for the next cycle. Include a "Regression Candidates" section in the cycle report with: defect ID, original cycle, linked CT IDs, and recommended re-execution scope. This ensures fixes are verified and regressions are caught.
+
 ## Consolidated Reporting
 
 After documenting the cycle, update or create `{output_folder}/reports/test-plan.md` with:
@@ -89,7 +94,7 @@ After documenting the cycle, update or create `{output_folder}/reports/test-plan
 - Outstanding defects across cycles
 - Traceability matrix: RN → CT → test result status
 
-Write to `{output_folder}/tests/test-plan.md`.
+Write to `{output_folder}/reports/test-plan.md`.
 
 ## Headless Mode
 

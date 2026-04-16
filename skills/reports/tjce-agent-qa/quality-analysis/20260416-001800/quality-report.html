@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BMad Method · Quality Analysis: tjce-agent-qa</title>
+<style>
+:root {
+  --bg: #0d1117; --surface: #161b22; --surface2: #21262d; --border: #30363d;
+  --text: #e6edf3; --text-muted: #8b949e; --text-dim: #6e7681;
+  --critical: #f85149; --high: #f0883e; --medium: #d29922; --low: #58a6ff;
+  --strength: #3fb950; --suggestion: #a371f7;
+  --accent: #58a6ff; --accent-hover: #79c0ff;
+  --brand: #a371f7;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #ffffff; --surface: #f6f8fa; --surface2: #eaeef2; --border: #d0d7de;
+    --text: #1f2328; --text-muted: #656d76; --text-dim: #8c959f;
+    --critical: #cf222e; --high: #bc4c00; --medium: #9a6700; --low: #0969da;
+    --strength: #1a7f37; --suggestion: #8250df;
+    --accent: #0969da; --accent-hover: #0550ae;
+    --brand: #8250df;
+  }
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); line-height: 1.5; padding: 2rem; max-width: 900px; margin: 0 auto; }
+.brand { color: var(--brand); font-size: 0.8rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 0.25rem; }
+h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
+.subtitle { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem; }
+.subtitle a { color: var(--accent); text-decoration: none; }
+.subtitle a:hover { text-decoration: underline; }
+.portrait { background: var(--surface); border: 1px solid var(--border); border-radius: 0.5rem; padding: 1.25rem; margin-bottom: 1.5rem; }
+.portrait-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem; }
+.portrait-icon { font-size: 2rem; }
+.portrait-name { font-size: 1.25rem; font-weight: 700; }
+.portrait-title { font-size: 0.9rem; color: var(--text-muted); }
+.portrait-desc { font-size: 0.95rem; color: var(--text-muted); line-height: 1.6; font-style: italic; }
+.grade { font-size: 2.5rem; font-weight: 700; margin: 0.5rem 0; }
+.grade-Excellent { color: var(--strength); }
+.grade-Good { color: var(--low); }
+.grade-Fair { color: var(--medium); }
+.grade-Poor { color: var(--critical); }
+.narrative { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem; line-height: 1.6; }
+.badge { display: inline-flex; align-items: center; padding: 0.15rem 0.5rem; border-radius: 2rem; font-size: 0.75rem; font-weight: 600; }
+.badge-critical { background: color-mix(in srgb, var(--critical) 20%, transparent); color: var(--critical); }
+.badge-high { background: color-mix(in srgb, var(--high) 20%, transparent); color: var(--high); }
+.badge-medium { background: color-mix(in srgb, var(--medium) 20%, transparent); color: var(--medium); }
+.badge-low { background: color-mix(in srgb, var(--low) 20%, transparent); color: var(--low); }
+.badge-strength { background: color-mix(in srgb, var(--strength) 20%, transparent); color: var(--strength); }
+.badge-good { background: color-mix(in srgb, var(--strength) 15%, transparent); color: var(--strength); }
+.badge-attention { background: color-mix(in srgb, var(--medium) 15%, transparent); color: var(--medium); }
+.section { border: 1px solid var(--border); border-radius: 0.5rem; margin: 0.75rem 0; overflow: hidden; }
+.section-header { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; background: var(--surface); cursor: pointer; user-select: none; }
+.section-header:hover { background: var(--surface2); }
+.section-header .arrow { font-size: 0.7rem; transition: transform 0.15s; color: var(--text-muted); width: 1rem; }
+.section-header.open .arrow { transform: rotate(90deg); }
+.section-header .label { font-weight: 600; flex: 1; }
+.section-header .actions { display: flex; gap: 0.5rem; }
+.section-body { display: none; }
+.section-body.open { display: block; }
+.cap-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 1rem; border-top: 1px solid var(--border); }
+.cap-row:hover { background: var(--surface); }
+.cap-name { font-weight: 600; font-size: 0.9rem; flex: 1; }
+.cap-file { font-family: var(--mono); font-size: 0.75rem; color: var(--text-dim); }
+.cap-findings { display: none; padding: 0.5rem 1rem 0.5rem 2rem; border-top: 1px solid var(--border); background: var(--bg); }
+.cap-findings.open { display: block; }
+.cap-finding { font-size: 0.85rem; padding: 0.25rem 0; color: var(--text-muted); }
+.item { padding: 0.75rem 1rem; border-top: 1px solid var(--border); }
+.item:hover { background: var(--surface); }
+.item-title { font-weight: 600; font-size: 0.9rem; }
+.item-file { font-family: var(--mono); font-size: 0.75rem; color: var(--text-muted); }
+.item-desc { font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem; }
+.item-action { font-size: 0.85rem; margin-top: 0.25rem; }
+.item-action strong { color: var(--strength); }
+.opp { padding: 1rem; border-top: 1px solid var(--border); }
+.opp-header { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+.opp-name { font-weight: 600; font-size: 1rem; flex: 1; }
+.opp-count { font-size: 0.8rem; color: var(--text-muted); }
+.opp-desc { font-size: 0.9rem; color: var(--text-muted); margin: 0.5rem 0; }
+.opp-impact { font-size: 0.85rem; color: var(--text-dim); font-style: italic; }
+.opp-findings { margin-top: 0.75rem; padding-left: 1rem; border-left: 2px solid var(--border); display: none; }
+.opp-findings.open { display: block; }
+.opp-finding { font-size: 0.85rem; padding: 0.25rem 0; color: var(--text-muted); }
+.opp-finding .source { font-size: 0.75rem; color: var(--text-dim); }
+.btn { background: none; border: 1px solid var(--border); border-radius: 0.25rem; padding: 0.3rem 0.7rem; cursor: pointer; color: var(--text-muted); font-size: 0.8rem; transition: all 0.15s; }
+.btn:hover { border-color: var(--accent); color: var(--accent); }
+.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 600; }
+.btn-primary:hover { background: var(--accent-hover); }
+.strength-item { padding: 0.5rem 1rem; border-top: 1px solid var(--border); }
+.strength-item .title { font-weight: 600; font-size: 0.9rem; color: var(--strength); }
+.strength-item .detail { font-size: 0.85rem; color: var(--text-muted); }
+.analysis-section { padding: 0.75rem 1rem; border-top: 1px solid var(--border); }
+.analysis-section h4 { font-size: 0.9rem; margin-bottom: 0.25rem; }
+.analysis-section p { font-size: 0.85rem; color: var(--text-muted); }
+.analysis-finding { font-size: 0.85rem; padding: 0.25rem 0 0.25rem 1rem; border-left: 2px solid var(--border); margin: 0.25rem 0; color: var(--text-muted); }
+.recs { padding: 0.75rem 1rem; border-top: 1px solid var(--border); }
+.rec { padding: 0.3rem 0; font-size: 0.9rem; }
+.rec-rank { font-weight: 700; color: var(--accent); margin-right: 0.5rem; }
+.rec-resolves { font-size: 0.8rem; color: var(--text-dim); }
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200; align-items: center; justify-content: center; }
+.modal-overlay.visible { display: flex; }
+.modal { background: var(--surface); border: 1px solid var(--border); border-radius: 0.5rem; padding: 1.5rem; width: 90%; max-width: 700px; max-height: 80vh; overflow-y: auto; }
+.modal h3 { margin-bottom: 0.75rem; }
+.modal pre { background: var(--bg); border: 1px solid var(--border); border-radius: 0.375rem; padding: 1rem; font-family: var(--mono); font-size: 0.8rem; white-space: pre-wrap; word-wrap: break-word; max-height: 50vh; overflow-y: auto; }
+.modal-actions { display: flex; gap: 0.75rem; margin-top: 1rem; justify-content: flex-end; }
+</style>
+</head>
+<body>
+
+<div class="brand">BMad Method</div>
+<h1>Quality Analysis: <span id="skill-name"></span></h1>
+<div class="subtitle" id="subtitle"></div>
+
+<div id="portrait"></div>
+<div id="grade-area"></div>
+<div class="narrative" id="narrative"></div>
+
+<div id="capabilities-section"></div>
+<div id="broken-section"></div>
+<div id="opportunities-section"></div>
+<div id="strengths-section"></div>
+<div id="recommendations-section"></div>
+<div id="detailed-section"></div>
+
+<div class="modal-overlay" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <h3 id="modal-title">Generated Prompt</h3>
+    <pre id="modal-content"></pre>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">Close</button>
+      <button class="btn btn-primary" onclick="copyModal()">Copy to Clipboard</button>
+    </div>
+  </div>
+</div>
+
+<script id="report-data" type="application/json">{"meta": {"skill_name": "tjce-agent-qa", "skill_path": "skills/tjce-agent-qa", "report_id": "20260416-001800", "generated_at": "2026-04-16T00:18:00+00:00", "scanner_count": 8, "is_memory_agent": false, "overall_quality": "Good"}, "agent_profile": {"icon": "🔍", "display_name": "Analista de Qualidade TJCE", "title": "QA Senior — Testes, Cobertura e Code Review para Sistemas Judiciais TJCE", "portrait": "A stateless dual-capability QA agent purpose-built for TJCE judicial systems, operating as a senior QA professional who treats every undetected defect as a personal failure. It communicates in formal Portuguese with the directness of a technical expert — reporting findings by severity, exact location, and evidence, never hedging. The agent enforces a non-negotiable 80% coverage floor, demands full RN-to-test traceability, and maintains coherent integration with the upstream tjce-agent-requirements skill."}, "overview_quality": "appropriate", "capabilities": [{"name": "BUILD — Testes e Code Review", "file": "references/build-capability.md", "status": "pass", "finding_count": 3, "findings": [{"severity": "medium", "id": "BC-001", "description": "Coverage gate override path is implicit — 'explicitly overrides' is undefined. The agent could interpret any vague user continuation as an override without requiring a deliberate confirmation."}, {"severity": "medium", "id": "BC-002", "description": "Sequential backend and frontend test execution (pytest then jest) imposes unnecessary latency. Both suites are fully independent and can run in parallel for ~43% wall-clock reduction."}, {"severity": "low", "id": "BC-003", "description": "Stack detection via codebase scan has no fallback when file-read tools are unavailable. The Bash-unavailable path for coverage is correctly handled; stack detection should apply the same pattern."}]}, {"name": "VERIFY — Execucao e Ciclos", "file": "references/verify-capability.md", "status": "warning", "finding_count": 5, "findings": [{"severity": "high", "id": "VC-001", "description": "No progression condition keywords found (prepass confirmed, line 97). The multi-step flow (prerequisites → execution → classification → documentation → reporting) has no explicit gate requiring real test output before advancing. The agent could fabricate results if no output is available."}, {"severity": "medium", "id": "VC-002", "description": "Output path conflict in Consolidated Reporting: prose references {output_folder}/reports/test-plan.md but the write instruction uses {output_folder}/tests/test-plan.md. Artifact placement is non-deterministic across runs."}, {"severity": "low", "id": "VC-003", "description": "No regression scope protocol when defects move from 'corrigido' to closed. VERIFY tracks defect status across cycles but does not specify how to scope a regression pass on fixed defects."}, {"severity": "low", "id": "VC-004", "description": "VERIFY lacks a soft RN traceability advisory when invoked directly without running BUILD first. If business-rules.md is absent, defect-to-RN traceability in the cycle report will be silently incomplete."}, {"severity": "low", "id": "VC-005", "description": "Integrity constraint prose ('Never fabricate test outcomes, coverage numbers, or defect counts') is more emphatic than necessary. The Defect Classification table already enforces evidence-over-opinion structurally."}]}], "strengths": [{"title": "Identity and Persona Engineering", "detail": "The identity section is concrete, domain-specific, and actionable. The 80% coverage anchor is embedded in the persona itself, preventing LLM drift toward softer standards. The before/after communication style contrast ('A funcao X nao tem teste...' vs. 'talvez seria bom considerar...') is the strongest possible style anchor — the LLM receives both target form and anti-pattern."}, {"title": "Zero Prompt Waste", "detail": "Pre-pass scanning detected zero waste patterns, zero back-references, and zero wall-of-text blocks across all three files. Total corpus is ~3,210 tokens — lean for a two-capability agent with domain-specific classification rules and decision gates."}, {"title": "Correct Intelligence Placement", "detail": "parse-coverage.py handles all deterministic regex work. Capability prompts retain classification judgment, go/no-go reasoning, code review analysis, and test case derivation — work that genuinely requires LLM intelligence. The separation is correctly executed throughout."}, {"title": "Prerequisite and Integration Contract", "detail": "The prerequisite check names the exact output artifacts of tjce-agent-requirements and enforces a hard stop with a no-invention rule. Paths match the actual output contract of the upstream skill. BUILD additionally re-reads artifacts at capability start — a good defensive double-check pattern."}, {"title": "Deterministic Go/No-Go Logic", "detail": "VERIFY's three-branch decision (GO / GO with caveats / NO-GO) has exact triggering conditions — no ambiguity about what state produces which outcome. The 'when in doubt, escalate severity' tiebreaker in defect classification is correct for a judicial QA context."}, {"title": "Operational Principles", "detail": "All three principles are domain-specific and would constrain LLM behavior differently from defaults. 'Evidencia sobre opiniao' is operationalized in both capabilities: BUILD mandates file path + line number + code snippet; VERIFY requires reproduction steps + stack trace for every defect."}, {"title": "Coherent End-to-End User Journey", "detail": "The canonical workflow (requirements → BUILD → VERIFY → iterate) is complete and traceable. Headless mode is declared in both SKILL.md and both capability files. The defect lifecycle (novo → corrigido → reaberto) is properly modeled in VERIFY. Headless routing (--headless build / --headless verify) is explicit."}], "themes": [{"id": "T1", "name": "Progression Completeness Gap (VERIFY)", "severity": "high", "scanner_count": 3, "description": "VERIFY's headless and multi-step flow lacks conditional branching keywords and explicit gates between execution phases. The agent could fabricate results if no real test output is available, since the 'Never fabricate' instruction is a constraint, not a gate that pauses execution.", "affected_files": ["references/verify-capability.md"], "scanners": ["structure-capabilities-prepass", "structure-analysis", "prompt-craft-analysis"]}, {"id": "T2", "name": "Output Path Inconsistency (VERIFY)", "severity": "medium", "scanner_count": 3, "description": "A copy-paste error in VERIFY's Consolidated Reporting creates a conflict between reports/test-plan.md (prose) and tests/test-plan.md (write instruction). Three scanners independently identified this same data error, which causes non-deterministic artifact placement.", "affected_files": ["references/verify-capability.md"], "scanners": ["structure-analysis", "agent-cohesion-analysis", "prompt-craft-analysis"]}, {"id": "T3", "name": "Automation Contract Underspecification", "severity": "medium", "scanner_count": 3, "description": "Headless mode is declared but not formally contracted. Exit codes, structured output format, error artifact behavior, and concurrent-run safety are all implicit or absent — limiting CI/CD integration reliability.", "affected_files": ["SKILL.md", "references/build-capability.md", "references/verify-capability.md"], "scanners": ["enhancement-opportunities-analysis", "execution-efficiency-analysis", "script-opportunities-analysis"]}, {"id": "T4", "name": "LLM Performing Deterministic Work", "severity": "medium", "scanner_count": 2, "description": "Six deterministic operations are delegated to the LLM that could be handled by scripts. Most critically, traceability validation is an entirely mental LLM check — introducing hallucination risk on the agent's own stated correctness invariant ('Todo caso de teste vinculado a pelo menos uma RN').", "affected_files": ["references/build-capability.md", "references/verify-capability.md"], "scanners": ["script-opportunities-analysis", "agent-cohesion-analysis"]}, {"id": "T5", "name": "Execution Parallelism Gap", "severity": "medium", "scanner_count": 1, "description": "Backend (pytest) and frontend (jest) test suites are prescribed sequentially in both capability files despite being fully independent. The same serial pattern appears in both BUILD and VERIFY, compounded by sequential parse-coverage.py invocations afterward.", "affected_files": ["references/build-capability.md", "references/verify-capability.md"], "scanners": ["execution-efficiency-analysis"]}], "opportunities": [{"name": "Script Automation Expansion", "finding_count": 6, "findings": [{"id": "OPP-002", "priority": 1, "title": "RN → CT Traceability Validation", "detail": "Implement validate-traceability.py to deterministically cross-reference the RN list against test-cases.md. This is the highest-priority correctness fix — hallucination risk on the agent's own invariant."}, {"id": "OPP-001", "priority": 2, "title": "RN List Extraction", "detail": "Implement extract-rn-list.py to extract RN identifiers from business-rules.md. Prerequisite for OPP-002; also reduces context pressure on test generation."}, {"id": "OPP-004", "priority": 3, "title": "test-cases.md Schema Validation", "detail": "Implement validate-test-cases-schema.py to verify all required columns are present. Catches silent schema drift under context pressure."}, {"id": "OPP-005", "priority": 4, "title": "Test Result Tallying", "detail": "Extend parse-coverage.py with --test-counts mode to extract pass/fail/skip counts deterministically from pytest and Jest output."}, {"id": "OPP-003", "priority": 5, "title": "Test Cycle Number Auto-Increment", "detail": "Implement next-cycle-number.py to handle non-contiguous cycle file sequences reliably. Current LLM scan could produce duplicate or skipped cycle numbers."}, {"id": "OPP-006", "priority": 6, "title": "Prerequisites Artifact Check", "detail": "Implement check-prerequisites.py for machine-verifiable existence checks. Nice-to-have — current LLM behavior is already reliable here."}]}, {"name": "Headless Contract Formalization", "finding_count": 4, "findings": [{"id": "HC-001", "title": "Exit codes not defined", "detail": "GO/NO-GO implies 0/1 but is never stated explicitly. Add formal exit code specification: 0=GO, 1=NO-GO, 2=error/missing prerequisites."}, {"id": "HC-002", "title": "No structured output format", "detail": "Headless summary is prose-only. Add --json flag support mirroring parse-coverage.py for machine-readable CI consumption."}, {"id": "HC-003", "title": "No error artifact spec", "detail": "When any tool invocation fails in headless mode, no structured errors.json is written. CI pipelines need a structured failure artifact beyond exit code."}, {"id": "HC-004", "title": "Override audit trail absent", "detail": "When BUILD headless overrides the coverage gate, no explicit marker in the artifact records that the gate was bypassed."}]}, {"name": "User Journey Friction Points", "finding_count": 4, "findings": [{"id": "UJ-001", "title": "First-Timer dead-end at prerequisite stop", "detail": "Prerequisite stop message does not provide a forward pointer to tjce-agent-requirements. One sentence converts a dead-end into a handoff."}, {"id": "UJ-002", "title": "Coverage override mechanism undefined", "detail": "The 'explicitly overrides' path in BUILD is mentioned but never defined. Users at 79.9% coverage have no clear path to proceed with documented acknowledgment."}, {"id": "UJ-003", "title": "Routing menu lacks decision heuristic", "detail": "BUILD vs VERIFY distinction is not obvious to users who 'already have some tests and want to check coverage.' Plain-language heuristics (3 lines) would eliminate most confusion."}, {"id": "UJ-004", "title": "Python 3.9 compatibility failure in parse-coverage.py", "detail": "dict | None union syntax requires Python 3.10+. The script declares requires-python >=3.9 but crashes at import on Python 3.9. TJCE judicial servers may run older Python distributions."}]}], "recommendations": [{"rank": 1, "action": "Add explicit progression gate to verify-capability.md after Test Execution section", "severity": "high", "effort": "low", "file": "references/verify-capability.md", "detail": "Add: 'After receiving real test output (from Bash or user paste), confirm with the user before advancing to defect classification. Do not proceed if no output is available.' Two-sentence fix that closes the single most significant behavioral risk."}, {"rank": 2, "action": "Fix dict | None Python compatibility in scripts/parse-coverage.py", "severity": "high", "effort": "low", "file": "scripts/parse-coverage.py", "detail": "Add 'from __future__ import annotations' as first import, or replace dict | None with Optional[dict] from typing. Update requires-python to accurately reflect the requirement. Prevents silent failure on Python 3.9."}, {"rank": 3, "action": "Fix output path conflict in verify-capability.md Consolidated Reporting section", "severity": "medium", "effort": "low", "file": "references/verify-capability.md", "detail": "Change the write instruction from {output_folder}/tests/test-plan.md to {output_folder}/reports/test-plan.md, consistent with all other VERIFY output paths and the prose description above."}, {"rank": 4, "action": "Implement scripts/extract-rn-list.py and scripts/validate-traceability.py", "severity": "medium", "effort": "medium", "file": "scripts/", "detail": "Traceability validation is a correctness invariant. Delegating it to LLM mental check introduces hallucination risk on the agent's core principle. A 20-line script handles this with 100% accuracy."}, {"rank": 5, "action": "Parallelize backend and frontend test execution in both capability files", "severity": "medium", "effort": "low", "file": "references/build-capability.md, references/verify-capability.md", "detail": "Use '&' + 'wait' pattern or parallel Bash tool calls. Also batch the two parse-coverage.py invocations. Estimated 43% wall-clock reduction on typical test suites."}, {"rank": 6, "action": "Add Headless Contract section to SKILL.md", "severity": "medium", "effort": "low", "file": "SKILL.md", "detail": "Specify: exit codes (0=GO, 1=NO-GO, 2=error), output file locations, behavior when config files are absent, override audit trail when coverage gate is bypassed in headless mode."}, {"rank": 7, "action": "Define coverage override mechanism with explicit confirmation phrase and audit trail", "severity": "medium", "effort": "low", "file": "references/build-capability.md", "detail": "Replace implicit 'explicitly overrides' with: 'Para prosseguir com cobertura abaixo de 80%, responda com prosseguir mesmo assim. O relatorio sera marcado como BLOQUEADO.' Auditable decision trail."}, {"rank": 8, "action": "Add regression scope section to verify-capability.md", "severity": "medium", "effort": "low", "file": "references/verify-capability.md", "detail": "When defects move from 'corrigido' to closed, list their linked test cases as regression candidates for the next cycle. A QA fundamental currently absent from VERIFY flow."}, {"rank": 9, "action": "Add forward pointer to tjce-agent-requirements in prerequisite stop message", "severity": "low", "effort": "low", "file": "SKILL.md", "detail": "Add: 'Para gerar esses artefatos, utilize a skill tjce-agent-requirements neste mesmo projeto.' Converts a dead-end into a navigable handoff for first-time users."}, {"rank": 10, "action": "Implement scripts/validate-test-cases-schema.py", "severity": "low", "effort": "medium", "file": "scripts/", "detail": "Validate that generated test-cases.md contains all required columns (ID, Titulo, RN, Pre-condicao, Passos, Resultado Esperado, Tipo). Catches silent schema drift under context pressure."}], "detailed_analysis": {"structure": {"score": "pass", "issue_count": 3, "summary": "All expected sections present. Frontmatter complete with correct is_memory_agent: false. Description quality excellent with five action verbs and domain scoping. BUILD capability structurally complete; VERIFY missing progression conditions in headless section (High). Two low-severity: path conflict in VERIFY and missing no-tool fallback for stack detection in BUILD.", "issues": [{"id": "SA-001", "severity": "high", "description": "verify-capability.md: No progression condition keywords in headless mode section (line 97). No conditional branches for partial-state handling during headless execution."}, {"id": "SA-002", "severity": "low", "description": "verify-capability.md: Path conflict — prose references reports/test-plan.md (line 86) but write instruction uses tests/test-plan.md (line 92)."}, {"id": "SA-003", "severity": "low", "description": "build-capability.md: Stack detection via codebase scan has no fallback when file-read tools are unavailable."}]}, "persona": {"score": "strong", "issue_count": 1, "summary": "Identity, communication style, and principles are tightly aligned with both capabilities. The before/after communication contrast and quantitative 80% anchor are exemplary. Evidence-over-opinion principle is operationalized with mandatory finding fields in both capabilities. Minor gap: SKILL.md declares positive acknowledgment behavior but neither capability includes a corresponding step.", "issues": [{"id": "PA-001", "severity": "low", "description": "SKILL.md states persona 'celebrates high coverage and clean code — briefly' but neither capability includes a positive-acknowledgment step."}]}, "cohesion": {"score": "adequate", "issue_count": 8, "summary": "Strong persona-capability alignment. Prerequisite integration contract with tjce-agent-requirements is sound. Three medium-severity gaps: missing regression protocol, missing VERIFY RN traceability advisory, file path bug. Architectural observation: code review step in BUILD is evaluative (not constructive like steps 1-3) and signals it may belong as a third REVIEW capability.", "issues": [{"id": "CO-001", "severity": "medium", "description": "No regression scope protocol in VERIFY for defects marked 'corrigido'."}, {"id": "CO-002", "severity": "medium", "description": "VERIFY lacks soft RN traceability warning when invoked without requirements artifacts."}, {"id": "CO-003", "severity": "medium", "description": "File path bug in VERIFY Consolidated Reporting (tests/ vs reports/)."}, {"id": "CO-004", "severity": "low", "description": "Coverage command (pytest --cov + parse-coverage.py) duplicated identically in both capabilities — maintenance coupling."}, {"id": "CO-005", "severity": "low", "description": "Persona celebration step missing from capability prompts."}, {"id": "CO-006", "severity": "low", "description": "No performance or load testing scope definition — TJCE systems may have SLA requirements."}, {"id": "CO-007", "severity": "low", "description": "No accessibility testing scope definition — TJCE systems serve public users."}, {"id": "CO-008", "severity": "low", "description": "Code review as standalone capability would improve UX and remove 'dirty context' recommendation awkwardness."}]}, "efficiency": {"score": "adequate", "issue_count": 6, "summary": "Automated pre-pass found zero issues (workflow is prose-embedded, not DAG-structured). Manual analysis reveals six efficiency findings. Most impactful: sequential test execution (43% wall-clock reduction available) and double file reads on prerequisites. A structured workflow manifest would enable automated efficiency detection in future scans.", "issues": [{"id": "EF-001", "severity": "high", "description": "Sequential backend and frontend test execution in both BUILD and VERIFY. Suites are fully independent — ~43% wall-clock reduction available via parallelization."}, {"id": "EF-002", "severity": "medium", "description": "Prerequisite existence check in SKILL.md likely causes full file reads; BUILD then re-reads same files. Up to 3 redundant file reads per session."}, {"id": "EF-003", "severity": "medium", "description": "Config always loaded at activation even when prerequisites will fail immediately and no capability will execute."}, {"id": "EF-004", "severity": "medium", "description": "parse-coverage.py invocations are sequential after test suites complete, despite being fully independent."}, {"id": "EF-005", "severity": "low", "description": "Test cycle number scan could be batched with prerequisite artifact checks in a single directory listing."}, {"id": "EF-006", "severity": "low", "description": "Stack context resolved in BUILD Section 2 may be redundantly re-scanned in Section 4 (Code Review)."}]}, "experience": {"score": "good", "issue_count": 5, "summary": "End-to-end journey is coherent and complete. Key friction points for First-Timer (prerequisite stop gives no forward path) and Edge-Case user (override mechanism undefined). Headless completeness estimated at ~65% — declared but not fully contracted. Key bright spots: deterministic go/no-go, full defect lifecycle modeling, and correct Bash-unavailable fallback paths.", "issues": [{"id": "UX-001", "severity": "medium", "description": "Prerequisite stop provides no forward pointer to tjce-agent-requirements — First-Timer dead-end."}, {"id": "UX-002", "severity": "medium", "description": "Coverage override mechanism mentioned but undefined — Edge-Case user blocked without clear path."}, {"id": "UX-003", "severity": "low", "description": "Capability routing menu lacks plain-language decision heuristic for Confused User archetype."}, {"id": "UX-004", "severity": "low", "description": "No progress markers in headless mode — long runs provide no visibility for CI log debugging."}, {"id": "UX-005", "severity": "low", "description": "Requirements drift between cycles goes undetected — Cycle N may silently have zero coverage for new RNs."}]}, "scripts": {"score": "good", "issue_count": 7, "summary": "parse-coverage.py demonstrates correct intelligence placement — deterministic regex work in a tested script with exit codes and JSON output. One compatibility bug (Python 3.9 crash on dict | None syntax). Six deterministic operations remain LLM-delegated that should be scripted, with traceability validation (OPP-002) being the highest-priority correctness risk.", "issues": [{"id": "SC-001", "severity": "high", "description": "parse-coverage.py: dict | None union syntax requires Python 3.10+. Script declares requires-python >=3.9 but crashes at import on Python 3.9 with TypeError."}, {"id": "SC-002", "severity": "medium", "description": "OPP-002: RN → CT traceability validation delegated to LLM — hallucination risk on correctness invariant."}, {"id": "SC-003", "severity": "medium", "description": "OPP-001: RN list extraction from business-rules.md delegated to LLM — deterministic regex work."}, {"id": "SC-004", "severity": "low", "description": "OPP-004: test-cases.md schema validation not performed — silent schema drift possible."}, {"id": "SC-005", "severity": "low", "description": "OPP-005: Pass/fail/skip tallying delegated to LLM — parse-coverage.py already reads the same output stream."}, {"id": "SC-006", "severity": "low", "description": "OPP-003: Cycle number auto-increment via LLM scan vulnerable to non-contiguous file sequences."}, {"id": "SC-007", "severity": "low", "description": "OPP-006: Prerequisite artifact existence check could be scripted for deterministic verification."}]}}, "journeys": [{"archetype": "First-Timer Developer", "summary": "Developer who has never used the QA workflow arrives with code and a vague sense of needing tests. Activates skill, chooses BUILD, hits the prerequisite stop immediately. The stop is correct but provides no forward path.", "friction_points": ["Prerequisite stop message names tjce-agent-requirements but provides no invocation instruction", "BUILD/VERIFY terminology is not self-explanatory without context", "No on-ramp guidance distinguishing 'I need to generate tests' from 'I have tests and want a cycle'"], "bright_spots": ["Prerequisite check fires immediately — no wasted work before the blocker is surfaced", "The no-invention rule prevents LLM from proceeding on hallucinated requirements"]}, {"archetype": "Expert QA Analyst", "summary": "Senior QA analyst who knows exactly what they want. Invokes --headless verify to run a formal cycle and get a structured go/no-go with evidence for a CI pipeline.", "friction_points": ["Exit codes not formally defined — automation must parse prose to determine GO/NO-GO", "No JSON output mode for machine-readable headless summary", "Cycle number collision possible in concurrent pipeline runs"], "bright_spots": ["Headless routing works correctly — --headless verify routes directly without menu", "Go/No-Go decision is deterministic with exact triggering conditions", "Defect lifecycle (novo/reaberto/corrigido) is fully modeled for multi-cycle tracking"]}, {"archetype": "Edge-Case Developer (79.9% coverage)", "summary": "Developer whose coverage is just below the threshold. Coverage gate blocks. The agent mentions an override is possible but provides no mechanism for how to invoke it.", "friction_points": ["Override mechanism is mentioned but never defined — user must guess what to type", "No audit trail when coverage gate is bypassed — override decision is invisible in artifacts", "The 'blocking finding' written in headless mode does not specify override evidence fields"], "bright_spots": ["Coverage gate is correctly placed and will reliably block below 80%", "The gate is bypassed in headless mode with explicit artifact marking — correct automation behavior"]}, {"archetype": "Automator / DevOps Engineer", "summary": "DevOps engineer wiring the QA skill into a nightly CI pipeline. Expects deterministic, repeatable, zero-interaction runs with machine-parseable output.", "friction_points": ["No formal headless contract (exit codes, output paths, error artifacts)", "No structured JSON output mode", "Python 3.9 compatibility failure in parse-coverage.py breaks hostile environments", "No spec for behavior when _bmad/config.yaml is absent in headless mode"], "bright_spots": ["Both capabilities declare --headless / -H and route correctly", "All output paths are template-variable-based and predictable", "parse-coverage.py already supports --json flag for machine-readable coverage data"]}], "autonomous": {"potential": "moderate", "notes": "The agent has declared headless support in both capabilities and CI/CD integration is the intended automation pattern. Current headless completeness is estimated at ~65% — functional for basic automation but missing formal exit codes, structured output, error artifacts, and concurrent-run safety. With the recommended Headless Contract addition and the Python 3.9 fix, autonomous/pipeline use becomes reliable. The stateless architecture is correct for autonomous operation — no memory dependencies, all state derived from filesystem artifacts."}}</script>
+<script>
+const RAW = JSON.parse(document.getElementById('report-data').textContent);
+const DATA = normalize(RAW);
+
+function normalize(d) {
+  if (d.meta) {
+    d.meta.skill_name = d.meta.skill_name || d.meta.skill || d.meta.name || 'Unknown';
+    d.meta.scanner_count = typeof d.meta.scanner_count === 'number' ? d.meta.scanner_count
+      : Array.isArray(d.meta.scanners_run) ? d.meta.scanners_run.length
+      : d.meta.scanner_count || 0;
+  }
+  d.strengths = (d.strengths || []).map(s =>
+    typeof s === 'string' ? { title: s, detail: '' } : { title: s.title || '', detail: s.detail || '' }
+  );
+  (d.opportunities || []).forEach(o => {
+    o.name = o.name || o.title || '';
+    o.finding_count = o.finding_count || (o.findings || o.findings_resolved || []).length;
+    if (!o.findings && o.findings_resolved) o.findings = [];
+    o.action = o.action || o.fix || '';
+  });
+  (d.broken || []).forEach(b => {
+    b.detail = b.detail || b.description || '';
+    b.action = b.action || b.fix || '';
+  });
+  (d.recommendations || []).forEach((r, i) => {
+    r.action = r.action || r.description || '';
+    r.rank = r.rank || i + 1;
+  });
+  // Fix journeys
+  if (d.detailed_analysis && d.detailed_analysis.experience) {
+    d.detailed_analysis.experience.journeys = (d.detailed_analysis.experience.journeys || []).map(j => ({
+      archetype: j.archetype || j.persona || j.name || 'Unknown',
+      summary: j.summary || j.journey_summary || j.description || j.friction || '',
+      friction_points: j.friction_points || (j.friction ? [j.friction] : []),
+      bright_spots: j.bright_spots || (j.bright ? [j.bright] : [])
+    }));
+  }
+  // Fix capabilities
+  (d.capabilities || []).forEach(c => {
+    c.finding_count = c.finding_count || (c.findings || []).length;
+    c.status = c.status || (c.finding_count > 0 ? 'needs-attention' : 'good');
+  });
+  return d;
+}
+
+function esc(s) {
+  if (!s) return '';
+  const d = document.createElement('div');
+  d.textContent = String(s);
+  return d.innerHTML;
+}
+
+function init() {
+  const m = DATA.meta;
+  document.getElementById('skill-name').textContent = m.skill_name;
+  document.getElementById('subtitle').innerHTML =
+    `${esc(m.skill_path)} &bull; ${m.timestamp ? m.timestamp.split('T')[0] : ''} &bull; ${m.scanner_count || 0} scanners &bull; <a href="quality-report.md">Full Report &nearr;</a>`;
+
+  renderPortrait();
+  document.getElementById('grade-area').innerHTML = `<div class="grade grade-${DATA.grade}">${esc(DATA.grade)}</div>`;
+  document.getElementById('narrative').textContent = DATA.narrative || '';
+
+  renderCapabilities();
+  renderBroken();
+  renderOpportunities();
+  renderStrengths();
+  renderRecommendations();
+  renderDetailed();
+}
+
+function renderPortrait() {
+  const p = DATA.agent_profile;
+  if (!p) return;
+  let html = `<div class="portrait"><div class="portrait-header">`;
+  if (p.icon) html += `<span class="portrait-icon">${esc(p.icon)}</span>`;
+  html += `<div><div class="portrait-name">${esc(p.display_name)}</div>`;
+  if (p.title) html += `<div class="portrait-title">${esc(p.title)}</div>`;
+  html += `</div></div>`;
+  if (p.portrait) html += `<div class="portrait-desc">${esc(p.portrait)}</div>`;
+  html += `</div>`;
+  document.getElementById('portrait').innerHTML = html;
+}
+
+function renderCapabilities() {
+  const caps = DATA.capabilities || [];
+  if (!caps.length) return;
+  const good = caps.filter(c => c.status === 'good').length;
+  const attn = caps.length - good;
+  let summary = `${caps.length} capabilities`;
+  if (attn > 0) summary += ` \u00b7 ${attn} need attention`;
+
+  let html = `<div class="section"><div class="section-header open" onclick="toggleSection(this)">`;
+  html += `<span class="arrow">&#9654;</span><span class="label">Capabilities (${summary})</span>`;
+  html += `</div><div class="section-body open">`;
+  caps.forEach((cap, idx) => {
+    const statusBadge = cap.status === 'good'
+      ? `<span class="badge badge-good">Good</span>`
+      : `<span class="badge badge-attention">${cap.finding_count} observation${cap.finding_count !== 1 ? 's' : ''}</span>`;
+    const hasFindings = cap.findings && cap.findings.length > 0;
+    html += `<div class="cap-row" ${hasFindings ? `onclick="toggleCapFindings(${idx})" style="cursor:pointer"` : ''}>`;
+    html += `${statusBadge} <span class="cap-name">${esc(cap.name)}</span>`;
+    if (cap.file) html += `<span class="cap-file">${esc(cap.file)}</span>`;
+    html += `</div>`;
+    if (hasFindings) {
+      html += `<div class="cap-findings" id="cap-findings-${idx}">`;
+      cap.findings.forEach(f => {
+        html += `<div class="cap-finding">`;
+        if (f.severity) html += `<span class="badge badge-${f.severity}">${esc(f.severity)}</span> `;
+        html += `${esc(f.title)}`;
+        if (f.source) html += ` <span class="source" style="font-size:0.75rem;color:var(--text-dim)">[${esc(f.source)}]</span>`;
+        html += `</div>`;
+      });
+      html += `</div>`;
+    }
+  });
+  html += `</div></div>`;
+  document.getElementById('capabilities-section').innerHTML = html;
+}
+
+function renderBroken() {
+  const items = DATA.broken || [];
+  if (!items.length) return;
+  let html = `<div class="section"><div class="section-header open" onclick="toggleSection(this)">`;
+  html += `<span class="arrow">&#9654;</span><span class="label">Broken / Critical (${items.length})</span>`;
+  html += `<div class="actions"><button class="btn btn-primary" onclick="event.stopPropagation();showBrokenPrompt()">Fix These</button></div>`;
+  html += `</div><div class="section-body open">`;
+  items.forEach(item => {
+    const loc = item.file ? `${item.file}${item.line ? ':'+item.line : ''}` : '';
+    html += `<div class="item"><span class="badge badge-${item.severity || 'high'}">${esc(item.severity || 'high')}</span> `;
+    if (loc) html += `<span class="item-file">${esc(loc)}</span>`;
+    html += `<div class="item-title">${esc(item.title)}</div>`;
+    if (item.detail) html += `<div class="item-desc">${esc(item.detail)}</div>`;
+    if (item.action) html += `<div class="item-action"><strong>Fix:</strong> ${esc(item.action)}</div>`;
+    html += `</div>`;
+  });
+  html += `</div></div>`;
+  document.getElementById('broken-section').innerHTML = html;
+}
+
+function renderOpportunities() {
+  const opps = DATA.opportunities || [];
+  if (!opps.length) return;
+  let html = `<div class="section"><div class="section-header open" onclick="toggleSection(this)">`;
+  html += `<span class="arrow">&#9654;</span><span class="label">Opportunities (${opps.length})</span>`;
+  html += `</div><div class="section-body open">`;
+  opps.forEach((opp, idx) => {
+    html += `<div class="opp"><div class="opp-header">`;
+    html += `<span class="badge badge-${opp.severity || 'medium'}">${esc(opp.severity || 'medium')}</span>`;
+    html += `<span class="opp-name">${idx+1}. ${esc(opp.name)}</span>`;
+    html += `<span class="opp-count">${opp.finding_count || (opp.findings||[]).length} observations</span>`;
+    html += `<button class="btn" onclick="toggleFindings(${idx})">Details</button>`;
+    html += `<button class="btn btn-primary" onclick="showThemePrompt(${idx})">Fix This</button>`;
+    html += `</div>`;
+    html += `<div class="opp-desc">${esc(opp.description)}</div>`;
+    if (opp.impact) html += `<div class="opp-impact">Impact: ${esc(opp.impact)}</div>`;
+    html += `<div class="opp-findings" id="findings-${idx}">`;
+    (opp.findings || []).forEach(f => {
+      const loc = f.file ? `${f.file}${f.line ? ':'+f.line : ''}` : '';
+      html += `<div class="opp-finding"><strong>${esc(f.title)}</strong>`;
+      if (loc) html += ` <span class="item-file">${esc(loc)}</span>`;
+      if (f.source) html += ` <span class="source">[${esc(f.source)}]</span>`;
+      if (f.detail) html += `<br>${esc(f.detail)}`;
+      html += `</div>`;
+    });
+    html += `</div></div>`;
+  });
+  html += `</div></div>`;
+  document.getElementById('opportunities-section').innerHTML = html;
+}
+
+function renderStrengths() {
+  const items = DATA.strengths || [];
+  if (!items.length) return;
+  let html = `<div class="section"><div class="section-header" onclick="toggleSection(this)">`;
+  html += `<span class="arrow">&#9654;</span><span class="label">Strengths (${items.length})</span>`;
+  html += `</div><div class="section-body">`;
+  items.forEach(s => {
+    html += `<div class="strength-item"><div class="title">${esc(s.title)}</div>`;
+    if (s.detail) html += `<div class="detail">${esc(s.detail)}</div>`;
+    html += `</div>`;
+  });
+  html += `</div></div>`;
+  document.getElementById('strengths-section').innerHTML = html;
+}
+
+function renderRecommendations() {
+  const recs = DATA.recommendations || [];
+  if (!recs.length) return;
+  let html = `<div class="section"><div class="section-header open" onclick="toggleSection(this)">`;
+  html += `<span class="arrow">&#9654;</span><span class="label">Recommendations</span>`;
+  html += `</div><div class="section-body open"><div class="recs">`;
+  recs.forEach(r => {
+    html += `<div class="rec"><span class="rec-rank">#${r.rank}</span>${esc(r.action)}`;
+    if (r.resolves) html += ` <span class="rec-resolves">(resolves ${r.resolves} observations)</span>`;
+    html += `</div>`;
+  });
+  html += `</div></div></div>`;
+  document.getElementById('recommendations-section').innerHTML = html;
+}
+
+function renderDetailed() {
+  const da = DATA.detailed_analysis;
+  if (!da) return;
+  const dims = [
+    ['structure', 'Structure & Capabilities'],
+    ['persona', 'Persona & Voice'],
+    ['cohesion', 'Identity Cohesion'],
+    ['efficiency', 'Execution Efficiency'],
+    ['experience', 'Conversation Experience'],
+    ['scripts', 'Script Opportunities']
+  ];
+  let html = `<div class="section"><div class="section-header" onclick="toggleSection(this)">`;
+  html += `<span class="arrow">&#9654;</span><span class="label">Detailed Analysis</span>`;
+  html += `</div><div class="section-body">`;
+  dims.forEach(([key, label]) => {
+    const dim = da[key];
+    if (!dim) return;
+    html += `<div class="analysis-section"><h4>${label}</h4>`;
+    if (dim.assessment) html += `<p>${esc(dim.assessment)}</p>`;
+    if (dim.dimensions) {
+      html += `<table style="width:100%;font-size:0.85rem;margin:0.5rem 0;border-collapse:collapse;">`;
+      html += `<tr><th style="text-align:left;padding:0.3rem;border-bottom:1px solid var(--border)">Dimension</th><th style="text-align:left;padding:0.3rem;border-bottom:1px solid var(--border)">Score</th><th style="text-align:left;padding:0.3rem;border-bottom:1px solid var(--border)">Notes</th></tr>`;
+      Object.entries(dim.dimensions).forEach(([d, v]) => {
+        if (v && typeof v === 'object') {
+          html += `<tr><td style="padding:0.3rem;border-bottom:1px solid var(--border)">${esc(d.replace(/_/g,' '))}</td><td style="padding:0.3rem;border-bottom:1px solid var(--border)">${esc(v.score||'')}</td><td style="padding:0.3rem;border-bottom:1px solid var(--border)">${esc(v.notes||'')}</td></tr>`;
+        }
+      });
+      html += `</table>`;
+    }
+    if (dim.journeys && dim.journeys.length) {
+      dim.journeys.forEach(j => {
+        html += `<div style="margin:0.5rem 0"><strong>${esc(j.archetype)}</strong>: ${esc(j.summary || j.journey_summary || '')}`;
+        if (j.friction_points && j.friction_points.length) {
+          html += `<ul style="color:var(--high);font-size:0.85rem;padding-left:1.25rem">`;
+          j.friction_points.forEach(fp => { html += `<li>${esc(fp)}</li>`; });
+          html += `</ul>`;
+        }
+        html += `</div>`;
+      });
+    }
+    if (dim.autonomous) {
+      const a = dim.autonomous;
+      html += `<p><strong>Headless Potential:</strong> ${esc(a.potential||'')}`;
+      if (a.notes) html += ` \u2014 ${esc(a.notes)}`;
+      html += `</p>`;
+    }
+    (dim.findings || []).forEach(f => {
+      const loc = f.file ? `${f.file}${f.line ? ':'+f.line : ''}` : '';
+      html += `<div class="analysis-finding">`;
+      if (f.severity) html += `<span class="badge badge-${f.severity}">${esc(f.severity)}</span> `;
+      html += `${esc(f.title)}`;
+      if (loc) html += ` <span class="item-file">${esc(loc)}</span>`;
+      html += `</div>`;
+    });
+    html += `</div>`;
+  });
+  html += `</div></div>`;
+  document.getElementById('detailed-section').innerHTML = html;
+}
+
+function toggleSection(el) { el.classList.toggle('open'); el.nextElementSibling.classList.toggle('open'); }
+function toggleFindings(idx) { document.getElementById('findings-'+idx).classList.toggle('open'); }
+function toggleCapFindings(idx) { document.getElementById('cap-findings-'+idx).classList.toggle('open'); }
+
+function showThemePrompt(idx) {
+  const opp = DATA.opportunities[idx];
+  if (!opp) return;
+  let prompt = `## Task: ${opp.name}\nAgent path: ${DATA.meta.skill_path}\n\n### Problem\n${opp.description}\n\n### Fix\n${opp.action}\n\n`;
+  if (opp.findings && opp.findings.length) {
+    prompt += `### Specific observations to address:\n\n`;
+    opp.findings.forEach((f, i) => {
+      const loc = f.file ? (f.line ? `${f.file}:${f.line}` : f.file) : '';
+      prompt += `${i+1}. **${f.title}**`;
+      if (loc) prompt += ` (${loc})`;
+      if (f.detail) prompt += `\n   ${f.detail}`;
+      prompt += `\n`;
+    });
+  }
+  document.getElementById('modal-title').textContent = `Fix: ${opp.name}`;
+  document.getElementById('modal-content').textContent = prompt.trim();
+  document.getElementById('modal').classList.add('visible');
+}
+
+function showBrokenPrompt() {
+  const items = DATA.broken || [];
+  let prompt = `## Task: Fix Critical Issues\nAgent path: ${DATA.meta.skill_path}\n\n`;
+  items.forEach((item, i) => {
+    const loc = item.file ? (item.line ? `${item.file}:${item.line}` : item.file) : '';
+    prompt += `${i+1}. **[${(item.severity||'high').toUpperCase()}] ${item.title}**\n`;
+    if (loc) prompt += `   File: ${loc}\n`;
+    if (item.detail) prompt += `   Context: ${item.detail}\n`;
+    if (item.action) prompt += `   Fix: ${item.action}\n\n`;
+  });
+  document.getElementById('modal-title').textContent = 'Fix Critical Issues';
+  document.getElementById('modal-content').textContent = prompt.trim();
+  document.getElementById('modal').classList.add('visible');
+}
+
+function closeModal() { document.getElementById('modal').classList.remove('visible'); }
+function copyModal() {
+  navigator.clipboard.writeText(document.getElementById('modal-content').textContent).then(() => {
+    const btn = document.querySelector('.modal .btn-primary');
+    btn.textContent = 'Copied!';
+    setTimeout(() => { btn.textContent = 'Copy to Clipboard'; }, 1500);
+  });
+}
+
+init();
+</script>
+</body>
+</html>

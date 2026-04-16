@@ -36,7 +36,13 @@ Derive test cases from Business Rules. Each test case must include:
 | Resultado Esperado | O que o sistema deve fazer |
 | Tipo | unitario / integracao / e2e |
 
-**Traceability constraint:** Every RN in `business-rules.md` must have at least one test case. After generating, verify this cross-reference — if any RN is uncovered, add test cases before proceeding.
+**Traceability constraint:** Every RN in `business-rules.md` must have at least one test case. After generating, run the traceability validator:
+
+```bash
+python3 scripts/validate-traceability.py {output_folder}/requirements/business-rules.md {output_folder}/tests/test-cases.md
+```
+
+If any RN is uncovered, add test cases before proceeding.
 
 Write test cases to `{output_folder}/tests/test-cases.md`.
 
@@ -55,20 +61,20 @@ Each test function should reference its test case ID in a comment or docstring f
 
 **If Bash tool is available:**
 
-Run coverage tools and parse results:
+Run coverage tools (backend and frontend are independent — run in parallel when both exist):
 
 ```bash
-# Backend
-cd {project-root}/backend && python3 -m pytest --cov --cov-report=term-missing 2>&1
-
-# Frontend
-cd {project-root}/frontend && npx jest --coverage 2>&1
+# Run both in parallel
+cd {project-root}/backend && python3 -m pytest --cov --cov-report=term-missing 2>&1 > /tmp/coverage-backend.txt &
+cd {project-root}/frontend && npx jest --coverage 2>&1 > /tmp/coverage-frontend.txt &
+wait
 ```
 
-Then run the coverage parser:
+Then parse results (also parallelizable):
 
 ```bash
-python3 scripts/parse-coverage.py <coverage-output> --threshold 80
+python3 scripts/parse-coverage.py /tmp/coverage-backend.txt --threshold 80
+python3 scripts/parse-coverage.py /tmp/coverage-frontend.txt --threshold 80
 ```
 
 **If Bash tool is NOT available:**
@@ -76,6 +82,8 @@ python3 scripts/parse-coverage.py <coverage-output> --threshold 80
 Provide the exact commands for the user to run, and ask them to paste the output. Analyze the pasted output the same way.
 
 **Coverage gate:** If total coverage < 80%, declare a blocking finding. Identify the specific modules/functions below threshold, suggest the tests that would close the gap, and do not proceed to code review until coverage is resolved or the user explicitly overrides.
+
+**Override mechanism:** To proceed with coverage below 80%, the user must respond with "prosseguir mesmo assim" (or equivalent explicit override). When overridden, mark the coverage-report.md header with `**BLOQUEIO DE COBERTURA IGNORADO — decisao do usuario em {data}**`. In headless mode, always continue but mark the report.
 
 Write coverage results to `{output_folder}/reports/coverage-report.md`.
 

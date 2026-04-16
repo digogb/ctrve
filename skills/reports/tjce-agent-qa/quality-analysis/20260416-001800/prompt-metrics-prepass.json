@@ -1,0 +1,208 @@
+{
+  "scanner": "prompt-craft-prepass",
+  "script": "prepass-prompt-metrics.py",
+  "version": "1.0.0",
+  "skill_path": "skills/tjce-agent-qa",
+  "timestamp": "2026-04-16T00:17:25.400899+00:00",
+  "status": "info",
+  "is_memory_agent": false,
+  "skill_md_summary": {
+    "line_count": 61,
+    "token_estimate": 904,
+    "overview_lines": 7,
+    "table_count": 1,
+    "table_lines": 4,
+    "fenced_block_count": 0,
+    "fenced_block_lines": 0,
+    "section_count": 7
+  },
+  "prompt_health": {
+    "total_prompts": 2,
+    "prompts_with_config_header": 2,
+    "prompts_with_progression": 1
+  },
+  "aggregate": {
+    "total_files_scanned": 3,
+    "total_token_estimate": 3210,
+    "total_waste_patterns": 0,
+    "total_back_references": 0,
+    "total_suggestive_loading": 0,
+    "total_wall_of_text": 0
+  },
+  "resource_sizes": {},
+  "files": [
+    {
+      "file": "SKILL.md",
+      "line_count": 61,
+      "token_estimate": 904,
+      "sections": [
+        {
+          "level": 2,
+          "title": "Overview",
+          "line": 8
+        },
+        {
+          "level": 2,
+          "title": "Identity",
+          "line": 16
+        },
+        {
+          "level": 2,
+          "title": "Communication Style",
+          "line": 20
+        },
+        {
+          "level": 2,
+          "title": "Principles",
+          "line": 28
+        },
+        {
+          "level": 2,
+          "title": "On Activation",
+          "line": 34
+        },
+        {
+          "level": 3,
+          "title": "Prerequisite Check",
+          "line": 43
+        },
+        {
+          "level": 3,
+          "title": "Capability Routing",
+          "line": 53
+        }
+      ],
+      "table_count": 1,
+      "table_lines": 4,
+      "fenced_block_count": 0,
+      "fenced_block_lines": 0,
+      "waste_patterns": [],
+      "back_references": [],
+      "suggestive_loading": [],
+      "has_config_header": true,
+      "has_progression": false,
+      "wall_of_text": [],
+      "overview_lines": 7,
+      "is_skill_md": true
+    },
+    {
+      "file": "references/build-capability.md",
+      "line_count": 101,
+      "token_estimate": 1220,
+      "sections": [
+        {
+          "level": 2,
+          "title": "What Success Looks Like",
+          "line": 13
+        },
+        {
+          "level": 2,
+          "title": "1. Test Cases Generation",
+          "line": 20
+        },
+        {
+          "level": 2,
+          "title": "2. Unit Test Code Generation",
+          "line": 43
+        },
+        {
+          "level": 2,
+          "title": "3. Coverage Verification",
+          "line": 54
+        },
+        {
+          "level": 2,
+          "title": "4. Code Review",
+          "line": 82
+        },
+        {
+          "level": 2,
+          "title": "Headless Mode",
+          "line": 98
+        }
+      ],
+      "table_count": 1,
+      "table_lines": 9,
+      "fenced_block_count": 2,
+      "fenced_block_lines": 6,
+      "waste_patterns": [],
+      "back_references": [],
+      "suggestive_loading": [],
+      "has_config_header": true,
+      "has_progression": true,
+      "wall_of_text": [],
+      "is_skill_md": false,
+      "prompt_frontmatter": {
+        "has_frontmatter": true,
+        "fields": {
+          "name": "build-capability",
+          "description": "Generate test cases from requirements, produce unit tests, verify coverage, and perform code review.",
+          "menu-code": "B"
+        },
+        "missing_fields": []
+      }
+    },
+    {
+      "file": "references/verify-capability.md",
+      "line_count": 97,
+      "token_estimate": 1086,
+      "sections": [
+        {
+          "level": 2,
+          "title": "What Success Looks Like",
+          "line": 13
+        },
+        {
+          "level": 2,
+          "title": "Prerequisites Validation",
+          "line": 19
+        },
+        {
+          "level": 2,
+          "title": "Test Execution",
+          "line": 26
+        },
+        {
+          "level": 2,
+          "title": "Defect Classification \u2014 Esteira TJCE",
+          "line": 52
+        },
+        {
+          "level": 2,
+          "title": "Test Cycle Documentation",
+          "line": 68
+        },
+        {
+          "level": 2,
+          "title": "Consolidated Reporting",
+          "line": 83
+        },
+        {
+          "level": 2,
+          "title": "Headless Mode",
+          "line": 94
+        }
+      ],
+      "table_count": 1,
+      "table_lines": 5,
+      "fenced_block_count": 2,
+      "fenced_block_lines": 6,
+      "waste_patterns": [],
+      "back_references": [],
+      "suggestive_loading": [],
+      "has_config_header": true,
+      "has_progression": false,
+      "wall_of_text": [],
+      "is_skill_md": false,
+      "prompt_frontmatter": {
+        "has_frontmatter": true,
+        "fields": {
+          "name": "verify-capability",
+          "description": "Execute tests, document test cycles, classify defects by severity, and generate consolidated reports.",
+          "menu-code": "V"
+        },
+        "missing_fields": []
+      }
+    }
+  ]
+}

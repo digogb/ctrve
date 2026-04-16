@@ -1,0 +1,83 @@
+{
+  "scanner": "structure-capabilities-prepass",
+  "script": "prepass-structure-capabilities.py",
+  "version": "1.0.0",
+  "skill_path": "skills/tjce-agent-qa",
+  "timestamp": "2026-04-16T00:17:14.772746+00:00",
+  "status": "warning",
+  "metadata": {
+    "frontmatter": {
+      "name": "tjce-agent-qa",
+      "description": "Analista de Qualidade do TJCE para testes e code review. Use when the user asks to generate tests, run test cycles, review code, check coverage, or classify defects for TJCE projects."
+    },
+    "sections": [
+      {
+        "level": 2,
+        "title": "Overview",
+        "line": 8
+      },
+      {
+        "level": 2,
+        "title": "Identity",
+        "line": 16
+      },
+      {
+        "level": 2,
+        "title": "Communication Style",
+        "line": 20
+      },
+      {
+        "level": 2,
+        "title": "Principles",
+        "line": 28
+      },
+      {
+        "level": 2,
+        "title": "On Activation",
+        "line": 34
+      },
+      {
+        "level": 3,
+        "title": "Prerequisite Check",
+        "line": 43
+      },
+      {
+        "level": 3,
+        "title": "Capability Routing",
+        "line": 53
+      }
+    ],
+    "is_memory_agent": false
+  },
+  "prompt_details": [
+    {
+      "file": "build-capability.md",
+      "has_config_header": true,
+      "has_progression": true
+    },
+    {
+      "file": "verify-capability.md",
+      "has_config_header": true,
+      "has_progression": false
+    }
+  ],
+  "memory_paths": [],
+  "issues": [
+    {
+      "file": "verify-capability.md",
+      "line": 97,
+      "severity": "high",
+      "category": "progression",
+      "issue": "No progression condition keywords found"
+    }
+  ],
+  "summary": {
+    "total_issues": 1,
+    "by_severity": {
+      "critical": 0,
+      "high": 1,
+      "medium": 0,
+      "low": 0
+    }
+  }
+}
