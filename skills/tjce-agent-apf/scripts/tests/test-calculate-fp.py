@@ -10,6 +10,7 @@ _mod = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_mod)
 
 classify = _mod.classify
+classify_batch = _mod.classify_batch
 
 
 # --- ALI (Arquivo Logico Interno) ---
@@ -172,6 +173,28 @@ def test_lowercase_type_accepted():
     r = classify("ali", der=10, rlr=1)
     assert r["type"] == "ALI"
     assert r["pf"] == 7
+
+
+# --- Batch mode ---
+
+def test_classify_batch_preserves_metadata():
+    functions = [
+        {"id": "FD-001", "name": "Processo", "source": "US-003", "type": "ALI", "der": 15, "rlr": 2},
+        {"id": "FT-001", "name": "Cadastrar", "source": "US-003, RN-002", "type": "EE", "der": 8, "alr": 2},
+    ]
+    results = classify_batch(functions)
+    assert len(results) == 2
+    assert results[0]["id"] == "FD-001"
+    assert results[0]["source"] == "US-003"
+    assert results[0]["complexity"] == "Baixa"
+    assert results[0]["pf"] == 7
+    assert results[1]["complexity"] == "Media"
+    assert results[1]["pf"] == 4
+
+
+def test_classify_batch_missing_der():
+    with pytest.raises(ValueError, match="DER"):
+        classify_batch([{"id": "X", "type": "ALI", "rlr": 1}])
 
 
 if __name__ == "__main__":

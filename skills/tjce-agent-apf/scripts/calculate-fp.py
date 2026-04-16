@@ -26,6 +26,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from pathlib import Path
 
 # IFPUG CPM 4.3.1 complexity matrices
 
@@ -164,19 +165,81 @@ def classify(
     return result
 
 
+def classify_batch(functions: list[dict]) -> list[dict]:
+    """Classify multiple functions at once. Each input item needs type + der + rlr/alr.
+
+    Preserves caller-provided id/name/source fields in the output.
+    """
+    results = []
+    for fn in functions:
+        ftype = fn.get("type", "")
+        der = fn.get("der")
+        rlr = fn.get("rlr")
+        alr = fn.get("alr")
+        if der is None:
+            raise ValueError(f"Missing DER for function {fn.get('id', '?')}")
+        classified = classify(ftype, int(der), rlr, alr)
+        # Preserve caller metadata (id, name, source, etc.) alongside classification
+        merged = {**fn, **classified}
+        results.append(merged)
+    return results
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Calculate IFPUG CPM 4.3.1 Function Points"
     )
-    parser.add_argument(
-        "--type", required=True, choices=["ALI", "AIE", "EE", "SE", "CE"],
-        help="Function type",
-    )
-    parser.add_argument("--der", type=int, required=True, help="Data Element Types")
+    parser.add_argument("--type", choices=["ALI", "AIE", "EE", "SE", "CE"],
+                        help="Function type (single-function mode)")
+    parser.add_argument("--der", type=int, help="Data Element Types (single-function mode)")
     parser.add_argument("--rlr", type=int, help="Record Element Types (for ALI/AIE)")
     parser.add_argument("--alr", type=int, help="Referenced File Types (for EE/SE/CE)")
+    parser.add_argument(
+        "--batch", metavar="JSON_PATH",
+        help="Batch mode: JSON file with list of functions to classify in one call",
+    )
     parser.add_argument("--json", action="store_true", help="Output as JSON")
     args = parser.parse_args()
+
+    # Batch mode
+    if args.batch:
+        try:
+            text = Path(args.batch).read_text(encoding="utf-8")
+            functions = json.loads(text)
+            results = classify_batch(functions)
+        except FileNotFoundError as e:
+            print(f"ERROR: {e}", file=sys.stderr)
+            sys.exit(2)
+        except (ValueError, json.JSONDecodeError) as e:
+            if args.json:
+                print(json.dumps({"error": str(e)}))
+            else:
+                print(f"ERROR: {e}", file=sys.stderr)
+            sys.exit(1)
+
+        if args.json:
+            print(json.dumps(results, ensure_ascii=False, indent=2))
+        else:
+            for r in results:
+                ident = r.get("id") or r.get("name") or "?"
+                sizing = f"DER={r['der']}"
+                if "rlr" in r and r["rlr"] is not None:
+                    sizing += f", RLR={r['rlr']}"
+                if "alr" in r and r["alr"] is not None:
+                    sizing += f", ALR={r['alr']}"
+                print(
+                    f"{ident} [{r['type']}] ({sizing}) -> "
+                    f"{r['complexity']} -> {r['pf']} PF"
+                )
+        sys.exit(0)
+
+    # Single-function mode
+    if not args.type or args.der is None:
+        print(
+            "ERROR: provide --type and --der (single mode) or --batch JSON_PATH",
+            file=sys.stderr,
+        )
+        sys.exit(1)
 
     try:
         result = classify(args.type, args.der, args.rlr, args.alr)
