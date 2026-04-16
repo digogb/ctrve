@@ -1,0 +1,77 @@
+{
+  "scanner": "workflow-integrity-prepass",
+  "script": "prepass-workflow-integrity.py",
+  "version": "1.0.0",
+  "skill_path": "skills/tjce-verify",
+  "timestamp": "2026-04-16T18:42:06.619415+00:00",
+  "status": "fail",
+  "metadata": {
+    "frontmatter": {
+      "name": "tjce-verify",
+      "description": "Orquestrador de verificacao em 4 camadas para projetos TJCE. Use when the user asks to 'verificar entrega', 'executar verify', or 'homologar feature' in TJCE projects."
+    },
+    "sections": [
+      {
+        "level": 2,
+        "title": "Overview",
+        "line": 8
+      },
+      {
+        "level": 2,
+        "title": "On Activation",
+        "line": 20
+      },
+      {
+        "level": 2,
+        "title": "Execution Flow",
+        "line": 30
+      },
+      {
+        "level": 2,
+        "title": "Inegociaveis",
+        "line": 42
+      },
+      {
+        "level": 2,
+        "title": "Headless Contract",
+        "line": 50
+      },
+      {
+        "level": 2,
+        "title": "Output Artifacts",
+        "line": 59
+      }
+    ],
+    "workflow_type": "complex"
+  },
+  "stage_summary": {
+    "total_stages": 0,
+    "referenced": [
+      "1-automated.md"
+    ],
+    "actual": [],
+    "missing_stages": [
+      "1-automated.md"
+    ],
+    "orphaned_stages": []
+  },
+  "prompt_details": [],
+  "issues": [
+    {
+      "file": "SKILL.md",
+      "line": 0,
+      "severity": "critical",
+      "category": "missing-stage",
+      "issue": "Referenced stage file does not exist: 1-automated.md"
+    }
+  ],
+  "summary": {
+    "total_issues": 1,
+    "by_severity": {
+      "critical": 1,
+      "high": 0,
+      "medium": 0,
+      "low": 0
+    }
+  }
+}

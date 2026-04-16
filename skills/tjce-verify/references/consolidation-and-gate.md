@@ -3,39 +3,27 @@ name: consolidation-and-gate
 description: Steps 5-6 — Aggregate results from all verification layers into Go/No-Go recommendation and present to PO for human approval.
 ---
 
-**Config note:** Variables `{project-root}`, `{output_folder}`, `{communication_language}`, `{document_output_language}`, and `{coverage_threshold}` are resolved by SKILL.md at activation time.
-
 # Stages 5-6 — Consolidacao e Gate Humano
 
 ## Stage 5 — Consolidacao
 
 Aggregate results from all three verification layers into a single decision report.
 
-**Run the consolidation script:**
+**Run the consolidation script to produce both JSON and markdown:**
 
 ```bash
-python3 scripts/consolidate-results.py {output_folder} --threshold {coverage_threshold}
+python3 scripts/consolidate-results.py {output_folder} --threshold {coverage_threshold} -o {output_folder}/reports/verify-verdict.json
+python3 scripts/consolidate-results.py {output_folder} --threshold {coverage_threshold} --format markdown -o {output_folder}/reports/verify-summary.md
 ```
 
-The script reads:
-- `{output_folder}/reports/verify-layer1-automated.md`
-- `{output_folder}/reports/test-cycle-N.md` (latest cycle)
-- `{output_folder}/reports/security-report.md`
-
-**Output:** `{output_folder}/reports/verify-summary.md` containing:
-- Executive summary with Go/No-Go verdict
-- Per-layer results overview
-- Consolidated findings by severity
-- Coverage metrics and threshold status
-- Risk assessment
-- Specific conditions (if GO COM RESSALVAS)
+The script reads all layer reports, aggregates metrics, and determines the verdict.
 
 **Go/No-Go logic:**
-- **GO:** Zero Alta defects, zero critical security findings, coverage >= threshold
-- **GO COM RESSALVAS:** Zero Alta, zero critical security, coverage >= threshold, but Media defects or high security findings exist — each listed with status
-- **NO-GO:** Any Alta defect, any critical security finding, or coverage below threshold
+- **GO:** Zero Alta defects, zero critical security findings, coverage >= threshold, coverage parseable
+- **GO COM RESSALVAS:** Zero Alta, zero critical security, coverage >= threshold, but Media defects or high security findings exist
+- **NO-GO:** Any Alta defect, any critical security finding, coverage below threshold, or coverage not parseable
 
-Use the script's JSON output to generate the markdown summary. The script provides the verdict and all metrics — the workflow formats the human-readable report.
+**Output:** Both `verify-verdict.json` (for automation) and `verify-summary.md` (for humans) are produced by the script — no LLM formatting needed.
 
 ## Stage 6 — Gate Humano (Parada Obrigatoria)
 
@@ -59,4 +47,6 @@ Present the verify-summary content to the PO clearly and actionably:
 
 ### Headless Mode
 
-Generate `verify-summary.md` with status **"AGUARDANDO HOMOLOGACAO"**. The report contains all data needed for a human to decide asynchronously. Exit with code 2.
+Generate `verify-summary.md` with status **"AGUARDANDO HOMOLOGACAO"**. The report contains all data needed for a human to decide asynchronously. Write `verify-state.json` with stage=6 and status=awaiting_approval. Exit with code 2.
+
+**Stage complete.** Verification pipeline finished.

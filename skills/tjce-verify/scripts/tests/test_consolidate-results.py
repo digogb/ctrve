@@ -123,3 +123,32 @@ def test_combined_alta_and_critical(tmp_path):
     assert result["returncode"] == 1
     assert result["output"]["verdict"] == "NO-GO"
     assert result["output"]["summary"]["critical"] >= 2
+
+
+def test_unparseable_coverage_is_nogo(tmp_path):
+    """Coverage that cannot be parsed from the report must be treated as NO-GO."""
+    reports = tmp_path / "reports"
+    reports.mkdir(parents=True)
+    (reports / "verify-layer1-automated.md").write_text("# Layer 1\n\nNo coverage info here.\n")
+    (reports / "test-cycle-1.md").write_text("# Cycle 1\n\n| ID | CT | Sev | Desc | RN | Status |\n| -- | -- | -- | -- | -- | -- |\n")
+    (reports / "security-report.md").write_text("# Security\n\nNo findings.\n")
+
+    result = run_script(str(tmp_path))
+    assert result["returncode"] == 1
+    assert result["output"]["verdict"] == "NO-GO"
+    assert result["output"]["metrics"]["coverage_percent"] is None
+    assert any("nao pode ser extraida" in f["issue"] for f in result["output"]["findings"])
+
+
+def test_markdown_format(tmp_path):
+    """--format markdown produces a markdown report."""
+    _setup_reports(tmp_path, coverage=90.0)
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT), str(tmp_path), "--format", "markdown"],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0
+    assert "# Verify Summary" in result.stdout
+    assert "GO" in result.stdout
+    assert "90.0%" in result.stdout

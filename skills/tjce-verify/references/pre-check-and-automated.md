@@ -3,13 +3,22 @@ name: pre-check-and-automated
 description: Steps 1-2 — Validate BUILD artifacts exist and execute automated verification layer via tjce-agent-qa.
 ---
 
-**Config note:** Variables `{project-root}`, `{output_folder}`, `{communication_language}`, `{document_output_language}`, and `{coverage_threshold}` are resolved by SKILL.md at activation time.
-
 # Stages 1-2 — Pre-Check e Verificacao Automatizada
 
-## Stage 1 — Pre-Check de Artefatos BUILD
+## Stage 1 — Pre-Check
 
-Validate that the BUILD phase produced all required artifacts before any verification begins.
+### Pre-flight: Runtime Dependencies
+
+Before checking artifacts, verify runtime dependencies are available:
+- `python3` is on PATH (required for all scripts)
+- `{project-root}/backend/` or `{project-root}/frontend/` exist (at least one)
+- `tjce-agent-qa` skill is accessible (will be invoked in Stage 2)
+
+If any dependency is missing, report what's unavailable and halt. Do not proceed with partial infrastructure.
+
+### Artifact Validation
+
+Validate that the BUILD phase produced all required artifacts.
 
 **Run the pre-check script:**
 

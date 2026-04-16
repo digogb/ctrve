@@ -1,0 +1,457 @@
+{
+  "meta": {
+    "skill_name": "tjce-verify",
+    "skill_path": "skills/tjce-verify",
+    "timestamp": "2026-04-16T15:41:45",
+    "scanner_count": 8
+  },
+  "narrative": "tjce-verify is a well-architected 4-layer verification orchestrator with clean separation of concerns, robust headless mode, and mature deterministic scripts. The primary improvement areas are a structured data pipeline gap where the LLM performs ~2,000 tokens of deterministic formatting work, missing error recovery for infrastructure failures, and stage/layer numbering inconsistencies. One latent integrity risk exists: unparseable coverage silently passes the coverage gate.",
+  "grade": "Good",
+  "broken": [
+    {
+      "title": "Coverage null-pass: unparseable coverage silently bypasses the coverage gate",
+      "file": "scripts/consolidate-results.py",
+      "line": 21,
+      "detail": "When extract_coverage() returns None (malformed report), determine_verdict() treats it as not-below-threshold and can return GO. This contradicts the non-negotiable: 'Cobertura abaixo de {coverage_threshold}% = bloqueio automatico.'",
+      "action": "Add guard: if coverage is None, return NO-GO with diagnostic 'Coverage could not be determined. Treated as blocking condition.'",
+      "severity": "high",
+      "source": "L5-enhancement-opportunities"
+    }
+  ],
+  "opportunities": [
+    {
+      "name": "Structured Data Pipeline Gap",
+      "description": "The skill's scripts produce structured JSON, but the LLM performs ~2,000 tokens per run of deterministic JSON-to-markdown formatting. The consolidation script re-parses its own markdown with brittle regex. This root cause also enables the coverage null-pass bug.",
+      "severity": "high",
+      "impact": "Eliminates ~2,000 tokens of deterministic LLM work per run, removes regex brittleness, closes the coverage null-pass integrity risk.",
+      "action": "Create format-security-report.py, extend consolidate-results.py with --format markdown, expose extract_coverage() as CLI subcommand, add None guard to verdict logic.",
+      "finding_count": 8,
+      "findings": [
+        "Security report markdown assembly: LLM merges two JSON outputs into markdown (L6-F4, high, 500-800 tokens)",
+        "Verify summary markdown formatting: LLM templates consolidation JSON into markdown (L6-F5, high, 500-700 tokens)",
+        "Consolidation regex parsing: script re-parses markdown instead of consuming JSON sidecars (L3-F8, medium)",
+        "Coverage re-parsing at Stage 2: same extraction already exists in consolidation script (L6-F1, medium, 200-300 tokens)",
+        "Layer 1 report formatting: structured data formatted as markdown by LLM (L6-F6, medium, 300-500 tokens)",
+        "Coverage null-pass: None coverage silently passes the gate (L4/L5, latent high)",
+        "Config note duplication across references: ~90 tokens of redundant explanation (L2-F01, medium)",
+        "Cycle report completeness validation: 70% deterministic cross-referencing done by LLM (L6-F3, medium)"
+      ]
+    },
+    {
+      "name": "Missing Error Recovery Layer",
+      "description": "The skill does not distinguish between 'verification found problems' and 'a tool crashed.' Script failures, agent unavailability, and infrastructure issues manifest as ambiguous exit code 1 or undefined behavior.",
+      "severity": "medium",
+      "impact": "Prevents false blocking verdicts from tool crashes, provides clear diagnostics for infrastructure issues, enables graceful degradation.",
+      "action": "Validate JSON output presence as primary signal (missing JSON = tool failure). Add pre-flight check for Python, script executability, agent availability. Define degradation tiers.",
+      "finding_count": 5,
+      "findings": [
+        "No error recovery for tjce-agent-qa invocation failure (L4-F2, moderate)",
+        "Security report format contract undocumented -- consolidation regex may silently misparse (L4-F4, moderate)",
+        "Script failure exit code 1 is indistinguishable from 'findings found' exit code 1 (L5, moderate)",
+        "No pre-flight check for runtime dependencies: Python, scripts, agent availability (L5, moderate)",
+        "Stale cycle report pickup: no validation that cycle report matches current run (L5, low)"
+      ]
+    },
+    {
+      "name": "Naming and Numbering Inconsistency",
+      "description": "The skill uses both 'Stage 1-6' and 'Camada 1-4' numbering systems that collide. Stage 4 is security but Camada 4 is human gate. The Output Artifacts table misattributes producers to layers.",
+      "severity": "medium",
+      "impact": "Reduces model confusion during orchestration, makes the skill self-documenting for maintainers, eliminates the unused user_name variable.",
+      "action": "Rename the Camada column to Descricao in the Execution Flow table. Align Output Artifacts table with the 4-layer model. Wire user_name into APROVADO action or remove it from config.",
+      "finding_count": 4,
+      "findings": [
+        "Output Artifacts table layer numbering does not match 4-layer model (L1-F2, medium)",
+        "Stage/Camada numbering collision between SKILL.md table and reference file labels (L2-F06, medium)",
+        "Dual numbering system creates confusion for newcomers (L4-F1, low)",
+        "Unused {user_name} variable declared in On Activation but never consumed (L1-F1, medium)"
+      ]
+    },
+    {
+      "name": "Parallelism Not Leveraged",
+      "description": "Stages 3 (functional) and 4 (security) are independent but run sequentially. Security scripts are documented as parallelizable but invoked without parallel syntax.",
+      "severity": "medium",
+      "impact": "Reduces wall-clock time by 25-40% on typical runs. Saves 15-30s from stage-level parallelism plus 2-5s from script batching.",
+      "action": "Add explicit parallel execution instructions for Stages 3+4. Provide parallel invocation syntax or instruct LLM to issue parallel Bash tool calls for security scripts.",
+      "finding_count": 2,
+      "findings": [
+        "Stages 3 (functional) and 4 (security) are sequential but have no data dependency (L3-F1, medium)",
+        "Security scripts not batched as parallel Bash calls despite being documented as independent (L3-F2, medium)"
+      ]
+    },
+    {
+      "name": "UX and Resilience Gaps",
+      "description": "No first-timer orientation, no state persistence across context compaction, no progress indicators, no JSON verdict for automation, and no resume capability for the human gate.",
+      "severity": "low",
+      "impact": "Reduces entry friction for new users, enables headless-to-interactive handoff, prevents state loss during compaction, provides machine-readable output for CI/CD.",
+      "action": "Add intent-before-ingestion preamble. Introduce verify-state.json for state checkpointing. Surface verify-verdict.json. Add --continue flag for human gate resume.",
+      "finding_count": 5,
+      "findings": [
+        "No orientation for first-time users: no explanation of what will happen or time estimate (L5, medium)",
+        "No state persistence: context compaction can lose which stages passed and their results (L5, medium)",
+        "No progress indicators in headless mode for long-running pipelines (L5, low)",
+        "No JSON verdict artifact for programmatic consumption by automation (L5, medium)",
+        "No --continue flag: headless exits at human gate with no re-entry path (L5, medium)"
+      ]
+    }
+  ],
+  "strengths": [
+    {
+      "title": "Clean orchestrator identity",
+      "detail": "The skill explicitly states it does not execute tests or code review -- it orchestrates. Delegation boundaries to tjce-agent-qa and scripts are enforced consistently with 'do not duplicate' instructions at cognitive risk points."
+    },
+    {
+      "title": "Robust headless contract",
+      "detail": "Three distinct exit codes (0/1/2) with well-defined semantics, explicit behavior at every interaction point, and a clear 'never automate human gate' invariant make CI/CD integration straightforward."
+    },
+    {
+      "title": "Exemplary progressive disclosure",
+      "detail": "SKILL.md is ~843 tokens. Reference files load on-demand as stages progress. Only the relevant stage occupies the context window -- the gold standard for multi-stage orchestration."
+    },
+    {
+      "title": "Compaction-resilient architecture",
+      "detail": "The Inegociaveis section provides a compaction-survival anchor with maximum signal density: bold formatting, one rule per line, critical rules survive aggressive summarization."
+    },
+    {
+      "title": "Mature deterministic scripts",
+      "detail": "All 4 Python scripts follow a uniform contract: JSON output, exit code discipline (0=pass, 1=fail), --output/--verbose flags, and unit tests. Consistent schema across all scripts."
+    },
+    {
+      "title": "Graduated blocking strategy",
+      "detail": "Three distinct blocking points at different boundaries: pre-check (artifacts), coverage gate (metrics), security gate (critical findings). Non-critical findings flow through to consolidation, maximizing information for the PO."
+    },
+    {
+      "title": "Zero waste patterns",
+      "detail": "No instances of defensive or supplicant language (make sure, remember to, you should, please) across all files. Directives are clean and imperative throughout."
+    }
+  ],
+  "detailed_analysis": {
+    "structure": {
+      "status": "Pass",
+      "summary": "All structural requirements met. Frontmatter correct, required sections present, config integration works, headless contract specified, progression signals in all references. Prepass critical was a false positive (references/ routing pattern, not numbered stage files).",
+      "findings_count": 5,
+      "findings": [
+        {
+          "title": "Unused {user_name} variable in On Activation config",
+          "file": "SKILL.md",
+          "line": 24,
+          "severity": "medium",
+          "detail": "Declared but never referenced in any reference prompt. Wire into APROVADO action or remove.",
+          "source": "L1-workflow-integrity"
+        },
+        {
+          "title": "Output Artifacts table layer numbering mismatch",
+          "file": "SKILL.md",
+          "line": 62,
+          "severity": "medium",
+          "detail": "Table lists Camada 1-3 but the 4-layer model maps differently. Camada assignments do not match Overview description.",
+          "source": "L1-workflow-integrity"
+        },
+        {
+          "title": "ASCII-only section title 'Inegociaveis'",
+          "file": "SKILL.md",
+          "line": 42,
+          "severity": "low",
+          "detail": "Missing accent is consistent with project convention. No action required if ASCII-only is intentional.",
+          "source": "L1-workflow-integrity"
+        },
+        {
+          "title": "Unused config variables in functional-and-security.md config note",
+          "file": "references/functional-and-security.md",
+          "line": 6,
+          "severity": "low",
+          "detail": "communication_language and document_output_language listed but not consumed in this reference.",
+          "source": "L1-workflow-integrity"
+        },
+        {
+          "title": "Unused config variables in pre-check-and-automated.md config note",
+          "file": "references/pre-check-and-automated.md",
+          "line": 6,
+          "severity": "low",
+          "detail": "Same unused variables as functional-and-security.md.",
+          "source": "L1-workflow-integrity"
+        }
+      ]
+    },
+    "craft": {
+      "status": "Strong",
+      "summary": "Excellent prompt craft. Total surface is 241 lines across 4 files, well within budget. Progressive disclosure is textbook. Delegation boundaries are marked at cognitive risk points. No waste patterns detected. Two medium findings around redundancy and numbering.",
+      "findings_count": 4,
+      "findings": [
+        {
+          "title": "Config note duplication across all three references",
+          "file": "references/pre-check-and-automated.md",
+          "line": 6,
+          "severity": "medium",
+          "detail": "~90 tokens of redundant config resolution explanation repeated in each reference. Already established by SKILL.md On Activation.",
+          "source": "L2-prompt-craft"
+        },
+        {
+          "title": "Stage/Camada numbering collision",
+          "file": "SKILL.md",
+          "line": 34,
+          "severity": "medium",
+          "detail": "SKILL.md table uses 'Camada' column with descriptions, but references use 'Camada N' as numeric labels. Stage 4 (security) collides with Camada 4 (human gate).",
+          "source": "L2-prompt-craft"
+        },
+        {
+          "title": "Headless exit-code semantics stated in three locations",
+          "file": "SKILL.md",
+          "line": 14,
+          "severity": "low",
+          "detail": "Overview, Inegociaveis, and Headless Contract all mention exit codes. Borderline intentional for compaction survival.",
+          "source": "L2-prompt-craft"
+        },
+        {
+          "title": "Missing terminal progression signal in consolidation-and-gate.md",
+          "file": "references/consolidation-and-gate.md",
+          "line": 0,
+          "severity": "low",
+          "detail": "First two references end with explicit progression signals. The terminal reference lacks a 'Workflow complete' closing signal.",
+          "source": "L2-prompt-craft"
+        }
+      ]
+    },
+    "cohesion": {
+      "status": "Strong",
+      "summary": "Stage flow is coherent, purpose alignment is strong, complexity is appropriate. Strong scores on 4 of 6 dimensions, moderate on Gap & Redundancy (missing error recovery) and External Skill Integration (no graceful degradation when tjce-agent-qa unavailable).",
+      "findings_count": 3,
+      "findings": [
+        {
+          "title": "No error recovery for agent invocation failure",
+          "file": "SKILL.md",
+          "line": 0,
+          "severity": "medium",
+          "detail": "Workflow defines NO-GO behavior but not agent crash/timeout/unavailability behavior. Pre-check validates BUILD artifacts but not agent availability.",
+          "source": "L4-skill-cohesion"
+        },
+        {
+          "title": "Security report format contract undocumented",
+          "file": "references/functional-and-security.md",
+          "line": 44,
+          "severity": "medium",
+          "detail": "LLM assembles security-report.md from JSON, but consolidation script parses it with regex expecting pipe-delimited severity rows. Format deviation causes silent data loss.",
+          "source": "L4-skill-cohesion"
+        },
+        {
+          "title": "Stage numbering vs layer numbering creates mild confusion",
+          "file": "SKILL.md",
+          "line": 34,
+          "severity": "low",
+          "detail": "Dual numbering (stages 1-6 vs camadas 1-4) is internally consistent but newcomers could conflate Stage 4 with Camada 4.",
+          "source": "L4-skill-cohesion"
+        }
+      ]
+    },
+    "efficiency": {
+      "status": "Good",
+      "summary": "Intentionally sequential design with correct fail-fast ordering. Cheap pre-checks run before expensive operations. Lazy reference loading conserves context. Three concrete optimizations could reduce wall-clock time by 25-40%.",
+      "findings_count": 4,
+      "findings": [
+        {
+          "title": "Stages 3 and 4 are sequential but independent",
+          "file": "references/functional-and-security.md",
+          "line": 9,
+          "severity": "medium",
+          "detail": "Functional verification (subagent) and security scanning (scripts) have no data dependency. Parallel execution saves 15-30s.",
+          "source": "L3-execution-efficiency"
+        },
+        {
+          "title": "Security scripts not batched as parallel calls",
+          "file": "references/functional-and-security.md",
+          "line": 35,
+          "severity": "medium",
+          "detail": "Two scripts documented as independent but invoked sequentially. Parallel saves 2-5s.",
+          "source": "L3-execution-efficiency"
+        },
+        {
+          "title": "Consolidation re-parses markdown with regex instead of consuming JSON",
+          "file": "scripts/consolidate-results.py",
+          "line": 20,
+          "severity": "medium",
+          "detail": "Earlier stages produce structured data serialized to markdown then re-parsed. JSON sidecars would eliminate regex brittleness.",
+          "source": "L3-execution-efficiency"
+        },
+        {
+          "title": "Orchestrator re-parses subagent markdown for coverage",
+          "file": "references/pre-check-and-automated.md",
+          "line": 43,
+          "severity": "low",
+          "detail": "Coverage percentage extracted by LLM at Stage 2 when tjce-agent-qa could return structured JSON via --json flag.",
+          "source": "L3-execution-efficiency"
+        }
+      ]
+    },
+    "experience": {
+      "status": "Advisory",
+      "summary": "User journey analysis across 6 archetypes reveals high entry friction for first-timers, no delta awareness on re-runs, no state persistence, and a human gate island where headless cannot hand off to interactive. The coverage null-pass is the most consequential finding.",
+      "findings_count": 6,
+      "findings": [
+        {
+          "title": "Coverage null-pass: unparseable coverage silently bypasses gate",
+          "file": "scripts/consolidate-results.py",
+          "line": 21,
+          "severity": "high",
+          "detail": "extract_coverage() returning None causes determine_verdict() to pass. Directly contradicts the non-negotiable coverage gate.",
+          "source": "L5-enhancement-opportunities"
+        },
+        {
+          "title": "No state persistence across context compaction",
+          "file": "SKILL.md",
+          "line": 0,
+          "severity": "medium",
+          "detail": "Orchestrator state lives in LLM conversation. Context compaction can lose which stages passed and their results. No verify-state.json checkpoint.",
+          "source": "L5-enhancement-opportunities"
+        },
+        {
+          "title": "Script failure indistinguishable from verification findings",
+          "file": "scripts/consolidate-results.py",
+          "line": 0,
+          "severity": "medium",
+          "detail": "All scripts use exit 1 for both 'findings found' and 'script crashed.' Orchestrator cannot distinguish tool failure from verification result.",
+          "source": "L5-enhancement-opportunities"
+        },
+        {
+          "title": "No first-timer orientation or intent confirmation",
+          "file": "SKILL.md",
+          "line": 20,
+          "severity": "medium",
+          "detail": "Pipeline starts immediately on activation. No explanation of what will happen, time estimate, or confirmation of scope. High friction for confused users.",
+          "source": "L5-enhancement-opportunities"
+        },
+        {
+          "title": "Human gate is an island: no headless-to-interactive bridge",
+          "file": "SKILL.md",
+          "line": 50,
+          "severity": "medium",
+          "detail": "Headless generates summary and exits. No --continue flag to resume at human gate. PO decision cannot re-enter the system programmatically.",
+          "source": "L5-enhancement-opportunities"
+        },
+        {
+          "title": "No JSON verdict artifact for automation",
+          "file": "references/consolidation-and-gate.md",
+          "line": 25,
+          "severity": "medium",
+          "detail": "Consolidation produces JSON internally but only surfaces markdown. Automators must parse markdown to extract verdicts.",
+          "source": "L5-enhancement-opportunities"
+        }
+      ]
+    },
+    "scripts": {
+      "status": "Strong foundation",
+      "summary": "Existing 4-script suite is mature with consistent contracts, JSON output, and unit tests. Six opportunities to extract deterministic LLM work into scripts, totaling ~2,000 tokens per run. Two high-severity: security report assembly (500-800 tokens) and verify summary formatting (500-700 tokens).",
+      "findings_count": 6,
+      "findings": [
+        {
+          "title": "Security report markdown assembly done by LLM",
+          "file": "references/functional-and-security.md",
+          "line": 44,
+          "severity": "high",
+          "detail": "LLM merges two JSON scan outputs into markdown. 100% deterministic, 500-800 tokens. Create format-security-report.py.",
+          "source": "L6-script-opportunities"
+        },
+        {
+          "title": "Verify summary markdown formatting done by LLM",
+          "file": "references/consolidation-and-gate.md",
+          "line": 25,
+          "severity": "high",
+          "detail": "LLM templates consolidation JSON into markdown. ~90% deterministic, 500-700 tokens. Extend consolidate-results.py with --format markdown.",
+          "source": "L6-script-opportunities"
+        },
+        {
+          "title": "Coverage parsing from cycle report duplicated by LLM",
+          "file": "references/pre-check-and-automated.md",
+          "line": 43,
+          "severity": "medium",
+          "detail": "LLM extracts coverage at Stage 2; consolidation script does identical extraction at Stage 5. Expose extract_coverage() as CLI.",
+          "source": "L6-script-opportunities"
+        },
+        {
+          "title": "Cycle report completeness validation done by LLM",
+          "file": "references/functional-and-security.md",
+          "line": 24,
+          "severity": "medium",
+          "detail": "Cross-referencing test case IDs is 70% deterministic. Create validate-cycle-completeness.py for structural checks.",
+          "source": "L6-script-opportunities"
+        },
+        {
+          "title": "Layer 1 report formatting done by LLM",
+          "file": "references/pre-check-and-automated.md",
+          "line": 51,
+          "severity": "medium",
+          "detail": "Structured test data formatted as markdown by LLM. ~90% deterministic, 300-500 tokens.",
+          "source": "L6-script-opportunities"
+        },
+        {
+          "title": "Test cycle number discovery done by LLM",
+          "file": "references/functional-and-security.md",
+          "line": 19,
+          "severity": "low",
+          "detail": "Glob, parse numeric suffix, increment. 100% deterministic, 100-150 tokens. Trivial to script.",
+          "source": "L6-script-opportunities"
+        }
+      ]
+    }
+  },
+  "recommendations": [
+    {
+      "rank": 1,
+      "action": "Fix coverage null-pass: add 'if coverage is None: return NO-GO' guard in consolidate-results.py determine_verdict()",
+      "resolves": "Latent integrity risk -- non-negotiable coverage gate can be silently bypassed by malformed input",
+      "effort": "Low"
+    },
+    {
+      "rank": 2,
+      "action": "Create format-security-report.py to merge scan JSON outputs into security-report.md deterministically",
+      "resolves": "Theme 1: highest-value script extraction (500-800 tokens, 100% deterministic) plus security report format contract gap",
+      "effort": "Low"
+    },
+    {
+      "rank": 3,
+      "action": "Extend consolidate-results.py with --format markdown flag to render verify-summary.md from computed data",
+      "resolves": "Theme 1: second-highest script extraction (500-700 tokens, ~90% deterministic) plus JSON verdict artifact gap",
+      "effort": "Low"
+    },
+    {
+      "rank": 4,
+      "action": "Align stage/layer numbering: rename Camada column to Descricao, fix Output Artifacts table, resolve or remove {user_name}",
+      "resolves": "Theme 3: 4 findings across L1, L2, L4 -- eliminates numbering collision confusion",
+      "effort": "Low"
+    },
+    {
+      "rank": 5,
+      "action": "Add error recovery: validate JSON output presence as primary signal, distinguish tool failure from verification findings",
+      "resolves": "Theme 2: agent failure recovery, script crash disambiguation, security format contract",
+      "effort": "Medium"
+    },
+    {
+      "rank": 6,
+      "action": "Parallelize Stages 3+4 execution and provide explicit parallel syntax for security scripts",
+      "resolves": "Theme 4: 2 medium findings, estimated 25-40% wall-clock time reduction",
+      "effort": "Medium"
+    },
+    {
+      "rank": 7,
+      "action": "Remove config note duplication from all three reference files (~90 tokens of redundant explanation)",
+      "resolves": "Theme 1: prompt craft finding, token budget savings",
+      "effort": "Low"
+    },
+    {
+      "rank": 8,
+      "action": "Add pre-flight check (Stage 0) validating Python, script executability, agent availability, output folder writability",
+      "resolves": "Theme 2: runtime dependency validation, clearer error diagnostics",
+      "effort": "Medium"
+    },
+    {
+      "rank": 9,
+      "action": "Introduce verify-state.json for state persistence between reference file loads and across context compaction",
+      "resolves": "Theme 5: compaction resilience, re-run delta awareness, debuggability",
+      "effort": "Medium"
+    },
+    {
+      "rank": 10,
+      "action": "Add intent-before-ingestion preamble and surface verify-verdict.json as first-class headless artifact",
+      "resolves": "Theme 5: first-timer orientation, automation-friendly output",
+      "effort": "Low-Medium"
+    }
+  ]
+}

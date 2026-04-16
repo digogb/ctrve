@@ -3,11 +3,11 @@ name: functional-and-security
 description: Steps 3-4 — Execute functional test cases via tjce-agent-qa and run deterministic security scans.
 ---
 
-**Config note:** Variables `{project-root}`, `{output_folder}`, `{communication_language}`, and `{document_output_language}` are resolved by SKILL.md at activation time.
-
 # Stages 3-4 — Verificacao Funcional e de Seguranca
 
-## Stage 3 — Camada 2: Verificacao Funcional
+**Stages 3 and 4 are independent — execute them in parallel** when subagents or parallel tool calls are available. If not, execute sequentially.
+
+## Stage 3 — Verificacao Funcional
 
 Execute the test cases documented in `{output_folder}/tests/test-cases.md` through a formal test cycle.
 
@@ -17,34 +17,24 @@ Execute the test cases documented in `{output_folder}/tests/test-cases.md` throu
 
 1. Determine the next cycle number by scanning existing `{output_folder}/reports/test-cycle-*.md` files
 2. Invoke `tjce-agent-qa verify` to execute the test cycle
-3. Review the generated `{output_folder}/reports/test-cycle-N.md`
+3. Validate the generated `{output_folder}/reports/test-cycle-N.md` contains: execution results, defect classifications, and Go/No-Go recommendation
 
-**Verify the cycle report contains:**
-- Execution results for all test cases from `test-cases.md`
-- Defects classified by TJCE severity with evidence
-- Go/No-Go recommendation
+**No blocking gate here** — functional findings feed into consolidation.
 
-**No blocking gate here** — functional findings feed into consolidation. Alta defects affect the final Go/No-Go but do not halt the pipeline at this stage. Proceed to Stage 4.
-
-## Stage 4 — Camada 3: Verificacao de Seguranca
+## Stage 4 — Verificacao de Seguranca
 
 Deterministic security scans — script-based, not agent-based.
 
-**Execute both scans** (independent, can run in parallel):
+**Execute both scans in parallel and format the report:**
 
 ```bash
-python3 scripts/scan-secrets.py {project-root}/backend {project-root}/frontend
-python3 scripts/validate-security.py {project-root}/backend {project-root}/frontend
+python3 scripts/scan-secrets.py {project-root}/backend {project-root}/frontend -o /tmp/secrets-result.json &
+python3 scripts/validate-security.py {project-root}/backend {project-root}/frontend -o /tmp/security-result.json &
+wait
+python3 scripts/format-security-report.py /tmp/secrets-result.json /tmp/security-result.json -o {output_folder}/reports/security-report.md
 ```
 
-**scan-secrets.py** — detects hardcoded secrets, tokens, API keys, and credentials. Ignores test fixtures, `.env.example`, and documentation.
-
-**validate-security.py** — checks for OWASP basics: raw SQL (non-parameterized), missing input validation, CORS misconfiguration, insecure auth patterns.
-
-**Output:** Write `{output_folder}/reports/security-report.md` combining findings from both scans:
-- Findings organized by severity (critical/high/medium/low)
-- File path and line number for each finding
-- Category (secrets, injection, CORS, auth, input validation)
+Validate that both scripts produce valid JSON before passing to the formatter. If either script produces no JSON output, treat as infrastructure error per the Error Recovery section in SKILL.md.
 
 **Security gate:**
 - Any **critical** finding: BLOCK. Report vulnerabilities and recommend returning to BUILD. Exit 1 in headless.

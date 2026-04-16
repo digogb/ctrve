@@ -74,7 +74,7 @@ def determine_verdict(
         return "NO-GO"
     if security["critical"] > 0:
         return "NO-GO"
-    if coverage is not None and coverage < threshold:
+    if coverage is None or coverage < threshold:
         return "NO-GO"
     if defects["media"] > 0 or security["high"] > 0:
         return "GO COM RESSALVAS"
@@ -149,7 +149,15 @@ def consolidate(output_folder: Path, threshold: float, verbose: bool = False) ->
             "issue": f"{security['critical']} vulnerabilidade(s) critica(s)",
             "fix": "Remediar todas as vulnerabilidades criticas",
         })
-    if coverage is not None and coverage < threshold:
+    if coverage is None:
+        findings.append({
+            "severity": "critical",
+            "category": "coverage",
+            "location": {"file": str(layer1_path)},
+            "issue": "Cobertura nao pode ser extraida do relatorio da camada 1",
+            "fix": "Verificar formato do relatorio verify-layer1-automated.md",
+        })
+    elif coverage < threshold:
         findings.append({
             "severity": "critical",
             "category": "coverage",
@@ -210,6 +218,51 @@ def consolidate(output_folder: Path, threshold: float, verbose: bool = False) ->
     }
 
 
+def format_markdown(result: dict) -> str:
+    v = result.get("verdict", "ERRO")
+    m = result.get("metrics", {})
+    ts = result.get("timestamp", "")
+    lines = [
+        f"# Verify Summary — {v}",
+        "",
+        f"**Data:** {ts}",
+        f"**Veredito:** {v}",
+        "",
+        "## Metricas",
+        "",
+        f"- **Cobertura:** {m.get('coverage_percent', 'N/A')}% (minimo: {m.get('coverage_threshold', 80)}%)",
+        f"- **Defeitos Alta:** {m.get('defects_alta', 0)}",
+        f"- **Defeitos Media:** {m.get('defects_media', 0)}",
+        f"- **Defeitos Baixa:** {m.get('defects_baixa', 0)}",
+        f"- **Seguranca Critica:** {m.get('security_critical', 0)}",
+        f"- **Seguranca Alta:** {m.get('security_high', 0)}",
+        f"- **Seguranca Media:** {m.get('security_medium', 0)}",
+        f"- **Seguranca Baixa:** {m.get('security_low', 0)}",
+        "",
+    ]
+    findings = result.get("findings", [])
+    if findings:
+        lines.append("## Findings")
+        lines.append("")
+        lines.append("| Severidade | Categoria | Issue | Fix |")
+        lines.append("| ---------- | --------- | ----- | --- |")
+        for f in findings:
+            lines.append(
+                f"| {f['severity']} | {f['category']} | {f['issue']} | {f['fix']} |"
+            )
+        lines.append("")
+
+    reports = result.get("reports_analyzed", {})
+    if reports:
+        lines.append("## Relatorios Analisados")
+        lines.append("")
+        for label, path in reports.items():
+            lines.append(f"- **{label}:** {path}")
+        lines.append("")
+
+    return "\n".join(lines)
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Aggregate verification layer results into a Go/No-Go recommendation.",
@@ -226,9 +279,16 @@ def main():
         help="Minimum coverage percentage (default: 80.0)",
     )
     parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="json",
+        dest="output_format",
+        help="Output format: json (default) or markdown",
+    )
+    parser.add_argument(
         "-o", "--output",
         type=Path,
-        help="Write JSON output to file instead of stdout",
+        help="Write output to file instead of stdout",
     )
     parser.add_argument(
         "--verbose",
@@ -239,7 +299,11 @@ def main():
 
     result = consolidate(args.output_folder, args.threshold, verbose=args.verbose)
 
-    output = json.dumps(result, indent=2, ensure_ascii=False)
+    if args.output_format == "markdown":
+        output = format_markdown(result)
+    else:
+        output = json.dumps(result, indent=2, ensure_ascii=False)
+
     if args.output:
         args.output.write_text(output, encoding="utf-8")
         if args.verbose:
