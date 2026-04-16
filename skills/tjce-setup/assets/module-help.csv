@@ -1,0 +1,11 @@
+module,skill,display-name,menu-code,description,action,args,phase,after,before,required,output-location,outputs
+TJCE - Processo Judicial AI-Native,_meta,,,,,,,,,false,,
+TJCE - Processo Judicial AI-Native,tjce-agent-requirements,Gerar Requisitos,RQ,Gerar user stories / regras de negocio / mensagens / visao do produto.,generate,[-H] [path],2-spec,,tjce-gate-check:validate,true,output_folder,requirements/ artifacts
+TJCE - Processo Judicial AI-Native,tjce-gate-check,Gate Check,GC,Validar gate entre SPEC e BUILD — score 90% minimo.,validate,[-H] [--task-type] [--manual] [--data-model],2-spec,tjce-agent-requirements:generate,tjce-agent-qa:build,true,output_folder,gate-check-verdict.json|gate-check-report.md
+TJCE - Processo Judicial AI-Native,tjce-agent-qa,Gerar Testes,QB,Gerar casos de teste / unit tests / code review (capability BUILD).,build,[-H],4-build,tjce-gate-check:validate,tjce-agent-qa:verify,true,output_folder,test-cases.md|unit tests
+TJCE - Processo Judicial AI-Native,tjce-agent-qa,Verificar QA,QV,Executar testes / classificar defeitos / medir cobertura (capability VERIFY).,verify,[-H],4-build,tjce-agent-qa:build,tjce-verify:verify,true,output_folder,test results|defect report
+TJCE - Processo Judicial AI-Native,tjce-verify,Verificar Entrega,VR,Orquestrar verificacao em 4 camadas — Go/No-Go para homologacao.,verify,[-H],5-verify,tjce-agent-qa:verify,tjce-ship:ship,true,output_folder,verify-verdict.json
+TJCE - Processo Judicial AI-Native,tjce-agent-release,Gerar Release Artifacts,RL,Gerar changelog / deploy checklist / rollback plan / PML. (PENDENTE — skill nao criado),generate,[-H],6-ship,tjce-verify:verify,tjce-ship:ship,true,output_folder,release/ artifacts
+TJCE - Processo Judicial AI-Native,tjce-agent-apf,Contar Pontos de Funcao,AP,Contagem APF segundo IFPUG CPM 4.3.1.,count,[-H] [--tipo] [--tdi] [--json],6-ship,tjce-verify:verify,,false,output_folder,contagem-detalhada.md
+TJCE - Processo Judicial AI-Native,tjce-agent-docs,Gerar Manual,DM,Gerar manual do usuario para servidores e magistrados.,generate,[-H] [--mode] [--json],6-ship,tjce-verify:verify,,false,output_folder,manual-usuario.md
+TJCE - Processo Judicial AI-Native,tjce-ship,Preparar Release,SH,Orquestrar fase SHIP — release / PML / deploy / fechamento.,ship,[-H] [--task-type] [--manual],6-ship,tjce-verify:verify,,true,output_folder,ship-state.json|ship-summary.json
