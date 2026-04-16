@@ -1,0 +1,456 @@
+{
+  "meta": {
+    "skill_name": "tjce-gate-check",
+    "skill_path": "skills/tjce-gate-check",
+    "timestamp": "2026-04-16T19:58:11",
+    "scanner_count": 6
+  },
+  "overall": {
+    "grade": "Good",
+    "narrative": "This is a well-architected gate-check skill with the strongest script coverage in the TJCE skill suite. Four Python scripts handle all deterministic validation while the LLM is correctly limited to quality assessment and report generation. The 8-step pipeline has proper fail-fast semantics, explicit parallelism, and a clean headless/interactive duality. At 1,226 tokens for an 8-step dual-mode workflow, the prompt is lean and purposeful. Three structural issues prevent an Excellent rating: a scoring integrity flaw where a missing LLM quality assessment silently inflates the score, implicit pipeline plumbing that relies on the LLM to infer file routing, and false-positive risk from placeholder patterns in the judicial domain."
+  },
+  "themes": [
+    {
+      "name": "Implicit Contracts and Missing Schemas",
+      "finding_count": 6,
+      "findings": [
+        "quality-findings.json produced by Step 4 is missing from the Output Artifacts table (L1)",
+        "Step 4 instructs LLM to produce findings in 'standard format' without defining the schema (L2)",
+        "SKILL.md invocations lack -o output paths but calculate-gate-score.py expects specific filenames (L4)",
+        "quality-findings.json has no schema contract — LLM may produce different field names (L4)",
+        "verdict.json structure is implicit; no JSON Schema published for automators (L5)",
+        "Orchestration plumbing (running scripts, routing outputs) is deterministic work the LLM infers (L6)"
+      ]
+    },
+    {
+      "name": "Scoring Integrity and Degraded Mode Gaps",
+      "finding_count": 4,
+      "findings": [
+        "Missing quality-findings.json gives false perfect 30/30 on quality layer — silent quality bypass (L5 H1)",
+        "Whitespace-only artifact files pass st_size > 0 completeness check (L5 H3)",
+        "Score normalization uses undocumented magic number with silent deduction capping (L4)",
+        "No degraded mode behavior specified for infrastructure failures (L5)"
+      ]
+    },
+    {
+      "name": "Domain-Specific False Positives",
+      "finding_count": 4,
+      "findings": [
+        "\\bpendente\\b placeholder pattern matches legitimate Portuguese judicial text (L5 H2)",
+        "Duplicate IDs silently collapsed by set-based collection, passing undetected (L5 H4)",
+        "+/-3 line context window for cross-references is hidden assumption producing false negatives (L5 M1)",
+        "Orphan IDs documented as 'warning' but scored as 'medium' severity with actual score impact (L4)"
+      ]
+    },
+    {
+      "name": "Complexity Misclassification and Headless Maturity",
+      "finding_count": 5,
+      "findings": [
+        "Skill has orchestrator-level complexity but is classified as Simple Workflow (L4)",
+        "Headless maturity 7/10 — LLM dependency in Steps 4/6 creates reliability fault line (L5)",
+        "No --continue/resume support unlike sibling skills tjce-verify and tjce-ship (L5)",
+        "Steps 2-3 parallelism instruction could be more prescriptive for batched tool calls (L3)",
+        "verdict.json vs gate-check-verdict.json naming inconsistency in Step 7 (L1)"
+      ]
+    },
+    {
+      "name": "Remaining LLM Token Optimization",
+      "finding_count": 4,
+      "findings": [
+        "Test case structural pre-analysis is deterministic work currently handled by LLM (~200-400 tokens) (L6)",
+        "Report generation is ~70% structured data that a template script could produce (L6)",
+        "Steps 4 and 6 could share LLM context to avoid re-reading and re-reasoning (L3)",
+        "validate-cross-references.py re-reads files; calculate-gate-score.py iterates findings 9 times (L3)"
+      ]
+    }
+  ],
+  "strengths": [
+    {
+      "title": "Excellent LLM/script boundary",
+      "detail": "All deterministic checks offloaded to Python scripts. LLM handles only subjective quality assessment and prose generation — the ideal division of labor."
+    },
+    {
+      "title": "Consistent script interfaces",
+      "detail": "All 4 scripts share the same CLI pattern (positional output_folder, -o, --verbose), return structured JSON with uniform severity taxonomy, and have corresponding test files."
+    },
+    {
+      "title": "Fail-fast architecture",
+      "detail": "Step 1 blocks immediately on missing artifacts with specific remediation guidance naming the fixing agent, preventing wasted LLM computation."
+    },
+    {
+      "title": "Lean token budget",
+      "detail": "1,226 tokens for an 8-step dual-mode workflow with zero waste patterns detected. Tables are load-bearing, not decorative."
+    },
+    {
+      "title": "Clean headless/interactive duality",
+      "detail": "Each step documents both modes inline. Headless Contract consolidates exit codes, output paths, and no-prompt policy."
+    },
+    {
+      "title": "Weighted scoring with non-negotiables",
+      "detail": "40/30/30 split prioritizing completeness is defensible. Inegociaveis section provides unambiguous pass/fail policy with 90% threshold."
+    },
+    {
+      "title": "Actionable remediation",
+      "detail": "Every finding includes a fix field pointing to a specific TJCE agent or action, closing the feedback loop."
+    },
+    {
+      "title": "Explicit parallelism",
+      "detail": "Steps 2-3 correctly identified as independent and marked for parallel execution without over-specifying mechanism."
+    },
+    {
+      "title": "Good config resolution pattern",
+      "detail": "On Activation loads config with explicit defaults following BMad conventions without over-explaining."
+    },
+    {
+      "title": "Path standards compliance",
+      "detail": "Zero findings from path standards scanner — all references use correct patterns."
+    }
+  ],
+  "detailed_analysis": {
+    "structure": {
+      "summary": "Structurally sound with well-organized sequential steps, clear fail-fast semantics, and proper mode separation. All referenced scripts exist with test files.",
+      "findings": [
+        {
+          "severity": "medium",
+          "location": "SKILL.md:55",
+          "issue": "quality-findings.json produced by Step 4 is missing from the Output Artifacts table",
+          "fix": "Add a row to the Output Artifacts table: quality-findings.json / LLM / 4"
+        },
+        {
+          "severity": "medium",
+          "location": "SKILL.md:77",
+          "issue": "Step 7 says 'verdict.json' but all other references use 'gate-check-verdict.json'",
+          "fix": "Change verdict.json on line 77 to gate-check-verdict.json"
+        },
+        {
+          "severity": "low",
+          "location": "SKILL.md:24",
+          "issue": "Config files referenced in On Activation do not exist in repo; no fallback behavior documented",
+          "fix": "Add a sentence stating defaults are applied when neither config file exists"
+        },
+        {
+          "severity": "low",
+          "location": "SKILL.md:34",
+          "issue": "Minor redundancy in parallelism declaration between heading and preamble",
+          "fix": "Optional: remove preamble sentence or the (parallel) tag from heading"
+        }
+      ]
+    },
+    "craft": {
+      "summary": "Strong craft verdict. Demonstrates good Informed Autonomy with lean, purposeful prompt at 1,226 tokens. Zero waste patterns, zero anti-patterns detected.",
+      "findings": [
+        {
+          "severity": "medium",
+          "location": "SKILL.md:55",
+          "issue": "Step 4 instructs LLM to produce quality-findings.json in 'standard format' without defining schema or providing example",
+          "fix": "Add a 3-4 line JSON example showing expected shape {severity, category, location, issue, fix} or reference a schema file"
+        },
+        {
+          "severity": "low",
+          "location": "SKILL.md:67",
+          "issue": "Step 6 report guidance is under-specified for consistent cross-run formatting",
+          "fix": "Optional: add 4-5 lines with expected section headings (Resumo, Completude, Consistencia, Qualidade, Score, Recomendacoes)"
+        },
+        {
+          "severity": "low",
+          "location": "SKILL.md:55",
+          "issue": "quality-findings.json output path ambiguity — not listed in Output Artifacts table",
+          "fix": "Add quality-findings.json to Output Artifacts table with producer LLM and step 4"
+        }
+      ]
+    },
+    "cohesion": {
+      "summary": "Strong purpose alignment with no scope creep. Every script and step serves the gate-check mission. However, complexity has outgrown Simple Workflow classification and implicit pipeline plumbing creates fragility.",
+      "findings": [
+        {
+          "severity": "high",
+          "location": "SKILL.md:38-51",
+          "issue": "Findings file pipeline is implicit — SKILL.md invocations lack -o output paths but calculate-gate-score.py expects specific filenames in reports/",
+          "fix": "Update invocation examples to include explicit -o paths or add a File Contract section"
+        },
+        {
+          "severity": "medium",
+          "location": "SKILL.md (frontmatter)",
+          "issue": "Simple Workflow classification is wrong — skill has 8 steps, 2 modes, parallel steps, human gate with 3-way branching, and multi-agent routing",
+          "fix": "Reclassify as Orchestrator Workflow"
+        },
+        {
+          "severity": "medium",
+          "location": "SKILL.md:93-99",
+          "issue": "Placeholder Inegociaveis says 'falha' implying immediate block but actual behavior is score-based, not immediate",
+          "fix": "Reword to 'Placeholder TODO = score FAIL (via critical finding)'"
+        },
+        {
+          "severity": "medium",
+          "location": "SKILL.md:55",
+          "issue": "quality-findings.json has no schema contract — LLM may produce incompatible field names",
+          "fix": "Define finding schema explicitly in SKILL.md or shared schema file"
+        },
+        {
+          "severity": "low",
+          "location": "scripts/calculate-gate-score.py:80-107",
+          "issue": "Score normalization magic number (divide by 10) with no documented rationale",
+          "fix": "Document normalization rationale; consider making divisor configurable"
+        },
+        {
+          "severity": "low",
+          "location": "SKILL.md:98 + validate-cross-references.py",
+          "issue": "Orphan IDs documented as 'warning' (non-blocking) but scored as 'medium' severity with actual score impact",
+          "fix": "Change orphan-id severity to 'low' or update Inegociaveis to say 'penalidade leve (medium)'"
+        }
+      ]
+    },
+    "efficiency": {
+      "summary": "Well-structured pipeline with correct fail-fast placement, explicit parallelization, and clean dependency DAG. Concrete opportunities to reduce wall-clock time through additional parallelization, batched tool calls, and LLM context reuse.",
+      "findings": [
+        {
+          "severity": "medium",
+          "location": "SKILL.md:54-67",
+          "issue": "Steps 4 and 6 could share LLM context window to avoid re-reading test cases and redundant inference",
+          "fix": "Instruct LLM to retain Step 4 context for Step 6 report generation"
+        },
+        {
+          "severity": "medium",
+          "location": "SKILL.md:55-56",
+          "issue": "Step 4 LLM assessment does not overlap with Step 5 input pre-staging",
+          "fix": "Pre-read Steps 1-3 outputs during Step 4 for immediate Step 5 invocation"
+        },
+        {
+          "severity": "low",
+          "location": "SKILL.md:46-52",
+          "issue": "Steps 2-3 parallelism instruction could be more prescriptive about batched tool calls",
+          "fix": "Add explicit instruction: Invoke both scripts as parallel Bash tool calls in a single response"
+        },
+        {
+          "severity": "low",
+          "location": "scripts/validate-cross-references.py:68-83",
+          "issue": "Script re-reads files and re-splits strings multiple times in inner loops",
+          "fix": "Cache file contents in dict during first pass; pre-compute line splits"
+        },
+        {
+          "severity": "low",
+          "location": "scripts/calculate-gate-score.py:80-107",
+          "issue": "Iterates all_findings 9 times with separate list comprehensions",
+          "fix": "Single-pass classification into bucketed dict"
+        }
+      ]
+    },
+    "experience": {
+      "summary": "Strong facilitative patterns for core journeys (fail-fast with remediation, dual-mode design). Gaps in progress visibility, error explanation, infrastructure resilience, and CI integration maturity.",
+      "journeys": [
+        {
+          "archetype": "First-Timer",
+          "summary": "Natural trigger phrases work well. Fail-fast with agent remediation is excellent. Gaps in orientation, progress indicators, and score effort context.",
+          "friction_points": [
+            "No pre-flight orientation on expected directory structure",
+            "No progress indicators during 8-step flow",
+            "Score display lacks effort gradient context",
+            "Complementary decision taxonomy unexplained"
+          ],
+          "bright_spots": [
+            "SKILL.md frontmatter triggers on natural Portuguese phrases",
+            "Step 1 fail-fast provides agent-name-in-remediation pattern",
+            "Clear path to resolution on failure"
+          ]
+        },
+        {
+          "archetype": "Expert",
+          "summary": "Headless mode is exactly right. Fail-fast avoids wasted time. Missing quiet/summary mode, diff-from-last-run, partial re-run, and auto-remediation.",
+          "friction_points": [
+            "No --quiet/--summary-only mode for fast pass/fail check",
+            "No diff-from-last-run to track improvement",
+            "No partial re-run (--layer) to skip unchanged layers",
+            "No --fix auto-remediation flag"
+          ],
+          "bright_spots": [
+            "--headless with proper exit codes for pre-push checks",
+            "Fail-fast on missing artifacts avoids full pipeline",
+            "Exit code contract integrates cleanly with && chaining"
+          ]
+        },
+        {
+          "archetype": "Confused",
+          "summary": "Findings have fix fields with specific agents. Layer grouping helps. Severity-to-blocking mapping is hidden and orphan ID messages lack explanation.",
+          "friction_points": [
+            "Orphan ID messages lack context on what 'orphan' means",
+            "Severity to blocking/scoring mapping is hidden in Python",
+            "+/-3 line context window produces unexplained false negatives",
+            "Empty section detection misses H4+ headings"
+          ],
+          "bright_spots": [
+            "Every finding has a fix field with specific agent invocation",
+            "Report groups by layer for targeted remediation",
+            "Inegociaveis section is explicit about non-negotiables"
+          ]
+        },
+        {
+          "archetype": "Automator",
+          "summary": "Headless mode works for basic CI. Gaps in schema documentation, required args validation, resume support, and idempotency.",
+          "friction_points": [
+            "No JSON Schema published for verdict.json",
+            "--task-type optional in headless but required by downstream skills",
+            "No --output-dir override for CI artifact directories",
+            "No --continue/resume support",
+            "LLM non-determinism in Steps 4/6 undermines idempotency"
+          ],
+          "bright_spots": [
+            "--headless is a proper CLI contract with exit codes",
+            "JSON output to stdout or file",
+            "No interactive prompts in headless mode",
+            "Complementary decisions via CLI args"
+          ]
+        }
+      ],
+      "headless": {
+        "score": "7/10",
+        "gaps": [
+          "LLM dependency in Steps 4/6 creates reliability fault line for CI",
+          "Two of three output artifacts are non-deterministic",
+          "No structured error output for script crashes vs findings",
+          "No timeout or fallback specified for LLM steps",
+          "Missing resume/checkpoint capability"
+        ]
+      },
+      "autonomous": {
+        "potential": "High for deterministic layers (Steps 1-3, 5). Medium for LLM layers (Steps 4, 6). The skill's architecture is well-suited for autonomous execution but needs explicit degraded-mode behavior and scoring integrity fixes.",
+        "notes": "The two-tier headless model (Tier 1 deterministic-only, Tier 2 full with LLM) would maximize autonomous potential while managing LLM reliability risk."
+      }
+    },
+    "scripts": {
+      "summary": "Strongest script coverage in the TJCE skill suite. Four scripts cover all deterministic operations with consistent JSON contracts, exit codes, and full test coverage. Remaining LLM usage is well-targeted at genuinely subjective tasks.",
+      "existing_scripts": [
+        {
+          "name": "check-artifacts-exist.py",
+          "purpose": "Layer 1: Check required SPEC artifacts exist and are non-empty",
+          "quality": "Excellent",
+          "has_tests": true
+        },
+        {
+          "name": "validate-cross-references.py",
+          "purpose": "Layer 2: Validate cross-references between SPEC artifacts (US, RN, MSG, CT IDs)",
+          "quality": "Excellent",
+          "has_tests": true
+        },
+        {
+          "name": "check-placeholders.py",
+          "purpose": "Layer 3: Detect placeholders, empty sections, format issues",
+          "quality": "Excellent",
+          "has_tests": true
+        },
+        {
+          "name": "calculate-gate-score.py",
+          "purpose": "Weighted gate score calculation with PASS/FAIL verdict",
+          "quality": "Excellent",
+          "has_tests": true
+        }
+      ],
+      "opportunities": [
+        {
+          "name": "Test case structural pre-analysis",
+          "severity": "medium",
+          "tokens_saved": "200-400",
+          "determinism": "100%",
+          "script_name": "pre-analyze-test-cases.py",
+          "description": "Parse CT blocks, validate required sections, produce filtered input for LLM semantic review"
+        },
+        {
+          "name": "Report generation template",
+          "severity": "medium",
+          "tokens_saved": "300-600",
+          "determinism": "70%",
+          "script_name": "generate-report-skeleton.py",
+          "description": "Generate structured report sections from verdict and findings JSON. In headless mode, could replace LLM entirely for Step 6."
+        },
+        {
+          "name": "Pipeline orchestrator",
+          "severity": "low",
+          "tokens_saved": "300-500",
+          "determinism": "100%",
+          "script_name": "run-gate-pipeline.py",
+          "description": "Run Steps 1-3 scripts with proper output routing and flow control in a single invocation"
+        },
+        {
+          "name": "Headless Step 7 clarification",
+          "severity": "low",
+          "tokens_saved": "100-200",
+          "determinism": "100%",
+          "script_name": null,
+          "description": "No new script needed — clarify in SKILL.md that calculate-gate-score.py already handles complementary decisions in headless mode"
+        }
+      ],
+      "total_token_tax": "900-1,700 per invocation (interactive); up to 2,700 in headless"
+    }
+  },
+  "recommendations": [
+    {
+      "rank": 1,
+      "action": "Fix scoring integrity for missing quality layer: when quality-findings.json is absent, set quality layer score to 0 (not 30/30) and add a 'quality layer not evaluated' warning to the verdict",
+      "impact": "critical",
+      "effort": "low",
+      "resolves": ["Theme 2 — Scoring Integrity", "L5 H1"]
+    },
+    {
+      "rank": 2,
+      "action": "Define explicit findings schema: add a JSON example in SKILL.md showing expected shape {severity, category, location, issue, fix} or create scripts/findings-schema.json. Add quality-findings.json to Output Artifacts table.",
+      "impact": "high",
+      "effort": "low",
+      "resolves": ["Theme 1 — Implicit Contracts", "L2 Finding 1", "L4 Finding 4", "L1 Finding 1"]
+    },
+    {
+      "rank": 3,
+      "action": "Fix pendente false positive: replace bare \\bpendente\\b with context-aware patterns that only flag isolation contexts (table cell, standalone line), not embedded sentence usage common in judicial text",
+      "impact": "high",
+      "effort": "low",
+      "resolves": ["Theme 3 — Domain False Positives", "L5 H2"]
+    },
+    {
+      "rank": 4,
+      "action": "Make findings file pipeline explicit: update SKILL.md invocation examples to include -o output paths and add a File Contract subsection. Fix verdict.json to gate-check-verdict.json in Step 7.",
+      "impact": "medium",
+      "effort": "low",
+      "resolves": ["Theme 1 — Implicit Contracts", "L4 Finding 1", "L1 Finding 2"]
+    },
+    {
+      "rank": 5,
+      "action": "Add whitespace-only file detection (strip whitespace, verify length > 50 chars) and duplicate ID detection (track definition counts, flag duplicates as high severity)",
+      "impact": "medium",
+      "effort": "low",
+      "resolves": ["Theme 2 — Scoring Integrity", "Theme 3 — Domain False Positives", "L5 H3", "L5 H4"]
+    },
+    {
+      "rank": 6,
+      "action": "Create scripts/pre-analyze-test-cases.py to parse CT blocks, validate required sections, and produce filtered input for LLM semantic review. Reduces LLM token spend by ~200-400 tokens.",
+      "impact": "medium",
+      "effort": "moderate",
+      "resolves": ["Theme 5 — Token Optimization", "L6 Finding 1"]
+    },
+    {
+      "rank": 7,
+      "action": "Align orphan ID severity with documented semantics: change to 'low' severity or update Inegociaveis text. Reword placeholder 'falha' to 'score FAIL (via critical finding)'.",
+      "impact": "low",
+      "effort": "trivial",
+      "resolves": ["Theme 3 — Domain False Positives", "L4 Finding 6", "L4 Finding 3"]
+    },
+    {
+      "rank": 8,
+      "action": "Create scripts/generate-report-skeleton.py for structured report sections from verdict/findings JSON. Enable fully scripted headless reports without LLM dependency.",
+      "impact": "medium",
+      "effort": "moderate",
+      "resolves": ["Theme 5 — Token Optimization", "Theme 4 — Headless Maturity", "L6 Finding 2"]
+    },
+    {
+      "rank": 9,
+      "action": "Reclassify as Orchestrator Workflow in frontmatter/documentation to reflect actual complexity level (8 steps, 2 modes, parallel steps, human gate, multi-agent routing)",
+      "impact": "low",
+      "effort": "trivial",
+      "resolves": ["Theme 4 — Complexity Misclassification", "L4 Finding 2"]
+    },
+    {
+      "rank": 10,
+      "action": "Enhance headless resilience: specify LLM timeout for Steps 4/6, define degraded-mode behavior, add --continue support, make --task-type required in headless mode. Consider two-tier headless model.",
+      "impact": "medium",
+      "effort": "high",
+      "resolves": ["Theme 4 — Headless Maturity", "L5 Automator gaps", "L5 M6"]
+    }
+  ]
+}

@@ -21,7 +21,7 @@ Executa 4 scripts deterministicos para validacao mecanica e usa o LLM apenas par
 
 ## On Activation
 
-Load available config from `{project-root}/_bmad/config.yaml` and `{project-root}/_bmad/config.user.yaml` if present. Resolve and apply (defaults in parens):
+Load available config from `{project-root}/_bmad/config.yaml` and `{project-root}/_bmad/config.user.yaml` if present. When neither exists, apply defaults directly:
 
 - `{communication_language}` (Portuguese)
 - `{document_output_language}` (Portuguese Brasil)
@@ -36,31 +36,37 @@ All steps are **sequential** except Steps 2-3 which are **independent and parall
 ### Step 1 — Completude de Artefatos (fail-fast)
 
 ```bash
-python3 scripts/check-artifacts-exist.py {output_folder} [--data-model] [--ux]
+python3 scripts/check-artifacts-exist.py {output_folder} -o {output_folder}/reports/artifacts-findings.json [--data-model] [--ux]
 ```
 
 If any required artifact is missing: **BLOCK immediately**. Do not proceed to further validation — report what is missing and which agent can produce it.
 
 ### Steps 2-3 — Consistencia + Placeholders (parallel)
 
-Run in parallel:
+Invoke both scripts as parallel Bash tool calls in a single response:
 
 ```bash
-python3 scripts/validate-cross-references.py {output_folder}
-python3 scripts/check-placeholders.py {output_folder}
+python3 scripts/validate-cross-references.py {output_folder} -o {output_folder}/reports/crossref-findings.json
+python3 scripts/check-placeholders.py {output_folder} -o {output_folder}/reports/placeholder-findings.json
 ```
 
 ### Step 4 — Qualidade Assistida por IA
 
-Read the test cases file (`{output_folder}/tests/test-cases.md`). Assess whether each test case has a clear, verifiable expected result. Produce a `quality-findings.json` in the reports directory with findings in the standard format (severity, category, location, issue, fix).
+Read the test cases file (`{output_folder}/tests/test-cases.md`). Assess whether each test case has a clear, verifiable expected result. Write `{output_folder}/reports/quality-findings.json` with findings following this schema:
+
+```json
+{"findings": [{"severity": "high", "category": "test-quality", "location": {"file": "tests/test-cases.md", "line": 42}, "issue": "CT-003 sem resultado esperado verificavel", "fix": "Adicione resultado esperado mensuravel"}]}
+```
+
+If LLM assessment is unavailable (timeout, rate limit), write `{"findings": []}` and log warning to stderr. The score calculator penalizes missing quality assessment — an empty file is better than no file.
 
 ### Step 5 — Calcular Score
 
 ```bash
-python3 scripts/calculate-gate-score.py {output_folder}
+python3 scripts/calculate-gate-score.py {output_folder} -o {output_folder}/reports/gate-check-verdict.json [--task-type nova_funcionalidade|mudanca|correcao_garantia] [--manual] [--data-model] [--apf-estimate <valor>]
 ```
 
-The script reads all findings from Steps 1-4 and produces `gate-check-verdict.json` with the weighted score.
+The script reads all findings from Steps 1-4 and produces the weighted score. If `quality-findings.json` is absent, the quality layer scores 0/30 (not 30/30).
 
 ### Step 6 — Gerar Relatorio
 
@@ -74,7 +80,7 @@ Generate `{output_folder}/reports/gate-check-report.md` from the verdict data. I
 - Modelo de dados se aplica? Sim / Nao
 - Contagem APF estimada (valor aproximado)
 
-Record decisions in verdict.json.
+Record decisions in gate-check-verdict.json.
 
 **Headless mode:** Read from CLI args. Missing values use defaults (task_type inferred or required, manual=false, data_model=false, apf_estimate=null).
 
@@ -94,8 +100,8 @@ Present the gate-check-report to the PO/Tech Lead.
 
 - **Score < 90% = bloqueio automatico** — sem excecao
 - **Artefato obrigatorio faltando = falha imediata** — nao espera calcular score
-- **Placeholder TODO em qualquer artefato = falha**
-- **IDs orfaos = warning** — reporta mas nao bloqueia
+- **Placeholder TODO em qualquer artefato = score FAIL** (via critical finding no scoring)
+- **IDs orfaos = penalidade leve (low)** — reporta mas nao bloqueia
 - **Gate humano nunca automatizado** (modo interativo)
 
 ## Headless Contract
@@ -112,5 +118,9 @@ All written to `{output_folder}/reports/`:
 
 | Artifact | Produced By | Step |
 | -------- | ----------- | ---- |
+| `artifacts-findings.json` | check-artifacts-exist.py | 1 |
+| `crossref-findings.json` | validate-cross-references.py | 2 |
+| `placeholder-findings.json` | check-placeholders.py | 3 |
+| `quality-findings.json` | LLM | 4 |
 | `gate-check-verdict.json` | calculate-gate-score.py | 5 |
 | `gate-check-report.md` | LLM | 6 |

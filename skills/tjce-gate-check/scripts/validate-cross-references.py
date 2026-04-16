@@ -44,6 +44,7 @@ def validate_cross_references(output_folder: Path) -> dict:
     findings = []
 
     defined_ids: dict[str, set[str]] = defaultdict(set)
+    definition_counts: dict[str, int] = defaultdict(int)
     referenced_ids: dict[str, dict[str, set[str]]] = defaultdict(lambda: defaultdict(set))
 
     for artifact_key, rel_path in ARTIFACT_FILES.items():
@@ -59,6 +60,7 @@ def validate_cross_references(output_folder: Path) -> dict:
                 full_id = f"{prefix}-{match.group(1)}"
                 if prefix == expected_prefix:
                     defined_ids[prefix].add(full_id)
+                    definition_counts[full_id] += 1
                 referenced_ids[artifact_key][prefix].add(full_id)
 
     for source_prefix, target_prefix, source_file, rule in REQUIRED_LINKS:
@@ -93,6 +95,18 @@ def validate_cross_references(output_folder: Path) -> dict:
                     "fix": f"Adicione referencia a {target_prefix} no contexto de {sid}",
                 })
 
+    for full_id, count in sorted(definition_counts.items()):
+        if count > 1:
+            prefix = full_id.split("-")[0]
+            source_file = [k for k, v in EXPECTED_DEFINITIONS.items() if v == prefix][0]
+            findings.append({
+                "severity": "high",
+                "category": "duplicate-id",
+                "location": {"file": str(output_folder / ARTIFACT_FILES[source_file])},
+                "issue": f"ID duplicado: {full_id} definido {count} vezes",
+                "fix": f"Remova definicoes duplicadas de {full_id}",
+            })
+
     all_referenced = set()
     for artifact_refs in referenced_ids.values():
         for prefix_refs in artifact_refs.values():
@@ -108,7 +122,7 @@ def validate_cross_references(output_folder: Path) -> dict:
             for prefix, refs in artifact_refs.items():
                 if orphan in refs and orphan not in defined_ids.get(prefix, set()):
                     findings.append({
-                        "severity": "medium",
+                        "severity": "low",
                         "category": "orphan-id",
                         "location": {"file": str(output_folder / ARTIFACT_FILES[artifact_key])},
                         "issue": f"ID orfao: {orphan} referenciado mas nao definido",
@@ -131,7 +145,7 @@ def validate_cross_references(output_folder: Path) -> dict:
             "critical": critical,
             "high": high,
             "medium": medium,
-            "low": 0,
+            "low": sum(1 for f in findings if f["severity"] == "low"),
         },
     }
 

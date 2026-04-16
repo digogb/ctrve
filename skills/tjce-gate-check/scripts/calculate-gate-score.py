@@ -34,6 +34,7 @@ CATEGORY_TO_LAYER = {
     "format": "quality",
     "coverage": "quality",
     "test-quality": "quality",
+    "duplicate-id": "cross-reference",
 }
 
 
@@ -49,11 +50,14 @@ def calculate_score(output_folder: Path, task_type: str | None, manual: bool,
 
     all_findings = []
     missing_inputs = []
+    quality_assessed = False
     for ff in findings_files:
         if ff.exists():
             try:
                 data = json.loads(ff.read_text(encoding="utf-8"))
                 all_findings.extend(data.get("findings", []))
+                if ff.name == "quality-findings.json":
+                    quality_assessed = True
             except (json.JSONDecodeError, OSError):
                 missing_inputs.append(str(ff))
         else:
@@ -74,6 +78,9 @@ def calculate_score(output_folder: Path, task_type: str | None, manual: bool,
         max_deductions = max_points / 10
         normalized_deduction = min(deductions / max_deductions, 1.0) * max_points if max_deductions > 0 else 0
         layer_scores[layer] = max(0, round(max_points - normalized_deduction, 1))
+
+    if not quality_assessed:
+        layer_scores["quality"] = 0
 
     total_score = round(sum(layer_scores.values()), 1)
 

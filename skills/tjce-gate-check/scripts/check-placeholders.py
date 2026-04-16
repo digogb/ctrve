@@ -16,7 +16,7 @@ PLACEHOLDER_PATTERNS = [
     re.compile(r"(?i)\[PREENCHER\]"),
     re.compile(r"(?i)\bTBD\b"),
     re.compile(r"(?i)\ba definir\b"),
-    re.compile(r"(?i)\bpendente\b"),
+    re.compile(r"(?i)\bpendente\b(?!\s+(?:de|d[oa]s?|em|por|para|a[os]?|nas?|nos?|com|sobre|entre|sem|at[eé]))"),
     re.compile(r"(?i)\bplaceholder\b"),
 ]
 

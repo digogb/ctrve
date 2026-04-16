@@ -135,7 +135,9 @@ def test_complementary_decisions_recorded(tmp_path):
 def test_missing_findings_files(tmp_path):
     (tmp_path / "reports").mkdir(parents=True)
     result = run_script(str(tmp_path))
-    assert result["output"]["status"] == "PASS"
+    assert result["output"]["status"] == "FAIL"
+    assert result["output"]["layer_scores"]["quality"] == 0
+    assert result["output"]["score"] == 70.0
     assert len(result["output"]["missing_inputs"]) == 4
 
 

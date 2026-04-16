@@ -66,7 +66,7 @@ def check_artifacts(output_folder: Path, data_model: bool, ux: bool) -> dict:
                 "issue": f"Artefato obrigatorio ausente: {artifact}",
                 "fix": _fix_for(artifact),
             })
-        elif path.stat().st_size == 0:
+        elif not path.read_text(encoding="utf-8", errors="ignore").strip():
             findings.append({
                 "severity": "critical",
                 "category": "completeness",
