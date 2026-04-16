@@ -152,6 +152,14 @@ Checks especificos derivados das US implementadas. **Nunca generico.** "Verifica
 
 Escrever em `{output_folder}/release/PML.md`.
 
+## Done When
+
+- `{output_folder}/release/PML.md` escrito com todas as 6 secoes populadas (nenhuma vazia)
+- Toda US implementada referenciada na Descricao da Mudanca
+- Procedimento de rollback presente e especifico (nao generico)
+- Validacao pos-implantacao com checks concretos (nao "verificar se funciona")
+- `validate-release-artifacts.py` confirma zero findings criticos para PML.md
+
 ## Headless Mode
 
 - Derivar toda metadata de flags/config/Git

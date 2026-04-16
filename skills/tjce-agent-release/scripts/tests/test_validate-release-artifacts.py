@@ -251,3 +251,58 @@ def test_pendente_standalone_flagged(tmp_path):
         if f["category"] == "placeholder" and f["file"] == "PML.md"
     ]
     assert len(placeholder_in_pml) >= 1
+
+
+def test_cross_consistency_us_mismatch(tmp_path):
+    release = tmp_path / "release"
+    _create_all_good(release)
+    _create_artifact(release, "PML.md", (
+        "# PML\n\n"
+        "## 1. Identificacao\n\nSistema CTRVE\n\n"
+        "## 2. Descricao\n\n- US-001: Login\n- US-002: Dashboard\n"
+    ))
+    _create_artifact(release, "CHANGELOG.md", (
+        "# CHANGELOG\n\n"
+        "## Funcionalidades\n\n### US-001 — Login\n- feat: login\n\n"
+        "## Estatisticas\n\n- 1/1\n"
+    ))
+    result = run_script(str(release))
+    cross = [
+        f for f in result["output"]["findings"]
+        if f["category"] == "cross-consistency"
+    ]
+    assert any("US-002" in f["issue"] and "PML" in f["file"] for f in cross)
+
+
+def test_cross_consistency_migration_without_rollback(tmp_path):
+    release = tmp_path / "release"
+    _create_all_good(release)
+    _create_artifact(release, "deploy-checklist.md", (
+        "# Checklist\n\n"
+        "## Deploy — Banco\n\n"
+        "- [ ] Executar: `alembic upgrade head`\n\n"
+        "## Pos-Deploy\n\n- Health check\n"
+    ))
+    _create_artifact(release, "rollback-plan.md", (
+        "# Rollback\n\n"
+        "## Procedimento\n\n"
+        "### 1. Backend\n- Deploy versao anterior\n- Restart servico\n\n"
+        "## Validacao\n\n- Health check OK\n"
+    ))
+    result = run_script(str(release))
+    cross = [
+        f for f in result["output"]["findings"]
+        if f["category"] == "cross-consistency" and "Alembic" in f["issue"]
+    ]
+    assert len(cross) >= 1
+
+
+def test_cross_consistency_all_aligned(tmp_path):
+    release = tmp_path / "release"
+    _create_all_good(release)
+    result = run_script(str(release))
+    cross = [
+        f for f in result["output"]["findings"]
+        if f["category"] == "cross-consistency"
+    ]
+    assert len(cross) == 0

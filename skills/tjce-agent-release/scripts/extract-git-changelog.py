@@ -142,6 +142,9 @@ def group_commits(
             "mapped": mapped,
             "unmapped": len(unmapped),
             "stories_count": len(stories_dict),
+            "mapped_pct": round(
+                mapped / len(commits) * 100 if commits else 0, 1
+            ),
         },
     }
 

@@ -38,7 +38,7 @@ Produz dois artefatos:
 
 **Data prevista:** {date}
 **Responsavel:** {responsible}
-**Ambiente:** Producao
+**Ambiente:** {environment}
 
 ## Pre-Deploy
 
@@ -141,6 +141,15 @@ Para CADA passo do checklist, incluir o reverso. Ordem inversa: Frontend -> Back
 ### Passo 4 — Escrever Artefatos
 
 Escrever `{output_folder}/release/deploy-checklist.md` e `{output_folder}/release/rollback-plan.md`.
+
+## Done When
+
+- `{output_folder}/release/deploy-checklist.md` escrito com passos numerados e executaveis
+- `{output_folder}/release/rollback-plan.md` escrito com procedimento completo (NUNCA ausente)
+- Ordem de deploy respeitada: Banco -> Backend -> Frontend
+- Rollback cobre cada passo do deploy em ordem inversa
+- Secoes nao aplicaveis omitidas (sem migration = sem secao banco)
+- `validate-release-artifacts.py` confirma zero findings criticos para ambos artefatos
 
 ## Headless Mode
 

@@ -87,6 +87,13 @@ Commits sem US vao para "Manutencao e Infraestrutura".
 
 Escrever em `{output_folder}/release/CHANGELOG.md`.
 
+## Done When
+
+- `{output_folder}/release/CHANGELOG.md` escrito com pelo menos uma secao de US ou Manutencao
+- Cada US com titulo e lista de commits com SHA abreviado
+- Secao de Estatisticas com mapped_pct derivado do JSON (nao calculado manualmente)
+- Commits sem US agrupados em secao separada e sinalizados
+
 ## Headless Mode
 
 - Sem interacao

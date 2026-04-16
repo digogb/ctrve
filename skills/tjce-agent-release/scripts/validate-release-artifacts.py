@@ -171,6 +171,70 @@ def check_us_references(
     return findings
 
 
+def check_cross_consistency(release_dir: Path) -> list[dict]:
+    findings: list[dict] = []
+    pml_path = release_dir / "PML.md"
+    changelog_path = release_dir / "CHANGELOG.md"
+    checklist_path = release_dir / "deploy-checklist.md"
+    rollback_path = release_dir / "rollback-plan.md"
+
+    pml_text = (
+        pml_path.read_text(encoding="utf-8", errors="replace")
+        if pml_path.is_file() else ""
+    )
+    changelog_text = (
+        changelog_path.read_text(encoding="utf-8", errors="replace")
+        if changelog_path.is_file() else ""
+    )
+    checklist_text = (
+        checklist_path.read_text(encoding="utf-8", errors="replace")
+        if checklist_path.is_file() else ""
+    )
+    rollback_text = (
+        rollback_path.read_text(encoding="utf-8", errors="replace")
+        if rollback_path.is_file() else ""
+    )
+
+    if pml_text and changelog_text:
+        pml_us = set(_US_PATTERN.findall(pml_text))
+        changelog_us = set(_US_PATTERN.findall(changelog_text))
+        in_pml_not_changelog = pml_us - changelog_us
+        in_changelog_not_pml = changelog_us - pml_us
+        for us_id in sorted(in_pml_not_changelog):
+            findings.append({
+                "severity": "medium",
+                "category": "cross-consistency",
+                "file": "PML.md",
+                "line": 0,
+                "issue": f"{us_id} no PML mas ausente no CHANGELOG",
+                "fix": f"Verificar se {us_id} deveria constar no CHANGELOG",
+            })
+        for us_id in sorted(in_changelog_not_pml):
+            findings.append({
+                "severity": "medium",
+                "category": "cross-consistency",
+                "file": "CHANGELOG.md",
+                "line": 0,
+                "issue": f"{us_id} no CHANGELOG mas ausente no PML",
+                "fix": f"Verificar se {us_id} deveria constar no PML",
+            })
+
+    if checklist_text and rollback_text:
+        checklist_has_migration = "alembic" in checklist_text.lower()
+        rollback_has_migration = "alembic" in rollback_text.lower()
+        if checklist_has_migration and not rollback_has_migration:
+            findings.append({
+                "severity": "high",
+                "category": "cross-consistency",
+                "file": "rollback-plan.md",
+                "line": 0,
+                "issue": "Deploy checklist inclui migration Alembic mas rollback plan nao menciona downgrade",
+                "fix": "Adicionar passo de alembic downgrade ao rollback plan",
+            })
+
+    return findings
+
+
 def validate(release_dir: Path, stories_path: Path | None) -> dict:
     findings: list[dict] = []
     missing: list[str] = []
@@ -198,6 +262,7 @@ def validate(release_dir: Path, stories_path: Path | None) -> dict:
 
     findings.extend(check_rollback_present(release_dir))
     findings.extend(check_us_references(release_dir, stories_path))
+    findings.extend(check_cross_consistency(release_dir))
 
     has_critical = any(f["severity"] == "critical" for f in findings)
     has_warnings = any(f["severity"] in ("high", "medium") for f in findings)
