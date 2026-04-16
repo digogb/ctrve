@@ -1,0 +1,84 @@
+{
+  "scanner": "scripts",
+  "script": "scan-scripts.py",
+  "version": "2.0.0",
+  "skill_path": "skills/tjce-ship",
+  "timestamp": "2026-04-16T19:12:31.289829+00:00",
+  "status": "warning",
+  "findings": [
+    {
+      "file": "scripts/check-deliverables.py",
+      "line": 0,
+      "severity": "high",
+      "category": "lint-setup",
+      "title": "uv not found on PATH \u2014 cannot run ruff for Python linting",
+      "detail": "",
+      "action": "Install uv: https://docs.astral.sh/uv/getting-started/installation/"
+    },
+    {
+      "file": "scripts/check-verify-status.py",
+      "line": 0,
+      "severity": "high",
+      "category": "lint-setup",
+      "title": "uv not found on PATH \u2014 cannot run ruff for Python linting",
+      "detail": "",
+      "action": "Install uv: https://docs.astral.sh/uv/getting-started/installation/"
+    },
+    {
+      "file": "scripts/detect-task-type.py",
+      "line": 0,
+      "severity": "high",
+      "category": "lint-setup",
+      "title": "uv not found on PATH \u2014 cannot run ruff for Python linting",
+      "detail": "",
+      "action": "Install uv: https://docs.astral.sh/uv/getting-started/installation/"
+    },
+    {
+      "file": "scripts/generate-ship-summary.py",
+      "line": 0,
+      "severity": "high",
+      "category": "lint-setup",
+      "title": "uv not found on PATH \u2014 cannot run ruff for Python linting",
+      "detail": "",
+      "action": "Install uv: https://docs.astral.sh/uv/getting-started/installation/"
+    }
+  ],
+  "assessments": {
+    "lint_summary": {
+      "tools_used": [],
+      "files_linted": 4,
+      "lint_issues": 0
+    },
+    "script_summary": {
+      "total_scripts": 4,
+      "by_type": {
+        "python": 4,
+        "shell": 0,
+        "node": 0,
+        "other": 0
+      },
+      "scripts": {
+        "python": [
+          "check-deliverables.py",
+          "check-verify-status.py",
+          "detect-task-type.py",
+          "generate-ship-summary.py"
+        ]
+      },
+      "missing_tests": []
+    }
+  },
+  "summary": {
+    "total_findings": 4,
+    "by_severity": {
+      "critical": 0,
+      "high": 4,
+      "medium": 0,
+      "low": 0
+    },
+    "by_category": {
+      "lint-setup": 4
+    },
+    "assessment": ""
+  }
+}

@@ -1,0 +1,84 @@
+{
+  "scanner": "prompt-craft-prepass",
+  "script": "prepass-prompt-metrics.py",
+  "version": "1.0.0",
+  "skill_path": "skills/tjce-ship",
+  "timestamp": "2026-04-16T19:12:29.801726+00:00",
+  "status": "info",
+  "skill_md_summary": {
+    "line_count": 91,
+    "token_estimate": 1210,
+    "overview_lines": 16,
+    "table_count": 2,
+    "table_lines": 18,
+    "fenced_block_count": 0,
+    "fenced_block_lines": 0,
+    "section_count": 7
+  },
+  "prompt_health": {
+    "total_prompts": 0,
+    "prompts_with_config_header": 0,
+    "prompts_with_progression": 0
+  },
+  "aggregate": {
+    "total_files_scanned": 1,
+    "total_token_estimate": 1210,
+    "total_waste_patterns": 0,
+    "total_back_references": 0
+  },
+  "resource_sizes": {},
+  "files": [
+    {
+      "file": "SKILL.md",
+      "line_count": 91,
+      "token_estimate": 1210,
+      "sections": [
+        {
+          "level": 2,
+          "title": "Overview",
+          "line": 8
+        },
+        {
+          "level": 2,
+          "title": "On Activation",
+          "line": 25
+        },
+        {
+          "level": 2,
+          "title": "Execution Flow",
+          "line": 37
+        },
+        {
+          "level": 2,
+          "title": "Error Recovery",
+          "line": 49
+        },
+        {
+          "level": 2,
+          "title": "Inegociaveis",
+          "line": 56
+        },
+        {
+          "level": 2,
+          "title": "Headless Contract",
+          "line": 65
+        },
+        {
+          "level": 2,
+          "title": "Output Artifacts",
+          "line": 74
+        }
+      ],
+      "table_count": 2,
+      "table_lines": 18,
+      "fenced_block_count": 0,
+      "fenced_block_lines": 0,
+      "waste_patterns": [],
+      "back_references": [],
+      "has_config_header": true,
+      "has_progression": false,
+      "overview_lines": 16,
+      "is_skill_md": true
+    }
+  ]
+}

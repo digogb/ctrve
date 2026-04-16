@@ -23,9 +23,15 @@ Present the PML content to the DevOps / Gerente de Configuracao:
 | **APROVADO** | Mark PML as validated in ship-state.json. Proceed to Step 5. |
 | **AJUSTAR** | Capture specific feedback. Re-invoke `tjce-agent-release --headless pml` with the feedback context. Return to PML validation. |
 
+**AJUSTAR iteration limit:** Track iteration count via `manage-ship-state.py --increment-ajustar`. After 3 cycles, present escalation: continue adjusting, edit PML manually, or abort pipeline.
+
 ### Headless Mode
 
-Write `ship-state.json` with stage=4 and status=awaiting_pml_validation. Exit with code 2.
+```bash
+python3 scripts/manage-ship-state.py update {state_path} --stage 4 --stage-status awaiting_pml_validation --pending-gate pml_validation
+```
+
+Exit with code 2. On `--continue` with `--gate-response approved`, proceed to Step 5. With `--gate-response ajustar`, re-invoke agent and return to validation.
 
 ## Steps 5-6 — Artefatos Condicionais
 

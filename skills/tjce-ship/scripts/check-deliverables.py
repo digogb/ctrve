@@ -17,6 +17,12 @@ ALWAYS_REQUIRED = [
     "PML.md",
 ]
 
+STAGE_2_ARTIFACTS = [
+    "CHANGELOG.md",
+    "deploy-checklist.md",
+    "rollback-plan.md",
+]
+
 APF_ARTIFACTS = [
     "apf/contagem-detalhada.md",
     "apf/resumo-apf.md",
@@ -27,9 +33,12 @@ MANUAL_ARTIFACTS = [
 ]
 
 
-def check_deliverables(output_folder: Path, task_type: str, manual_required: bool) -> dict:
+def check_deliverables(output_folder: Path, task_type: str, manual_required: bool, stage: int | None = None) -> dict:
     findings = []
     release_dir = output_folder / "release"
+
+    if stage == 2:
+        return _check_stage_artifacts(release_dir, STAGE_2_ARTIFACTS, output_folder, task_type, manual_required)
 
     for artifact in ALWAYS_REQUIRED:
         path = release_dir / artifact
@@ -109,6 +118,45 @@ def check_deliverables(output_folder: Path, task_type: str, manual_required: boo
     }
 
 
+def _check_stage_artifacts(release_dir: Path, artifacts: list[str], output_folder: Path, task_type: str, manual_required: bool) -> dict:
+    findings = []
+    for artifact in artifacts:
+        path = release_dir / artifact
+        if not path.exists():
+            findings.append({
+                "severity": "critical",
+                "category": "deliverable",
+                "location": {"file": str(path)},
+                "issue": f"Artefato obrigatorio ausente: {artifact}",
+                "fix": _fix_for(artifact),
+            })
+        elif path.stat().st_size == 0:
+            findings.append({
+                "severity": "critical",
+                "category": "deliverable",
+                "location": {"file": str(path)},
+                "issue": f"Artefato vazio: {artifact}",
+                "fix": f"Re-execute o step que produz {artifact}",
+            })
+
+    critical = sum(1 for f in findings if f["severity"] == "critical")
+    checklist = [{"artifact": a, "present": (release_dir / a).exists(), "size": (release_dir / a).stat().st_size if (release_dir / a).exists() else 0} for a in artifacts]
+
+    return {
+        "script": "check-deliverables",
+        "version": "1.1.0",
+        "output_folder": str(output_folder),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "status": "fail" if critical > 0 else "pass",
+        "task_type": task_type,
+        "manual_required": manual_required,
+        "stage_filter": 2,
+        "checklist": checklist,
+        "findings": findings,
+        "summary": {"total": len(findings), "critical": critical, "high": 0, "medium": 0, "low": 0},
+    }
+
+
 def _fix_for(artifact: str) -> str:
     fixes = {
         "CHANGELOG.md": "Execute tjce-agent-release (Step 2)",
@@ -180,6 +228,12 @@ def main():
         help="Whether user manual is required",
     )
     parser.add_argument(
+        "--stage",
+        type=int,
+        choices=(2,),
+        help="Check only artifacts from a specific step (e.g., --stage 2)",
+    )
+    parser.add_argument(
         "-o", "--output",
         type=Path,
         help="Write JSON output to file instead of stdout",
@@ -200,7 +254,7 @@ def main():
     if args.verbose:
         print(f"Checking deliverables in: {args.output_folder}", file=sys.stderr)
 
-    result = check_deliverables(args.output_folder, args.task_type, args.manual_required)
+    result = check_deliverables(args.output_folder, args.task_type, args.manual_required, stage=args.stage)
 
     if args.format == "markdown":
         output = format_markdown(result)

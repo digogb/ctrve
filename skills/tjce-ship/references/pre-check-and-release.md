@@ -32,7 +32,7 @@ Verify that the required agents are accessible:
 - `tjce-agent-apf` (needed unless correcao_garantia)
 - `tjce-agent-docs` (needed only if manual_necessario)
 
-If any required agent is unavailable, report and halt per the Error Recovery section in SKILL.md.
+If any required agent is unavailable, report with instructions to verify it is installed. Do not proceed with missing artifacts — halt and exit 1 in headless mode.
 
 ## Step 2 — Preparar Versao
 
@@ -56,11 +56,12 @@ If any required agent is unavailable, report and halt per the Error Recovery sec
 **Orchestration:**
 
 1. Invoke `tjce-agent-release --headless pml`
-2. Validate the generated `{output_folder}/release/PML.md`:
-   - File exists and is non-empty
-   - No sections contain only placeholders, "TODO", "a definir", or are empty
-3. If PML has empty sections: BLOCK — treat as agent failure per the Inegociaveis
+2. Validate PML structural integrity:
+   ```bash
+   python3 scripts/validate-pml.py {output_folder}/release/PML.md
+   ```
+3. If validation fails: BLOCK — treat as agent failure per the Inegociaveis
 
-Validate JSON output from scripts before proceeding. If a script produces no JSON, treat as infrastructure error.
+Validate JSON output from scripts before proceeding. If a script produces no JSON, treat as infrastructure error — report and halt (exit 1 in headless).
 
 **Progression:** Load `references/validation-and-artifacts.md`.

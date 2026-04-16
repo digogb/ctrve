@@ -1,0 +1,342 @@
+{
+  "meta": {
+    "skill_name": "tjce-ship",
+    "skill_path": "skills/tjce-ship",
+    "timestamp": "2026-04-16T19:12:20",
+    "scanner_count": 11
+  },
+  "assessment": {
+    "rating": "Excellent",
+    "summary": "This is a remarkably well-crafted orchestrator skill. The 9-step pipeline demonstrates strong structural integrity, exceptional token efficiency (1,210 tokens for SKILL.md), and a best-in-class progressive disclosure pattern using hub-and-spoke reference files. All 8 workflow integrity checks passed with zero issues, prompt craft scored 9.1/10, and the fail-fast ordering is optimal at every stage boundary. The primary concerns are external — a missing dependency agent (tjce-agent-release) that blocks the entire pipeline, and agent output path assumptions that need explicit integration contracts."
+  },
+  "broken": [
+    {
+      "issue": "tjce-agent-release does not exist — the primary dependency for Steps 2-3 is missing from the repository. The pipeline is non-functional without it.",
+      "sources": ["L5: AA-01", "L5: EG-01"]
+    },
+    {
+      "issue": "Agent output path mismatch — the orchestrator expects APF artifacts at {output_folder}/release/apf/ and manual artifacts at {output_folder}/release/manual/, but the existing agents may write to different base paths. check-deliverables.py will fail to find artifacts.",
+      "sources": ["L5: AA-02"]
+    },
+    {
+      "issue": "Stale verify-verdict.json accepted without scope validation — check-verify-status.py validates the verdict value but not which feature was verified. A developer who verifies Feature A and then ships Feature B will pass Step 1 with stale data.",
+      "sources": ["L5: EC-01"]
+    }
+  ],
+  "opportunities": [
+    {
+      "name": "Incomplete External Integration Contracts",
+      "finding_count": 6,
+      "root_cause": "The skill assumes specific behaviors from agents and external systems that are not formally documented or validated within its own scope.",
+      "findings": [
+        "tjce-agent-release referenced but does not exist (L5: AA-01, EG-01)",
+        "Agent output paths not contractually aligned with orchestrator expectations (L5: AA-02)",
+        "No documentation of expected agent headless interface within this skill (L4: agent contracts)",
+        "Agent exit code not checked alongside artifact existence in Step 2 (L5: EC-03)",
+        "Verify-verdict.json scope not correlated with ship scope (L5: EC-01)",
+        "YAML config parsed via regex instead of proper parser — fragile integration (L5: AA-07)"
+      ]
+    },
+    {
+      "name": "Headless/CI Pipeline Gaps",
+      "finding_count": 5,
+      "root_cause": "Headless mode handles the run-until-gate scenario well but lacks mechanisms for programmatic gate resolution and machine-readable gate identification — making true CI/CD integration incomplete.",
+      "findings": [
+        "No --gate-response flag for CI re-entry after human gates (L5: Headless)",
+        "Exit code 2 does not distinguish PML gate from deployment gate (L5: AA-06)",
+        "No timeout/watchdog for agent invocations in headless mode (L5: Headless)",
+        "No structured error output guaranteed on exit 1 (L5: Headless)",
+        "No notification/webhook mechanism when gates are reached (L5: missing patterns)"
+      ]
+    },
+    {
+      "name": "State Management Fragility",
+      "finding_count": 5,
+      "root_cause": "ship-state.json is the sole persistence mechanism but lacks a formal schema, atomic writes, staleness detection, and concurrency protection.",
+      "findings": [
+        "Schema never formally defined despite 8+ references across files (L5: EG-04)",
+        "No distinction between step started vs step completed in state (L5: Archetype E)",
+        "No staleness/expiry check on resume (L4: G3)",
+        "No concurrency protection for simultaneous invocations (L5: EC-02)",
+        "--continue does not validate that CLI args match stored state (L5: EC-05)"
+      ]
+    },
+    {
+      "name": "Remaining Deterministic Work in Prompts",
+      "finding_count": 4,
+      "root_cause": "While the skill already delegates major deterministic tasks to 4 excellent scripts, several intermediate validation and infrastructure operations remain as LLM work, adding ~2,100-3,450 tokens of deterministic processing per full pipeline run.",
+      "findings": [
+        "PML structural validation done by LLM instead of script — guards a non-negotiable rule (L6: Finding 1)",
+        "Ship state checkpoint management repeated 9+ times as LLM JSON construction (L6: Finding 3)",
+        "Release artifact intermediate check at Step 2 not scripted (L6: Finding 2)",
+        "Agent availability pre-flight check could be scripted (L6: Finding 4)"
+      ]
+    }
+  ],
+  "strengths": [
+    {
+      "title": "Exceptional structural integrity",
+      "detail": "All 8 workflow integrity categories passed with zero issues. Reference files fully cover Steps 1-9 with no gaps, no overlaps, and correct progression directives forming a complete chain."
+    },
+    {
+      "title": "Best-in-class progressive disclosure",
+      "detail": "The hub-and-spoke pattern with 3 semantically-grouped reference files is superior to per-step splitting. Each file is independently actionable within its phase, and the routing table in SKILL.md gives the LLM the full pipeline map before loading any detail."
+    },
+    {
+      "title": "Outstanding token efficiency",
+      "detail": "1,210 tokens for a 9-step orchestrator covering 3 agents, 4 scripts, 2 human gates, conditional branching, headless/interactive duality, error recovery, and state checkpointing. Zero waste patterns detected."
+    },
+    {
+      "title": "Optimal fail-fast ordering",
+      "detail": "Every expensive operation is preceded by a cheaper validation gate. Every human gate is preceded by automated validation. The cheap verify-status check runs first, agent pre-flight runs before any delegation, and the deliverables checklist validates before the deployment gate."
+    },
+    {
+      "title": "Clean agent delegation boundaries",
+      "detail": "The orchestrator never replicates agent logic. The explicit instruction 'Do not replicate this logic' in reference files is an exemplary boundary marker. Agents remain independently testable."
+    },
+    {
+      "title": "Comprehensive headless contract",
+      "detail": "Exit codes (0/1/2) are consistently enforced across all reference files. Human gates correctly differentiate interactive vs. headless behavior. The --continue flag enables resume after gates."
+    },
+    {
+      "title": "Excellent script suite with full test coverage",
+      "detail": "All 4 existing scripts follow a consistent contract (JSON output, exit code discipline, --output/--verbose/--format flags) and all have unit tests. The skill already delegates the heaviest deterministic operations to scripts."
+    },
+    {
+      "title": "Robust conditional logic propagation",
+      "detail": "Task type and manual flag decisions flow consistently from detection (Step 1) through execution (Steps 5-6) to validation (Step 7) and summary (Step 9). The APF skip rule and manual conditional are enforced at every relevant point."
+    },
+    {
+      "title": "Well-designed human gates",
+      "detail": "The AJUSTAR feedback loop at Step 4 captures feedback, re-invokes the agent with context, and returns to validation — preventing the 'stuck at gate' problem. Both gates are correctly non-automatable."
+    },
+    {
+      "title": "Direct, imperative language with zero anti-patterns",
+      "detail": "No hedging, no meta-explanation, no identity preamble, no defensive padding. Inegociaveis section is genuinely load-bearing, not restating what the LLM would do anyway."
+    }
+  ],
+  "detailed_analysis": {
+    "structure": {
+      "verdict": "PASS",
+      "summary": "All 8 workflow integrity categories passed with zero issues. Frontmatter well-formed, all sections present and load-bearing, 3 reference files fully cover Steps 1-9, all 4 script references resolve with matching CLI signatures, output artifacts align, language is direct, config integration consistent, headless contract fully enforced, and cross-file logical consistency verified.",
+      "issues": []
+    },
+    "craft": {
+      "score": "9.1/10",
+      "summary": "Exceptional prompt quality with zero waste patterns and best-in-class progressive disclosure. One compaction vulnerability (back-reference to SKILL.md Error Recovery in pre-check-and-release.md). Minor gaps in Overview script enumeration and intra-file progression markers.",
+      "dimensions": {
+        "overview_quality": "9/10",
+        "token_efficiency": "10/10",
+        "outcome_vs_implementation": "9/10",
+        "progressive_disclosure": "10/10",
+        "self_containment": "8/10",
+        "config_headers": "8/10",
+        "progression_conditions": "9/10",
+        "anti_patterns": "10/10"
+      },
+      "issues": [
+        "One compaction vulnerability: pre-check-and-release.md back-references SKILL.md Error Recovery section — should be inlined",
+        "Scripts not enumerated in Overview section",
+        "No micro-checkpoint between Steps 2 and 3 within the reference file"
+      ]
+    },
+    "cohesion": {
+      "score": "HIGH",
+      "summary": "Stage flow is coherent with 1:1 mapping to all 5 manual phases. 9-step count justified by distinct responsibilities. Dependency graph correct with no cycles. Agent integration clean with low coupling.",
+      "gaps": [
+        {
+          "id": "G1",
+          "description": "No post-deployment rollback step if deployment fails after Step 8",
+          "severity": "medium"
+        },
+        {
+          "id": "G2",
+          "description": "No notification mechanism for headless gate transitions",
+          "severity": "low"
+        },
+        {
+          "id": "G3",
+          "description": "No timeout or expiry for pending gates — stale state file from weeks ago could be resumed without warning",
+          "severity": "low"
+        }
+      ],
+      "redundancies": [
+        {
+          "id": "R1",
+          "description": "Artifact existence validation in Steps 2/3/5/6 AND again in Step 7 — intentional defense-in-depth, not harmful",
+          "severity": "informational"
+        }
+      ]
+    },
+    "efficiency": {
+      "score": "HIGH",
+      "summary": "Fail-fast ordering is optimal at every stage boundary. Subagent delegation clean with no context leakage. Reference loading uses lazy three-stage pattern. Only 2 minor optimization opportunities totaling ~5-10 seconds of savings.",
+      "optimizations": [
+        {
+          "description": "Step 9 dual generate-ship-summary.py calls can be parallelized",
+          "severity": "low",
+          "savings": "One tool-call round-trip (~2-5s)"
+        },
+        {
+          "description": "Step 1 scripts could be chained with && using -o file output",
+          "severity": "low",
+          "savings": "One tool-call round-trip (~2-5s)"
+        }
+      ]
+    },
+    "experience": {
+      "headless_readiness": "7/10",
+      "edge_cases": 7,
+      "experience_gaps": 5,
+      "delight_opportunities": 5,
+      "assumption_audits": 7,
+      "journeys": [
+        {
+          "archetype": "Seasoned DevOps Engineer (Interactive, Happy Path)",
+          "summary": "Smooth end-to-end experience with no friction points on the happy path.",
+          "friction_points": [],
+          "bright_spots": ["Optimal step ordering", "Clean agent delegation", "Well-placed human gates"]
+        },
+        {
+          "archetype": "Junior Dev First Ship (Interactive, Confused)",
+          "summary": "Dead-ends at Step 1 if verify not run, with no onboarding message or vocabulary explanation.",
+          "friction_points": [
+            "No introductory message explaining the pipeline",
+            "Error messages assume familiarity with process vocabulary (PML, APF, RDM)",
+            "No link to documentation or help command"
+          ],
+          "bright_spots": []
+        },
+        {
+          "archetype": "CI Pipeline (Headless, Multi-Stage)",
+          "summary": "Blocked at agent preflight (tjce-agent-release missing). Even with agents present, two undocumented manual interventions required with no programmatic gate-response flag.",
+          "friction_points": [
+            "Primary agent does not exist — pipeline non-functional",
+            "No way to pass gate decision programmatically",
+            "No webhook/callback for gate notifications",
+            "Must parse ship-state.json to determine which gate is pending"
+          ],
+          "bright_spots": ["Exit code discipline", "Deterministic artifact paths"]
+        },
+        {
+          "archetype": "Emergency Warranty Fix Developer (correcao_garantia)",
+          "summary": "Steps 5-6 correctly skipped, but two mandatory human gates create latency for emergency fixes. No expedited approval path.",
+          "friction_points": [
+            "Two mandatory gates even for hotfixes",
+            "No emergency/expedited mode",
+            "Full PML generation may be overkill for hotfixes"
+          ],
+          "bright_spots": ["APF automatically skipped", "Manual generation skipped", "Fast path works as designed"]
+        },
+        {
+          "archetype": "Resuming User (State Recovery After Crash)",
+          "summary": "Resume mechanism works but has ambiguity in state interpretation and no handling of partial artifacts.",
+          "friction_points": [
+            "No distinction between step started and step completed in state",
+            "Partial artifacts from crashed step may confuse re-run",
+            "No integrity check on ship-state.json itself"
+          ],
+          "bright_spots": ["Checkpoint/resume pattern exists", "State detection on activation"]
+        }
+      ]
+    },
+    "scripts": {
+      "existing_count": 4,
+      "existing_quality": "Excellent — all scripts follow consistent contract with JSON output, exit code discipline, and unit tests",
+      "opportunity_count": 4,
+      "total_token_savings": "2,100-3,450 tokens per full pipeline run",
+      "opportunities": [
+        {
+          "name": "validate-pml.py",
+          "severity": "high",
+          "tokens_saved": "300-500",
+          "description": "PML structural validation — extracts H2/H3 sections, validates against forbidden patterns, returns JSON with per-section status"
+        },
+        {
+          "name": "manage-ship-state.py",
+          "severity": "medium",
+          "tokens_saved": "1,350-2,250 (cumulative)",
+          "description": "State checkpoint manager with init/update/read/resume-from subcommands — eliminates JSON construction from LLM at every step transition"
+        },
+        {
+          "name": "check-deliverables.py --stage flag",
+          "severity": "medium",
+          "tokens_saved": "100-200",
+          "description": "Extend existing script with --stage 2 flag to validate only the three release artifacts at Step 2"
+        },
+        {
+          "name": "check-agent-availability.py",
+          "severity": "low",
+          "tokens_saved": "150-200",
+          "description": "Agent pre-flight check — determines required agents based on flags, checks skill directory existence"
+        }
+      ],
+      "autonomous": {
+        "potential": "High — existing scripts already handle the heaviest deterministic operations. Remaining opportunities are primarily infrastructure plumbing.",
+        "notes": "If manage-ship-state.py is implemented, existing scripts could auto-update ship state as a side effect, further reducing orchestration boilerplate."
+      }
+    }
+  },
+  "recommendations": [
+    {
+      "rank": 1,
+      "action": "Create tjce-agent-release or add a prominent 'DEPENDENCY NOT YET AVAILABLE' marker in SKILL.md with a tracking reference. The pipeline is non-functional without this agent.",
+      "impact": "critical",
+      "resolves": ["AA-01", "EG-01", "Archetype C blocker"]
+    },
+    {
+      "rank": 2,
+      "action": "Formalize agent output path integration contract. Document explicitly whether the orchestrator passes {output_folder}/release/ as the agent output path or agents must accept a custom directory. Add an 'Agent Contracts' section to SKILL.md.",
+      "impact": "high",
+      "resolves": ["AA-02", "check-deliverables.py path failures"]
+    },
+    {
+      "rank": 3,
+      "action": "Create scripts/validate-pml.py (~60 lines) that extracts H2/H3 sections, validates against expanded forbidden patterns (TODO, a definir, TBD, pendente, placeholder, empty body), returns JSON with per-section status. Invoke at Step 3 after agent produces PML.",
+      "impact": "high",
+      "resolves": ["L6 Finding 1", "AA-03", "EG-03 partially"]
+    },
+    {
+      "rank": 4,
+      "action": "Create scripts/manage-ship-state.py with init, update, read, resume-from subcommands. Enforce schema, atomic writes (write to .tmp then rename), two-phase state (running/completed), and CLI arg validation on resume.",
+      "impact": "medium-high",
+      "resolves": ["L6 Finding 3", "EG-04", "EC-05", "Archetype E", "L6 Finding 5"]
+    },
+    {
+      "rank": 5,
+      "action": "Add scope validation to check-verify-status.py. Compare verify-verdict.json timestamp against most recent commit. If a feature identifier is available, validate it matches ship scope.",
+      "impact": "medium",
+      "resolves": ["EC-01"]
+    },
+    {
+      "rank": 6,
+      "action": "Inline the error handling rule in pre-check-and-release.md. Replace the cross-reference to SKILL.md Error Recovery with the actual rule: 'report with instructions to verify agent is installed and halt — exit 1.'",
+      "impact": "medium",
+      "resolves": ["L2 self-containment gap", "compaction vulnerability"]
+    },
+    {
+      "rank": 7,
+      "action": "Add --gate-response flag for headless CI re-entry. Accept approved|ajustar|implantado|adiado with optional --rdm on --continue. Write pending_gate field to ship-state.json at exit 2.",
+      "impact": "medium",
+      "resolves": ["Headless gaps", "AA-06", "Archetype C"]
+    },
+    {
+      "rank": 8,
+      "action": "Add AJUSTAR iteration limit with escalation. After 3 cycles, present escalation prompt: continue adjusting, edit PML manually, or abort pipeline. Write iteration count to ship-state.json.",
+      "impact": "low-medium",
+      "resolves": ["EC-04"]
+    },
+    {
+      "rank": 9,
+      "action": "Extend check-deliverables.py with --stage flag. When --stage 2 is passed, validate only the three release artifacts (CHANGELOG.md, deploy-checklist.md, rollback-plan.md).",
+      "impact": "low",
+      "resolves": ["L6 Finding 2"]
+    },
+    {
+      "rank": 10,
+      "action": "Add post-deployment failure path. Either add ROLLBACK as a third decision option at Step 8, or explicitly document that post-deployment rollback execution is out-of-scope and refer to the rollback-plan.md artifact.",
+      "impact": "low",
+      "resolves": ["L4 G1"]
+    }
+  ]
+}

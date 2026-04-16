@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BMad Method · Quality Analysis: tjce-ship</title>
+<style>
+:root {
+  --bg: #0d1117; --surface: #161b22; --surface2: #21262d; --border: #30363d;
+  --text: #e6edf3; --text-muted: #8b949e; --text-dim: #6e7681;
+  --critical: #f85149; --high: #f0883e; --medium: #d29922; --low: #58a6ff;
+  --strength: #3fb950; --suggestion: #a371f7;
+  --accent: #58a6ff; --accent-hover: #79c0ff;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #ffffff; --surface: #f6f8fa; --surface2: #eaeef2; --border: #d0d7de;
+    --text: #1f2328; --text-muted: #656d76; --text-dim: #8c959f;
+    --critical: #cf222e; --high: #bc4c00; --medium: #9a6700; --low: #0969da;
+    --strength: #1a7f37; --suggestion: #8250df;
+    --accent: #0969da; --accent-hover: #0550ae;
+  }
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); line-height: 1.5; padding: 2rem; max-width: 900px; margin: 0 auto; }
+h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
+.subtitle { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem; }
+.subtitle a { color: var(--accent); text-decoration: none; }
+.subtitle a:hover { text-decoration: underline; }
+.grade { font-size: 2.5rem; font-weight: 700; margin: 0.5rem 0; }
+.grade-Excellent { color: var(--strength); }
+.grade-Good { color: var(--low); }
+.grade-Fair { color: var(--medium); }
+.grade-Poor { color: var(--critical); }
+.narrative { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem; line-height: 1.6; }
+.badge { display: inline-flex; align-items: center; padding: 0.15rem 0.5rem; border-radius: 2rem; font-size: 0.75rem; font-weight: 600; }
+.badge-critical { background: color-mix(in srgb, var(--critical) 20%, transparent); color: var(--critical); }
+.badge-high { background: color-mix(in srgb, var(--high) 20%, transparent); color: var(--high); }
+.badge-medium { background: color-mix(in srgb, var(--medium) 20%, transparent); color: var(--medium); }
+.badge-low { background: color-mix(in srgb, var(--low) 20%, transparent); color: var(--low); }
+.badge-strength { background: color-mix(in srgb, var(--strength) 20%, transparent); color: var(--strength); }
+.section { border: 1px solid var(--border); border-radius: 0.5rem; margin: 0.75rem 0; overflow: hidden; }
+.section-header { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; background: var(--surface); cursor: pointer; user-select: none; }
+.section-header:hover { background: var(--surface2); }
+.section-header .arrow { font-size: 0.7rem; transition: transform 0.15s; color: var(--text-muted); width: 1rem; }
+.section-header.open .arrow { transform: rotate(90deg); }
+.section-header .label { font-weight: 600; flex: 1; }
+.section-header .count { font-size: 0.8rem; color: var(--text-muted); }
+.section-header .actions { display: flex; gap: 0.5rem; }
+.section-body { display: none; }
+.section-body.open { display: block; }
+.item { padding: 0.75rem 1rem; border-top: 1px solid var(--border); }
+.item:hover { background: var(--surface); }
+.item-title { font-weight: 600; font-size: 0.9rem; }
+.item-file { font-family: var(--mono); font-size: 0.75rem; color: var(--text-muted); }
+.item-desc { font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem; }
+.item-action { font-size: 0.85rem; margin-top: 0.25rem; }
+.item-action strong { color: var(--strength); }
+.opp { padding: 1rem; border-top: 1px solid var(--border); }
+.opp-header { display: flex; align-items: center; gap: 0.75rem; }
+.opp-name { font-weight: 600; font-size: 1rem; flex: 1; }
+.opp-count { font-size: 0.8rem; color: var(--text-muted); }
+.opp-desc { font-size: 0.9rem; color: var(--text-muted); margin: 0.5rem 0; }
+.opp-impact { font-size: 0.85rem; color: var(--text-dim); font-style: italic; }
+.opp-findings { margin-top: 0.75rem; padding-left: 1rem; border-left: 2px solid var(--border); display: none; }
+.opp-findings.open { display: block; }
+.opp-finding { font-size: 0.85rem; padding: 0.25rem 0; color: var(--text-muted); }
+.opp-finding .source { font-size: 0.75rem; color: var(--text-dim); }
+.btn { background: none; border: 1px solid var(--border); border-radius: 0.25rem; padding: 0.3rem 0.7rem; cursor: pointer; color: var(--text-muted); font-size: 0.8rem; transition: all 0.15s; }
+.btn:hover { border-color: var(--accent); color: var(--accent); }
+.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 600; }
+.btn-primary:hover { background: var(--accent-hover); }
+.btn.copied { border-color: var(--strength); color: var(--strength); }
+.strength-item { padding: 0.5rem 1rem; border-top: 1px solid var(--border); }
+.strength-item .title { font-weight: 600; font-size: 0.9rem; color: var(--strength); }
+.strength-item .detail { font-size: 0.85rem; color: var(--text-muted); }
+.analysis-section { padding: 0.75rem 1rem; border-top: 1px solid var(--border); }
+.analysis-section h4 { font-size: 0.9rem; margin-bottom: 0.25rem; }
+.analysis-section p { font-size: 0.85rem; color: var(--text-muted); }
+.analysis-finding { font-size: 0.85rem; padding: 0.25rem 0 0.25rem 1rem; border-left: 2px solid var(--border); margin: 0.25rem 0; color: var(--text-muted); }
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200; align-items: center; justify-content: center; }
+.modal-overlay.visible { display: flex; }
+.modal { background: var(--surface); border: 1px solid var(--border); border-radius: 0.5rem; padding: 1.5rem; width: 90%; max-width: 700px; max-height: 80vh; overflow-y: auto; }
+.modal h3 { margin-bottom: 0.75rem; }
+.modal pre { background: var(--bg); border: 1px solid var(--border); border-radius: 0.375rem; padding: 1rem; font-family: var(--mono); font-size: 0.8rem; white-space: pre-wrap; word-wrap: break-word; max-height: 50vh; overflow-y: auto; }
+.modal-actions { display: flex; gap: 0.75rem; margin-top: 1rem; justify-content: flex-end; }
+.recs { padding: 0.75rem 1rem; border-top: 1px solid var(--border); }
+.rec { padding: 0.3rem 0; font-size: 0.9rem; }
+.rec-rank { font-weight: 700; color: var(--accent); margin-right: 0.5rem; }
+.rec-resolves { font-size: 0.8rem; color: var(--text-dim); }
+</style>
+</head>
+<body>
+
+<div style="color:#a371f7;font-size:0.8rem;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:0.25rem">BMad Method</div>
+<h1>Quality Analysis: <span id="skill-name"></span></h1>
+<div class="subtitle" id="subtitle"></div>
+
+<div id="grade-area"></div>
+<div class="narrative" id="narrative"></div>
+
+<div id="broken-section"></div>
+<div id="opportunities-section"></div>
+<div id="strengths-section"></div>
+<div id="recommendations-section"></div>
+<div id="detailed-section"></div>
+
+<div class="modal-overlay" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <h3 id="modal-title">Generated Prompt</h3>
+    <pre id="modal-content"></pre>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">Close</button>
+      <button class="btn btn-primary" onclick="copyModal()">Copy to Clipboard</button>
+    </div>
+  </div>
+</div>
+
+<script id="report-data" type="application/json">{"meta": {"skill_name": "tjce-ship", "skill_path": "skills/tjce-ship", "timestamp": "2026-04-16T19:12:20", "scanner_count": 11}, "assessment": {"rating": "Excellent", "summary": "This is a remarkably well-crafted orchestrator skill. The 9-step pipeline demonstrates strong structural integrity, exceptional token efficiency (1,210 tokens for SKILL.md), and a best-in-class progressive disclosure pattern using hub-and-spoke reference files. All 8 workflow integrity checks passed with zero issues, prompt craft scored 9.1/10, and the fail-fast ordering is optimal at every stage boundary. The primary concerns are external — a missing dependency agent (tjce-agent-release) that blocks the entire pipeline, and agent output path assumptions that need explicit integration contracts."}, "broken": [{"issue": "tjce-agent-release does not exist — the primary dependency for Steps 2-3 is missing from the repository. The pipeline is non-functional without it.", "sources": ["L5: AA-01", "L5: EG-01"]}, {"issue": "Agent output path mismatch — the orchestrator expects APF artifacts at {output_folder}/release/apf/ and manual artifacts at {output_folder}/release/manual/, but the existing agents may write to different base paths. check-deliverables.py will fail to find artifacts.", "sources": ["L5: AA-02"]}, {"issue": "Stale verify-verdict.json accepted without scope validation — check-verify-status.py validates the verdict value but not which feature was verified. A developer who verifies Feature A and then ships Feature B will pass Step 1 with stale data.", "sources": ["L5: EC-01"]}], "opportunities": [{"name": "Incomplete External Integration Contracts", "finding_count": 6, "root_cause": "The skill assumes specific behaviors from agents and external systems that are not formally documented or validated within its own scope.", "findings": ["tjce-agent-release referenced but does not exist (L5: AA-01, EG-01)", "Agent output paths not contractually aligned with orchestrator expectations (L5: AA-02)", "No documentation of expected agent headless interface within this skill (L4: agent contracts)", "Agent exit code not checked alongside artifact existence in Step 2 (L5: EC-03)", "Verify-verdict.json scope not correlated with ship scope (L5: EC-01)", "YAML config parsed via regex instead of proper parser — fragile integration (L5: AA-07)"]}, {"name": "Headless/CI Pipeline Gaps", "finding_count": 5, "root_cause": "Headless mode handles the run-until-gate scenario well but lacks mechanisms for programmatic gate resolution and machine-readable gate identification — making true CI/CD integration incomplete.", "findings": ["No --gate-response flag for CI re-entry after human gates (L5: Headless)", "Exit code 2 does not distinguish PML gate from deployment gate (L5: AA-06)", "No timeout/watchdog for agent invocations in headless mode (L5: Headless)", "No structured error output guaranteed on exit 1 (L5: Headless)", "No notification/webhook mechanism when gates are reached (L5: missing patterns)"]}, {"name": "State Management Fragility", "finding_count": 5, "root_cause": "ship-state.json is the sole persistence mechanism but lacks a formal schema, atomic writes, staleness detection, and concurrency protection.", "findings": ["Schema never formally defined despite 8+ references across files (L5: EG-04)", "No distinction between step started vs step completed in state (L5: Archetype E)", "No staleness/expiry check on resume (L4: G3)", "No concurrency protection for simultaneous invocations (L5: EC-02)", "--continue does not validate that CLI args match stored state (L5: EC-05)"]}, {"name": "Remaining Deterministic Work in Prompts", "finding_count": 4, "root_cause": "While the skill already delegates major deterministic tasks to 4 excellent scripts, several intermediate validation and infrastructure operations remain as LLM work, adding ~2,100-3,450 tokens of deterministic processing per full pipeline run.", "findings": ["PML structural validation done by LLM instead of script — guards a non-negotiable rule (L6: Finding 1)", "Ship state checkpoint management repeated 9+ times as LLM JSON construction (L6: Finding 3)", "Release artifact intermediate check at Step 2 not scripted (L6: Finding 2)", "Agent availability pre-flight check could be scripted (L6: Finding 4)"]}], "strengths": [{"title": "Exceptional structural integrity", "detail": "All 8 workflow integrity categories passed with zero issues. Reference files fully cover Steps 1-9 with no gaps, no overlaps, and correct progression directives forming a complete chain."}, {"title": "Best-in-class progressive disclosure", "detail": "The hub-and-spoke pattern with 3 semantically-grouped reference files is superior to per-step splitting. Each file is independently actionable within its phase, and the routing table in SKILL.md gives the LLM the full pipeline map before loading any detail."}, {"title": "Outstanding token efficiency", "detail": "1,210 tokens for a 9-step orchestrator covering 3 agents, 4 scripts, 2 human gates, conditional branching, headless/interactive duality, error recovery, and state checkpointing. Zero waste patterns detected."}, {"title": "Optimal fail-fast ordering", "detail": "Every expensive operation is preceded by a cheaper validation gate. Every human gate is preceded by automated validation. The cheap verify-status check runs first, agent pre-flight runs before any delegation, and the deliverables checklist validates before the deployment gate."}, {"title": "Clean agent delegation boundaries", "detail": "The orchestrator never replicates agent logic. The explicit instruction 'Do not replicate this logic' in reference files is an exemplary boundary marker. Agents remain independently testable."}, {"title": "Comprehensive headless contract", "detail": "Exit codes (0/1/2) are consistently enforced across all reference files. Human gates correctly differentiate interactive vs. headless behavior. The --continue flag enables resume after gates."}, {"title": "Excellent script suite with full test coverage", "detail": "All 4 existing scripts follow a consistent contract (JSON output, exit code discipline, --output/--verbose/--format flags) and all have unit tests. The skill already delegates the heaviest deterministic operations to scripts."}, {"title": "Robust conditional logic propagation", "detail": "Task type and manual flag decisions flow consistently from detection (Step 1) through execution (Steps 5-6) to validation (Step 7) and summary (Step 9). The APF skip rule and manual conditional are enforced at every relevant point."}, {"title": "Well-designed human gates", "detail": "The AJUSTAR feedback loop at Step 4 captures feedback, re-invokes the agent with context, and returns to validation — preventing the 'stuck at gate' problem. Both gates are correctly non-automatable."}, {"title": "Direct, imperative language with zero anti-patterns", "detail": "No hedging, no meta-explanation, no identity preamble, no defensive padding. Inegociaveis section is genuinely load-bearing, not restating what the LLM would do anyway."}], "detailed_analysis": {"structure": {"verdict": "PASS", "summary": "All 8 workflow integrity categories passed with zero issues. Frontmatter well-formed, all sections present and load-bearing, 3 reference files fully cover Steps 1-9, all 4 script references resolve with matching CLI signatures, output artifacts align, language is direct, config integration consistent, headless contract fully enforced, and cross-file logical consistency verified.", "issues": []}, "craft": {"score": "9.1/10", "summary": "Exceptional prompt quality with zero waste patterns and best-in-class progressive disclosure. One compaction vulnerability (back-reference to SKILL.md Error Recovery in pre-check-and-release.md). Minor gaps in Overview script enumeration and intra-file progression markers.", "dimensions": {"overview_quality": "9/10", "token_efficiency": "10/10", "outcome_vs_implementation": "9/10", "progressive_disclosure": "10/10", "self_containment": "8/10", "config_headers": "8/10", "progression_conditions": "9/10", "anti_patterns": "10/10"}, "issues": ["One compaction vulnerability: pre-check-and-release.md back-references SKILL.md Error Recovery section — should be inlined", "Scripts not enumerated in Overview section", "No micro-checkpoint between Steps 2 and 3 within the reference file"]}, "cohesion": {"score": "HIGH", "summary": "Stage flow is coherent with 1:1 mapping to all 5 manual phases. 9-step count justified by distinct responsibilities. Dependency graph correct with no cycles. Agent integration clean with low coupling.", "gaps": [{"id": "G1", "description": "No post-deployment rollback step if deployment fails after Step 8", "severity": "medium"}, {"id": "G2", "description": "No notification mechanism for headless gate transitions", "severity": "low"}, {"id": "G3", "description": "No timeout or expiry for pending gates — stale state file from weeks ago could be resumed without warning", "severity": "low"}], "redundancies": [{"id": "R1", "description": "Artifact existence validation in Steps 2/3/5/6 AND again in Step 7 — intentional defense-in-depth, not harmful", "severity": "informational"}]}, "efficiency": {"score": "HIGH", "summary": "Fail-fast ordering is optimal at every stage boundary. Subagent delegation clean with no context leakage. Reference loading uses lazy three-stage pattern. Only 2 minor optimization opportunities totaling ~5-10 seconds of savings.", "optimizations": [{"description": "Step 9 dual generate-ship-summary.py calls can be parallelized", "severity": "low", "savings": "One tool-call round-trip (~2-5s)"}, {"description": "Step 1 scripts could be chained with && using -o file output", "severity": "low", "savings": "One tool-call round-trip (~2-5s)"}]}, "experience": {"headless_readiness": "7/10", "edge_cases": 7, "experience_gaps": 5, "delight_opportunities": 5, "assumption_audits": 7, "journeys": [{"archetype": "Seasoned DevOps Engineer (Interactive, Happy Path)", "summary": "Smooth end-to-end experience with no friction points on the happy path.", "friction_points": [], "bright_spots": ["Optimal step ordering", "Clean agent delegation", "Well-placed human gates"]}, {"archetype": "Junior Dev First Ship (Interactive, Confused)", "summary": "Dead-ends at Step 1 if verify not run, with no onboarding message or vocabulary explanation.", "friction_points": ["No introductory message explaining the pipeline", "Error messages assume familiarity with process vocabulary (PML, APF, RDM)", "No link to documentation or help command"], "bright_spots": []}, {"archetype": "CI Pipeline (Headless, Multi-Stage)", "summary": "Blocked at agent preflight (tjce-agent-release missing). Even with agents present, two undocumented manual interventions required with no programmatic gate-response flag.", "friction_points": ["Primary agent does not exist — pipeline non-functional", "No way to pass gate decision programmatically", "No webhook/callback for gate notifications", "Must parse ship-state.json to determine which gate is pending"], "bright_spots": ["Exit code discipline", "Deterministic artifact paths"]}, {"archetype": "Emergency Warranty Fix Developer (correcao_garantia)", "summary": "Steps 5-6 correctly skipped, but two mandatory human gates create latency for emergency fixes. No expedited approval path.", "friction_points": ["Two mandatory gates even for hotfixes", "No emergency/expedited mode", "Full PML generation may be overkill for hotfixes"], "bright_spots": ["APF automatically skipped", "Manual generation skipped", "Fast path works as designed"]}, {"archetype": "Resuming User (State Recovery After Crash)", "summary": "Resume mechanism works but has ambiguity in state interpretation and no handling of partial artifacts.", "friction_points": ["No distinction between step started and step completed in state", "Partial artifacts from crashed step may confuse re-run", "No integrity check on ship-state.json itself"], "bright_spots": ["Checkpoint/resume pattern exists", "State detection on activation"]}]}, "scripts": {"existing_count": 4, "existing_quality": "Excellent — all scripts follow consistent contract with JSON output, exit code discipline, and unit tests", "opportunity_count": 4, "total_token_savings": "2,100-3,450 tokens per full pipeline run", "opportunities": [{"name": "validate-pml.py", "severity": "high", "tokens_saved": "300-500", "description": "PML structural validation — extracts H2/H3 sections, validates against forbidden patterns, returns JSON with per-section status"}, {"name": "manage-ship-state.py", "severity": "medium", "tokens_saved": "1,350-2,250 (cumulative)", "description": "State checkpoint manager with init/update/read/resume-from subcommands — eliminates JSON construction from LLM at every step transition"}, {"name": "check-deliverables.py --stage flag", "severity": "medium", "tokens_saved": "100-200", "description": "Extend existing script with --stage 2 flag to validate only the three release artifacts at Step 2"}, {"name": "check-agent-availability.py", "severity": "low", "tokens_saved": "150-200", "description": "Agent pre-flight check — determines required agents based on flags, checks skill directory existence"}], "autonomous": {"potential": "High — existing scripts already handle the heaviest deterministic operations. Remaining opportunities are primarily infrastructure plumbing.", "notes": "If manage-ship-state.py is implemented, existing scripts could auto-update ship state as a side effect, further reducing orchestration boilerplate."}}}, "recommendations": [{"rank": 1, "action": "Create tjce-agent-release or add a prominent 'DEPENDENCY NOT YET AVAILABLE' marker in SKILL.md with a tracking reference. The pipeline is non-functional without this agent.", "impact": "critical", "resolves": ["AA-01", "EG-01", "Archetype C blocker"]}, {"rank": 2, "action": "Formalize agent output path integration contract. Document explicitly whether the orchestrator passes {output_folder}/release/ as the agent output path or agents must accept a custom directory. Add an 'Agent Contracts' section to SKILL.md.", "impact": "high", "resolves": ["AA-02", "check-deliverables.py path failures"]}, {"rank": 3, "action": "Create scripts/validate-pml.py (~60 lines) that extracts H2/H3 sections, validates against expanded forbidden patterns (TODO, a definir, TBD, pendente, placeholder, empty body), returns JSON with per-section status. Invoke at Step 3 after agent produces PML.", "impact": "high", "resolves": ["L6 Finding 1", "AA-03", "EG-03 partially"]}, {"rank": 4, "action": "Create scripts/manage-ship-state.py with init, update, read, resume-from subcommands. Enforce schema, atomic writes (write to .tmp then rename), two-phase state (running/completed), and CLI arg validation on resume.", "impact": "medium-high", "resolves": ["L6 Finding 3", "EG-04", "EC-05", "Archetype E", "L6 Finding 5"]}, {"rank": 5, "action": "Add scope validation to check-verify-status.py. Compare verify-verdict.json timestamp against most recent commit. If a feature identifier is available, validate it matches ship scope.", "impact": "medium", "resolves": ["EC-01"]}, {"rank": 6, "action": "Inline the error handling rule in pre-check-and-release.md. Replace the cross-reference to SKILL.md Error Recovery with the actual rule: 'report with instructions to verify agent is installed and halt — exit 1.'", "impact": "medium", "resolves": ["L2 self-containment gap", "compaction vulnerability"]}, {"rank": 7, "action": "Add --gate-response flag for headless CI re-entry. Accept approved|ajustar|implantado|adiado with optional --rdm on --continue. Write pending_gate field to ship-state.json at exit 2.", "impact": "medium", "resolves": ["Headless gaps", "AA-06", "Archetype C"]}, {"rank": 8, "action": "Add AJUSTAR iteration limit with escalation. After 3 cycles, present escalation prompt: continue adjusting, edit PML manually, or abort pipeline. Write iteration count to ship-state.json.", "impact": "low-medium", "resolves": ["EC-04"]}, {"rank": 9, "action": "Extend check-deliverables.py with --stage flag. When --stage 2 is passed, validate only the three release artifacts (CHANGELOG.md, deploy-checklist.md, rollback-plan.md).", "impact": "low", "resolves": ["L6 Finding 2"]}, {"rank": 10, "action": "Add post-deployment failure path. Either add ROLLBACK as a third decision option at Step 8, or explicitly document that post-deployment rollback execution is out-of-scope and refer to the rollback-plan.md artifact.", "impact": "low", "resolves": ["L4 G1"]}]}</script>
+<script>
+const RAW = JSON.parse(document.getElementById('report-data').textContent);
+const DATA = normalize(RAW);
+
+function normalize(d) {
+  // Fix meta field variants
+  if (d.meta) {
+    d.meta.skill_name = d.meta.skill_name || d.meta.skill || d.meta.name || 'Unknown';
+    d.meta.scanner_count = typeof d.meta.scanner_count === 'number' ? d.meta.scanner_count
+      : Array.isArray(d.meta.scanners_run) ? d.meta.scanners_run.length
+      : d.meta.scanner_count || 0;
+  }
+  // Fix strengths: plain strings → objects
+  d.strengths = (d.strengths || []).map(s =>
+    typeof s === 'string' ? { title: s, detail: '' } : { title: s.title || '', detail: s.detail || '' }
+  );
+  // Fix opportunities: title→name, findings_resolved→findings
+  (d.opportunities || []).forEach(o => {
+    o.name = o.name || o.title || '';
+    o.finding_count = o.finding_count || (o.findings || o.findings_resolved || []).length;
+    if (!o.findings && o.findings_resolved) o.findings = [];
+    o.action = o.action || o.fix || '';
+  });
+  // Fix broken: description→detail, fix→action
+  (d.broken || []).forEach(b => {
+    b.detail = b.detail || b.description || '';
+    b.action = b.action || b.fix || '';
+  });
+  // Fix recommendations: description→action
+  (d.recommendations || []).forEach((r, i) => {
+    r.action = r.action || r.description || '';
+    r.rank = r.rank || i + 1;
+  });
+  // Fix journeys: persona→archetype, friction→friction_points
+  if (d.detailed_analysis && d.detailed_analysis.experience) {
+    d.detailed_analysis.experience.journeys = (d.detailed_analysis.experience.journeys || []).map(j => ({
+      archetype: j.archetype || j.persona || j.name || 'Unknown',
+      summary: j.summary || j.journey_summary || j.description || j.friction || '',
+      friction_points: j.friction_points || (j.friction ? [j.friction] : []),
+      bright_spots: j.bright_spots || (j.bright ? [j.bright] : [])
+    }));
+  }
+  return d;
+}
+
+function esc(s) {
+  if (!s) return '';
+  const d = document.createElement('div');
+  d.textContent = String(s);
+  return d.innerHTML;
+}
+
+function init() {
+  const m = DATA.meta;
+  document.getElementById('skill-name').textContent = m.skill_name;
+  document.getElementById('subtitle').innerHTML =
+    `${esc(m.skill_path)} &bull; ${m.timestamp ? m.timestamp.split('T')[0] : ''} &bull; ${m.scanner_count || 0} scanners &bull; <a href="quality-report.md">Full Report &nearr;</a>`;
+
+  document.getElementById('grade-area').innerHTML =
+    `<div class="grade grade-${DATA.grade}">${esc(DATA.grade)}</div>`;
+  document.getElementById('narrative').textContent = DATA.narrative || '';
+
+  renderBroken();
+  renderOpportunities();
+  renderStrengths();
+  renderRecommendations();
+  renderDetailed();
+}
+
+function renderBroken() {
+  const items = DATA.broken || [];
+  if (!items.length) return;
+  let html = `<div class="section"><div class="section-header open" onclick="toggleSection(this)">`;
+  html += `<span class="arrow">&#9654;</span><span class="label">Broken / Critical (${items.length})</span>`;
+  html += `<div class="actions"><button class="btn btn-primary" onclick="event.stopPropagation();showBrokenPrompt()">Fix These</button></div>`;
+  html += `</div><div class="section-body open">`;
+  items.forEach(item => {
+    const loc = item.file ? `${item.file}${item.line ? ':'+item.line : ''}` : '';
+    html += `<div class="item">`;
+    html += `<span class="badge badge-${item.severity || 'high'}">${esc(item.severity || 'high')}</span> `;
+    if (loc) html += `<span class="item-file">${esc(loc)}</span>`;
+    html += `<div class="item-title">${esc(item.title)}</div>`;
+    if (item.detail) html += `<div class="item-desc">${esc(item.detail)}</div>`;
+    if (item.action) html += `<div class="item-action"><strong>Fix:</strong> ${esc(item.action)}</div>`;
+    html += `</div>`;
+  });
+  html += `</div></div>`;
+  document.getElementById('broken-section').innerHTML = html;
+}
+
+function renderOpportunities() {
+  const opps = DATA.opportunities || [];
+  if (!opps.length) return;
+  let html = `<div class="section"><div class="section-header open" onclick="toggleSection(this)">`;
+  html += `<span class="arrow">&#9654;</span><span class="label">Opportunities (${opps.length})</span>`;
+  html += `</div><div class="section-body open">`;
+  opps.forEach((opp, idx) => {
+    html += `<div class="opp">`;
+    html += `<div class="opp-header">`;
+    html += `<span class="badge badge-${opp.severity || 'medium'}">${esc(opp.severity || 'medium')}</span>`;
+    html += `<span class="opp-name">${idx+1}. ${esc(opp.name)}</span>`;
+    html += `<span class="opp-count">${opp.finding_count || (opp.findings||[]).length} observations</span>`;
+    html += `<button class="btn" onclick="toggleFindings(${idx})">Details</button>`;
+    html += `<button class="btn btn-primary" onclick="showThemePrompt(${idx})">Fix This</button>`;
+    html += `</div>`;
+    html += `<div class="opp-desc">${esc(opp.description)}</div>`;
+    if (opp.impact) html += `<div class="opp-impact">Impact: ${esc(opp.impact)}</div>`;
+    html += `<div class="opp-findings" id="findings-${idx}">`;
+    (opp.findings || []).forEach(f => {
+      const loc = f.file ? `${f.file}${f.line ? ':'+f.line : ''}` : '';
+      html += `<div class="opp-finding">`;
+      html += `<strong>${esc(f.title)}</strong>`;
+      if (loc) html += ` <span class="item-file">${esc(loc)}</span>`;
+      if (f.source) html += ` <span class="source">[${esc(f.source)}]</span>`;
+      if (f.detail) html += `<br>${esc(f.detail)}`;
+      html += `</div>`;
+    });
+    html += `</div></div>`;
+  });
+  html += `</div></div>`;
+  document.getElementById('opportunities-section').innerHTML = html;
+}
+
+function renderStrengths() {
+  const items = DATA.strengths || [];
+  if (!items.length) return;
+  let html = `<div class="section"><div class="section-header" onclick="toggleSection(this)">`;
+  html += `<span class="arrow">&#9654;</span><span class="label">Strengths (${items.length})</span>`;
+  html += `</div><div class="section-body">`;
+  items.forEach(s => {
+    html += `<div class="strength-item"><div class="title">${esc(s.title)}</div>`;
+    if (s.detail) html += `<div class="detail">${esc(s.detail)}</div>`;
+    html += `</div>`;
+  });
+  html += `</div></div>`;
+  document.getElementById('strengths-section').innerHTML = html;
+}
+
+function renderRecommendations() {
+  const recs = DATA.recommendations || [];
+  if (!recs.length) return;
+  let html = `<div class="section"><div class="section-header open" onclick="toggleSection(this)">`;
+  html += `<span class="arrow">&#9654;</span><span class="label">Recommendations</span>`;
+  html += `</div><div class="section-body open"><div class="recs">`;
+  recs.forEach(r => {
+    html += `<div class="rec">`;
+    html += `<span class="rec-rank">#${r.rank}</span>`;
+    html += `${esc(r.action)}`;
+    if (r.resolves) html += ` <span class="rec-resolves">(resolves ${r.resolves} observations)</span>`;
+    html += `</div>`;
+  });
+  html += `</div></div></div>`;
+  document.getElementById('recommendations-section').innerHTML = html;
+}
+
+function renderDetailed() {
+  const da = DATA.detailed_analysis;
+  if (!da) return;
+  const dims = [
+    ['structure', 'Structure & Integrity'],
+    ['craft', 'Craft & Writing Quality'],
+    ['cohesion', 'Cohesion & Design'],
+    ['efficiency', 'Execution Efficiency'],
+    ['experience', 'User Experience'],
+    ['scripts', 'Script Opportunities']
+  ];
+  let html = `<div class="section"><div class="section-header" onclick="toggleSection(this)">`;
+  html += `<span class="arrow">&#9654;</span><span class="label">Detailed Analysis</span>`;
+  html += `</div><div class="section-body">`;
+  dims.forEach(([key, label]) => {
+    const dim = da[key];
+    if (!dim) return;
+    html += `<div class="analysis-section"><h4>${label}</h4>`;
+    if (dim.assessment) html += `<p>${esc(dim.assessment)}</p>`;
+    if (dim.dimensions) {
+      html += `<table style="width:100%;font-size:0.85rem;margin:0.5rem 0;border-collapse:collapse;">`;
+      html += `<tr><th style="text-align:left;padding:0.3rem;border-bottom:1px solid var(--border)">Dimension</th><th style="text-align:left;padding:0.3rem;border-bottom:1px solid var(--border)">Score</th><th style="text-align:left;padding:0.3rem;border-bottom:1px solid var(--border)">Notes</th></tr>`;
+      Object.entries(dim.dimensions).forEach(([d, v]) => {
+        if (v && typeof v === 'object') {
+          html += `<tr><td style="padding:0.3rem;border-bottom:1px solid var(--border)">${esc(d.replace(/_/g,' '))}</td><td style="padding:0.3rem;border-bottom:1px solid var(--border)">${esc(v.score||'')}</td><td style="padding:0.3rem;border-bottom:1px solid var(--border)">${esc(v.notes||'')}</td></tr>`;
+        }
+      });
+      html += `</table>`;
+    }
+    if (dim.journeys && dim.journeys.length) {
+      dim.journeys.forEach(j => {
+        html += `<div style="margin:0.5rem 0"><strong>${esc(j.archetype)}</strong>: ${esc(j.summary || j.journey_summary || '')}`;
+        if (j.friction_points && j.friction_points.length) {
+          html += `<ul style="color:var(--high);font-size:0.85rem;padding-left:1.25rem">`;
+          j.friction_points.forEach(fp => { html += `<li>${esc(fp)}</li>`; });
+          html += `</ul>`;
+        }
+        html += `</div>`;
+      });
+    }
+    if (dim.autonomous) {
+      const a = dim.autonomous;
+      html += `<p><strong>Headless Potential:</strong> ${esc(a.potential||'')}`;
+      if (a.notes) html += ` — ${esc(a.notes)}`;
+      html += `</p>`;
+    }
+    (dim.findings || []).forEach(f => {
+      const loc = f.file ? `${f.file}${f.line ? ':'+f.line : ''}` : '';
+      html += `<div class="analysis-finding">`;
+      if (f.severity) html += `<span class="badge badge-${f.severity}">${esc(f.severity)}</span> `;
+      html += `${esc(f.title)}`;
+      if (loc) html += ` <span class="item-file">${esc(loc)}</span>`;
+      html += `</div>`;
+    });
+    html += `</div>`;
+  });
+  html += `</div></div>`;
+  document.getElementById('detailed-section').innerHTML = html;
+}
+
+// --- Interactions ---
+function toggleSection(el) {
+  el.classList.toggle('open');
+  el.nextElementSibling.classList.toggle('open');
+}
+
+function toggleFindings(idx) {
+  document.getElementById('findings-'+idx).classList.toggle('open');
+}
+
+// --- Prompt Generation ---
+function showThemePrompt(idx) {
+  const opp = DATA.opportunities[idx];
+  if (!opp) return;
+  let prompt = `## Task: ${opp.name}\nSkill path: ${DATA.meta.skill_path}\n\n`;
+  prompt += `### Problem\n${opp.description}\n\n`;
+  prompt += `### Fix\n${opp.action}\n\n`;
+  if (opp.findings && opp.findings.length) {
+    prompt += `### Specific observations to address:\n\n`;
+    opp.findings.forEach((f, i) => {
+      const loc = f.file ? (f.line ? `${f.file}:${f.line}` : f.file) : '';
+      prompt += `${i+1}. **${f.title}**`;
+      if (loc) prompt += ` (${loc})`;
+      if (f.detail) prompt += `\n   ${f.detail}`;
+      prompt += `\n`;
+    });
+  }
+  document.getElementById('modal-title').textContent = `Fix: ${opp.name}`;
+  document.getElementById('modal-content').textContent = prompt.trim();
+  document.getElementById('modal').classList.add('visible');
+}
+
+function showBrokenPrompt() {
+  const items = DATA.broken || [];
+  let prompt = `## Task: Fix Critical Issues\nSkill path: ${DATA.meta.skill_path}\n\n`;
+  items.forEach((item, i) => {
+    const loc = item.file ? (item.line ? `${item.file}:${item.line}` : item.file) : '';
+    prompt += `${i+1}. **[${(item.severity||'high').toUpperCase()}] ${item.title}**\n`;
+    if (loc) prompt += `   File: ${loc}\n`;
+    if (item.detail) prompt += `   Context: ${item.detail}\n`;
+    if (item.action) prompt += `   Fix: ${item.action}\n`;
+    prompt += `\n`;
+  });
+  document.getElementById('modal-title').textContent = 'Fix Critical Issues';
+  document.getElementById('modal-content').textContent = prompt.trim();
+  document.getElementById('modal').classList.add('visible');
+}
+
+function closeModal() { document.getElementById('modal').classList.remove('visible'); }
+
+function copyModal() {
+  const text = document.getElementById('modal-content').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector('.modal .btn-primary');
+    btn.textContent = 'Copied!';
+    setTimeout(() => { btn.textContent = 'Copy to Clipboard'; }, 1500);
+  });
+}
+
+init();
+</script>
+</body>
+</html>

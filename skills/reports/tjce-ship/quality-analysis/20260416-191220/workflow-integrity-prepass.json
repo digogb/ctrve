@@ -1,0 +1,70 @@
+{
+  "scanner": "workflow-integrity-prepass",
+  "script": "prepass-workflow-integrity.py",
+  "version": "1.0.0",
+  "skill_path": "skills/tjce-ship",
+  "timestamp": "2026-04-16T19:12:29.925195+00:00",
+  "status": "pass",
+  "metadata": {
+    "frontmatter": {
+      "name": "tjce-ship",
+      "description": "Orquestrador da fase SHIP para projetos TJCE. Use when the user asks to 'preparar release', 'gerar PML', 'executar ship', or 'fechar demanda' in TJCE projects."
+    },
+    "sections": [
+      {
+        "level": 2,
+        "title": "Overview",
+        "line": 8
+      },
+      {
+        "level": 2,
+        "title": "On Activation",
+        "line": 25
+      },
+      {
+        "level": 2,
+        "title": "Execution Flow",
+        "line": 37
+      },
+      {
+        "level": 2,
+        "title": "Error Recovery",
+        "line": 49
+      },
+      {
+        "level": 2,
+        "title": "Inegociaveis",
+        "line": 56
+      },
+      {
+        "level": 2,
+        "title": "Headless Contract",
+        "line": 65
+      },
+      {
+        "level": 2,
+        "title": "Output Artifacts",
+        "line": 74
+      }
+    ],
+    "workflow_type": "simple-utility"
+  },
+  "stage_summary": {
+    "total_stages": 0,
+    "referenced": [],
+    "actual": [],
+    "missing_stages": [],
+    "orphaned_stages": []
+  },
+  "prompt_details": [],
+  "issues": [],
+  "summary": {
+    "total_issues": 0,
+    "by_severity": {
+      "critical": 0,
+      "high": 0,
+      "medium": 0,
+      "low": 0
+    }
+  }
+}

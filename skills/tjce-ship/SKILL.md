@@ -9,8 +9,8 @@ description: Orquestrador da fase SHIP para projetos TJCE. Use when the user ask
 
 Orquestrador da fase SHIP da Esteira de Desenvolvimento do TJCE. Substitui as fases "Preparando Versao", "Validando PML", "Aguardando Implantacao", "Implantado" e "Fechado" com um processo estruturado de release, validacao humana e fechamento.
 
-Este workflow **orquestra** tres agentes TJCE existentes e scripts deterministicos:
-- `tjce-agent-release` — changelog, deploy checklist, rollback plan, PML
+Este workflow **orquestra** tres agentes TJCE e scripts deterministicos:
+- `tjce-agent-release` — changelog, deploy checklist, rollback plan, PML **(DEPENDENCIA — criar antes de usar este workflow)**
 - `tjce-agent-apf` — contagem de Pontos de Funcao
 - `tjce-agent-docs` — manual do usuario
 
@@ -62,6 +62,17 @@ Distinguish between "agent produced bad output" and "agent crashed":
 - **2 gates humanos obrigatorios** (PML + Implantacao) — nunca automatizados
 - **Checklist final verifica 100% dos artefatos esperados**
 
+## Agent Contracts
+
+Each agent receives `{output_folder}/release/` as its output base directory. Expected behavior:
+
+| Agent | Invocation | Output Path |
+| ----- | ---------- | ----------- |
+| `tjce-agent-release` | `--headless` | `{output_folder}/release/` (CHANGELOG.md, deploy-checklist.md, rollback-plan.md) |
+| `tjce-agent-release` | `--headless pml` | `{output_folder}/release/PML.md` |
+| `tjce-agent-apf` | `--headless` | `{output_folder}/release/apf/` (contagem-detalhada.md, resumo-apf.md) |
+| `tjce-agent-docs` | `--headless` | `{output_folder}/release/manual/manual-usuario.md` |
+
 ## Headless Contract
 
 When running with `--headless` / `-H`:
@@ -70,6 +81,7 @@ When running with `--headless` / `-H`:
 - **Output:** All artifacts written to `{output_folder}/release/`. Structured verdict written to `{output_folder}/release/ship-verdict.json`.
 - **Missing config:** Use defaults. Do not prompt.
 - **Resume:** Use `--continue` with existing `ship-state.json` to re-enter after a human gate.
+- **Gate response:** Use `--gate-response approved|ajustar|implantado|adiado` with `--continue` to pass gate decisions programmatically. `ship-state.json` includes `pending_gate` field to identify which gate is awaiting response.
 
 ## Output Artifacts
 
@@ -80,7 +92,7 @@ All written to `{output_folder}/release/`:
 | `CHANGELOG.md` | tjce-agent-release | 2 | Sempre |
 | `deploy-checklist.md` | tjce-agent-release | 2 | Sempre |
 | `rollback-plan.md` | tjce-agent-release | 2 | Sempre |
-| `PML.md` | tjce-agent-release (PML) | 3 | Sempre |
+| `PML.md` | tjce-agent-release (PML) + validate-pml.py | 3 | Sempre |
 | `apf/contagem-detalhada.md` | tjce-agent-apf | 5 | tipo != correcao_garantia |
 | `apf/resumo-apf.md` | tjce-agent-apf | 5 | tipo != correcao_garantia |
 | `manual/manual-usuario.md` | tjce-agent-docs | 6 | manual_necessario |

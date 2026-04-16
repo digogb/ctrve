@@ -23,10 +23,15 @@ Present the ship-checklist to the PO:
 | ------- | ---- |
 | **IMPLANTADO** | Capture RDM number (Requisicao de Mudanca) and deployment date from PO. Record in ship-state.json. Proceed to Step 9. |
 | **ADIADO** | Record reason and expected date in ship-state.json. Exit 2 in headless, inform in interactive. |
+| **ROLLBACK** | Deployment failed. Direct PO to `rollback-plan.md` for rollback procedures. Record failure in ship-state.json. Pipeline returns to awaiting_deployment. |
 
 ### Headless Mode
 
-Write `ship-state.json` with stage=8 and status=awaiting_deployment. Exit with code 2.
+```bash
+python3 scripts/manage-ship-state.py update {state_path} --stage 8 --stage-status awaiting_deployment --pending-gate deployment
+```
+
+Exit with code 2. On `--continue` with `--gate-response implantado --rdm {number}`, proceed to Step 9. With `--gate-response adiado`, exit 2 again.
 
 ## Step 9 — Fechamento
 

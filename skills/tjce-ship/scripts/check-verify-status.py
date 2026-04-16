@@ -7,6 +7,7 @@
 import argparse
 import json
 import re
+import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -69,7 +70,36 @@ def check_verify_status(output_folder: Path) -> dict:
         })
         return _build_result(output_folder, "fail", findings, status=status, source=source)
 
+    staleness = _check_staleness(output_folder, verdict_path if verdict_path.exists() else summary_path)
+    if staleness:
+        findings.append(staleness)
+
     return _build_result(output_folder, "pass", findings, status=status, source=source)
+
+
+def _check_staleness(output_folder: Path, verify_file: Path) -> dict | None:
+    if not verify_file.exists():
+        return None
+    try:
+        verify_mtime = verify_file.stat().st_mtime
+        result = subprocess.run(
+            ["git", "log", "-1", "--format=%ct"],
+            capture_output=True, text=True, cwd=str(output_folder.parent),
+        )
+        if result.returncode != 0 or not result.stdout.strip():
+            return None
+        latest_commit_time = float(result.stdout.strip())
+        if latest_commit_time > verify_mtime:
+            return {
+                "severity": "high",
+                "category": "staleness",
+                "location": {"file": str(verify_file)},
+                "issue": "Commits mais recentes que o relatorio de verificacao — resultado pode estar desatualizado",
+                "fix": "Re-execute /tjce-verify para validar o estado atual do codigo",
+            }
+    except (OSError, ValueError):
+        pass
+    return None
 
 
 def _build_result(output_folder, result_status, findings, status, source):
