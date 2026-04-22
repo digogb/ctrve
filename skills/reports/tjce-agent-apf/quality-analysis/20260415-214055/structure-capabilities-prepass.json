@@ -1,0 +1,83 @@
+{
+  "scanner": "structure-capabilities-prepass",
+  "script": "prepass-structure-capabilities.py",
+  "version": "1.0.0",
+  "skill_path": "/home/rodgb/projetos/ctrve/skills/tjce-agent-apf",
+  "timestamp": "2026-04-16T00:41:01.089747+00:00",
+  "status": "warning",
+  "metadata": {
+    "frontmatter": {
+      "name": "tjce-agent-apf",
+      "description": "Analista de Pontos de Funcao do TJCE segundo IFPUG CPM 4.3.1. Use when the user asks to count function points, perform APF counting, measure software size for TJCE projects, or register a Correcao em Garantia."
+    },
+    "sections": [
+      {
+        "level": 2,
+        "title": "Overview",
+        "line": 8
+      },
+      {
+        "level": 2,
+        "title": "Identity",
+        "line": 16
+      },
+      {
+        "level": 2,
+        "title": "Communication Style",
+        "line": 20
+      },
+      {
+        "level": 2,
+        "title": "Principles",
+        "line": 28
+      },
+      {
+        "level": 2,
+        "title": "On Activation",
+        "line": 35
+      },
+      {
+        "level": 3,
+        "title": "Prerequisite Check",
+        "line": 44
+      },
+      {
+        "level": 3,
+        "title": "Capability Routing",
+        "line": 58
+      },
+      {
+        "level": 3,
+        "title": "Headless Contract",
+        "line": 66
+      }
+    ],
+    "is_memory_agent": false
+  },
+  "prompt_details": [
+    {
+      "file": "count-capability.md",
+      "has_config_header": true,
+      "has_progression": false
+    }
+  ],
+  "memory_paths": [],
+  "issues": [
+    {
+      "file": "count-capability.md",
+      "line": 205,
+      "severity": "high",
+      "category": "progression",
+      "issue": "No progression condition keywords found"
+    }
+  ],
+  "summary": {
+    "total_issues": 1,
+    "by_severity": {
+      "critical": 0,
+      "high": 1,
+      "medium": 0,
+      "low": 0
+    }
+  }
+}

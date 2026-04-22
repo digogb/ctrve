@@ -1,0 +1,65 @@
+{
+  "scanner": "path-standards",
+  "script": "scan-path-standards.py",
+  "version": "3.0.0",
+  "skill_path": "/home/rodgb/projetos/ctrve/skills/tjce-agent-release",
+  "timestamp": "2026-04-16T21:48:05.913701+00:00",
+  "files_scanned": [
+    "SKILL.md",
+    "references/changelog.md",
+    "references/deploy.md",
+    "references/pml.md",
+    "scripts/.pytest_cache/README.md"
+  ],
+  "status": "fail",
+  "findings": [
+    {
+      "file": "SKILL.md",
+      "line": 82,
+      "severity": "high",
+      "category": "cross-dir-dot-slash",
+      "title": "Cross-directory ./ reference \u2014 ./ means same folder only; use bare skill-root relative path (e.g., references/foo.md not ./references/foo.md)",
+      "detail": "| PML \u2014 Plano de Mudan\u00e7a e Libera\u00e7\u00e3o | P | Load `./references/pml.md` |",
+      "action": ""
+    },
+    {
+      "file": "SKILL.md",
+      "line": 83,
+      "severity": "high",
+      "category": "cross-dir-dot-slash",
+      "title": "Cross-directory ./ reference \u2014 ./ means same folder only; use bare skill-root relative path (e.g., references/foo.md not ./references/foo.md)",
+      "detail": "| CHANGELOG \u2014 Release Notes por est\u00f3ria | C | Load `./references/changelog.md` |",
+      "action": ""
+    },
+    {
+      "file": "SKILL.md",
+      "line": 84,
+      "severity": "high",
+      "category": "cross-dir-dot-slash",
+      "title": "Cross-directory ./ reference \u2014 ./ means same folder only; use bare skill-root relative path (e.g., references/foo.md not ./references/foo.md)",
+      "detail": "| DEPLOY \u2014 Checklist de implanta\u00e7\u00e3o e rollback | D | Load `./references/deploy.md` |",
+      "action": ""
+    }
+  ],
+  "assessments": {},
+  "summary": {
+    "total_findings": 3,
+    "by_severity": {
+      "critical": 0,
+      "high": 3,
+      "medium": 0,
+      "low": 0
+    },
+    "by_category": {
+      "double_prefix": 0,
+      "bare_bmad": 0,
+      "absolute_path": 0,
+      "relative_prefix": 0,
+      "cross_dir_dot_slash": 3,
+      "memory_path": 0,
+      "frontmatter": 0,
+      "structure": 0
+    },
+    "assessment": "Path standards scan complete"
+  }
+}

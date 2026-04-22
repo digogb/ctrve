@@ -1,0 +1,84 @@
+{
+  "scanner": "scripts",
+  "script": "scan-scripts.py",
+  "version": "2.0.0",
+  "skill_path": "/home/rodgb/projetos/ctrve/skills/tjce-agent-release",
+  "timestamp": "2026-04-16T21:48:06.034490+00:00",
+  "status": "warning",
+  "findings": [
+    {
+      "file": "scripts/detect-deploy-changes.py",
+      "line": 1,
+      "severity": "high",
+      "category": "dependencies",
+      "title": "References requirements.txt or pip install \u2014 use PEP 723 inline deps",
+      "detail": "",
+      "action": "Replace with PEP 723 inline dependency block"
+    },
+    {
+      "file": "scripts/detect-deploy-changes.py",
+      "line": 0,
+      "severity": "high",
+      "category": "lint-setup",
+      "title": "uv not found on PATH \u2014 cannot run ruff for Python linting",
+      "detail": "",
+      "action": "Install uv: https://docs.astral.sh/uv/getting-started/installation/"
+    },
+    {
+      "file": "scripts/extract-git-changelog.py",
+      "line": 0,
+      "severity": "high",
+      "category": "lint-setup",
+      "title": "uv not found on PATH \u2014 cannot run ruff for Python linting",
+      "detail": "",
+      "action": "Install uv: https://docs.astral.sh/uv/getting-started/installation/"
+    },
+    {
+      "file": "scripts/validate-release-artifacts.py",
+      "line": 0,
+      "severity": "high",
+      "category": "lint-setup",
+      "title": "uv not found on PATH \u2014 cannot run ruff for Python linting",
+      "detail": "",
+      "action": "Install uv: https://docs.astral.sh/uv/getting-started/installation/"
+    }
+  ],
+  "assessments": {
+    "lint_summary": {
+      "tools_used": [],
+      "files_linted": 3,
+      "lint_issues": 0
+    },
+    "script_summary": {
+      "total_scripts": 3,
+      "by_type": {
+        "python": 3,
+        "shell": 0,
+        "node": 0,
+        "other": 0
+      },
+      "scripts": {
+        "python": [
+          "detect-deploy-changes.py",
+          "extract-git-changelog.py",
+          "validate-release-artifacts.py"
+        ]
+      },
+      "missing_tests": []
+    }
+  },
+  "summary": {
+    "total_findings": 4,
+    "by_severity": {
+      "critical": 0,
+      "high": 4,
+      "medium": 0,
+      "low": 0
+    },
+    "by_category": {
+      "dependencies": 1,
+      "lint-setup": 3
+    },
+    "assessment": ""
+  }
+}

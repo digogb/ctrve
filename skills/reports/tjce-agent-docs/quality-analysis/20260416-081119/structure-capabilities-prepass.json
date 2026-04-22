@@ -1,0 +1,88 @@
+{
+  "scanner": "structure-capabilities-prepass",
+  "script": "prepass-structure-capabilities.py",
+  "version": "1.0.0",
+  "skill_path": "/home/rodgb/projetos/ctrve/skills/tjce-agent-docs",
+  "timestamp": "2026-04-16T11:11:31.089270+00:00",
+  "status": "warning",
+  "metadata": {
+    "frontmatter": {
+      "name": "tjce-agent-docs",
+      "description": "Technical Writer do TJCE que gera Manual do Usuario a partir de estorias de usuario, mensagens e telas implementadas. Use when the user asks to generate a user manual, write end-user documentation, or produce manual-usuario.md for TJCE projects."
+    },
+    "sections": [
+      {
+        "level": 2,
+        "title": "Overview",
+        "line": 8
+      },
+      {
+        "level": 2,
+        "title": "Identity",
+        "line": 18
+      },
+      {
+        "level": 2,
+        "title": "Communication Style",
+        "line": 22
+      },
+      {
+        "level": 2,
+        "title": "Principles",
+        "line": 30
+      },
+      {
+        "level": 2,
+        "title": "On Activation",
+        "line": 37
+      },
+      {
+        "level": 3,
+        "title": "Prerequisite Check",
+        "line": 46
+      },
+      {
+        "level": 3,
+        "title": "Screen Pre-Pass (optional efficiency boost)",
+        "line": 54
+      },
+      {
+        "level": 3,
+        "title": "Capability Routing",
+        "line": 64
+      },
+      {
+        "level": 3,
+        "title": "Headless Contract",
+        "line": 72
+      }
+    ],
+    "is_memory_agent": false
+  },
+  "prompt_details": [
+    {
+      "file": "manual-capability.md",
+      "has_config_header": true,
+      "has_progression": false
+    }
+  ],
+  "memory_paths": [],
+  "issues": [
+    {
+      "file": "manual-capability.md",
+      "line": 153,
+      "severity": "high",
+      "category": "progression",
+      "issue": "No progression condition keywords found"
+    }
+  ],
+  "summary": {
+    "total_issues": 1,
+    "by_severity": {
+      "critical": 0,
+      "high": 1,
+      "medium": 0,
+      "low": 0
+    }
+  }
+}

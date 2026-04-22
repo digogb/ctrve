@@ -1,0 +1,64 @@
+{
+  "scanner": "scripts",
+  "script": "scan-scripts.py",
+  "version": "2.0.0",
+  "skill_path": "/home/rodgb/projetos/ctrve/skills/tjce-agent-apf",
+  "timestamp": "2026-04-16T00:41:01.046323+00:00",
+  "status": "warning",
+  "findings": [
+    {
+      "file": "scripts/calculate-fp.py",
+      "line": 0,
+      "severity": "high",
+      "category": "lint-setup",
+      "title": "uv not found on PATH \u2014 cannot run ruff for Python linting",
+      "detail": "",
+      "action": "Install uv: https://docs.astral.sh/uv/getting-started/installation/"
+    },
+    {
+      "file": "scripts/validate-fp-sources.py",
+      "line": 0,
+      "severity": "high",
+      "category": "lint-setup",
+      "title": "uv not found on PATH \u2014 cannot run ruff for Python linting",
+      "detail": "",
+      "action": "Install uv: https://docs.astral.sh/uv/getting-started/installation/"
+    }
+  ],
+  "assessments": {
+    "lint_summary": {
+      "tools_used": [],
+      "files_linted": 2,
+      "lint_issues": 0
+    },
+    "script_summary": {
+      "total_scripts": 2,
+      "by_type": {
+        "python": 2,
+        "shell": 0,
+        "node": 0,
+        "other": 0
+      },
+      "scripts": {
+        "python": [
+          "calculate-fp.py",
+          "validate-fp-sources.py"
+        ]
+      },
+      "missing_tests": []
+    }
+  },
+  "summary": {
+    "total_findings": 2,
+    "by_severity": {
+      "critical": 0,
+      "high": 2,
+      "medium": 0,
+      "low": 0
+    },
+    "by_category": {
+      "lint-setup": 2
+    },
+    "assessment": ""
+  }
+}

@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BMad Method · Quality Analysis: tjce-agent-docs</title>
+<style>
+:root {
+  --bg: #0d1117; --surface: #161b22; --surface2: #21262d; --border: #30363d;
+  --text: #e6edf3; --text-muted: #8b949e; --text-dim: #6e7681;
+  --critical: #f85149; --high: #f0883e; --medium: #d29922; --low: #58a6ff;
+  --strength: #3fb950; --suggestion: #a371f7;
+  --accent: #58a6ff; --accent-hover: #79c0ff;
+  --brand: #a371f7;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #ffffff; --surface: #f6f8fa; --surface2: #eaeef2; --border: #d0d7de;
+    --text: #1f2328; --text-muted: #656d76; --text-dim: #8c959f;
+    --critical: #cf222e; --high: #bc4c00; --medium: #9a6700; --low: #0969da;
+    --strength: #1a7f37; --suggestion: #8250df;
+    --accent: #0969da; --accent-hover: #0550ae;
+    --brand: #8250df;
+  }
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); line-height: 1.5; padding: 2rem; max-width: 900px; margin: 0 auto; }
+.brand { color: var(--brand); font-size: 0.8rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 0.25rem; }
+h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
+.subtitle { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem; }
+.subtitle a { color: var(--accent); text-decoration: none; }
+.subtitle a:hover { text-decoration: underline; }
+.portrait { background: var(--surface); border: 1px solid var(--border); border-radius: 0.5rem; padding: 1.25rem; margin-bottom: 1.5rem; }
+.portrait-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem; }
+.portrait-icon { font-size: 2rem; }
+.portrait-name { font-size: 1.25rem; font-weight: 700; }
+.portrait-title { font-size: 0.9rem; color: var(--text-muted); }
+.portrait-desc { font-size: 0.95rem; color: var(--text-muted); line-height: 1.6; font-style: italic; }
+.grade { font-size: 2.5rem; font-weight: 700; margin: 0.5rem 0; }
+.grade-Excellent { color: var(--strength); }
+.grade-Good { color: var(--low); }
+.grade-Fair { color: var(--medium); }
+.grade-Poor { color: var(--critical); }
+.narrative { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem; line-height: 1.6; }
+.badge { display: inline-flex; align-items: center; padding: 0.15rem 0.5rem; border-radius: 2rem; font-size: 0.75rem; font-weight: 600; }
+.badge-critical { background: color-mix(in srgb, var(--critical) 20%, transparent); color: var(--critical); }
+.badge-high { background: color-mix(in srgb, var(--high) 20%, transparent); color: var(--high); }
+.badge-medium { background: color-mix(in srgb, var(--medium) 20%, transparent); color: var(--medium); }
+.badge-low { background: color-mix(in srgb, var(--low) 20%, transparent); color: var(--low); }
+.badge-strength { background: color-mix(in srgb, var(--strength) 20%, transparent); color: var(--strength); }
+.badge-good { background: color-mix(in srgb, var(--strength) 15%, transparent); color: var(--strength); }
+.badge-attention { background: color-mix(in srgb, var(--medium) 15%, transparent); color: var(--medium); }
+.section { border: 1px solid var(--border); border-radius: 0.5rem; margin: 0.75rem 0; overflow: hidden; }
+.section-header { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; background: var(--surface); cursor: pointer; user-select: none; }
+.section-header:hover { background: var(--surface2); }
+.section-header .arrow { font-size: 0.7rem; transition: transform 0.15s; color: var(--text-muted); width: 1rem; }
+.section-header.open .arrow { transform: rotate(90deg); }
+.section-header .label { font-weight: 600; flex: 1; }
+.section-header .actions { display: flex; gap: 0.5rem; }
+.section-body { display: none; }
+.section-body.open { display: block; }
+.cap-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 1rem; border-top: 1px solid var(--border); }
+.cap-row:hover { background: var(--surface); }
+.cap-name { font-weight: 600; font-size: 0.9rem; flex: 1; }
+.cap-file { font-family: var(--mono); font-size: 0.75rem; color: var(--text-dim); }
+.cap-findings { display: none; padding: 0.5rem 1rem 0.5rem 2rem; border-top: 1px solid var(--border); background: var(--bg); }
+.cap-findings.open { display: block; }
+.cap-finding { font-size: 0.85rem; padding: 0.25rem 0; color: var(--text-muted); }
+.item { padding: 0.75rem 1rem; border-top: 1px solid var(--border); }
+.item:hover { background: var(--surface); }
+.item-title { font-weight: 600; font-size: 0.9rem; }
+.item-file { font-family: var(--mono); font-size: 0.75rem; color: var(--text-muted); }
+.item-desc { font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem; }
+.item-action { font-size: 0.85rem; margin-top: 0.25rem; }
+.item-action strong { color: var(--strength); }
+.opp { padding: 1rem; border-top: 1px solid var(--border); }
+.opp-header { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+.opp-name { font-weight: 600; font-size: 1rem; flex: 1; }
+.opp-count { font-size: 0.8rem; color: var(--text-muted); }
+.opp-desc { font-size: 0.9rem; color: var(--text-muted); margin: 0.5rem 0; }
+.opp-impact { font-size: 0.85rem; color: var(--text-dim); font-style: italic; }
+.opp-findings { margin-top: 0.75rem; padding-left: 1rem; border-left: 2px solid var(--border); display: none; }
+.opp-findings.open { display: block; }
+.opp-finding { font-size: 0.85rem; padding: 0.25rem 0; color: var(--text-muted); }
+.opp-finding .source { font-size: 0.75rem; color: var(--text-dim); }
+.btn { background: none; border: 1px solid var(--border); border-radius: 0.25rem; padding: 0.3rem 0.7rem; cursor: pointer; color: var(--text-muted); font-size: 0.8rem; transition: all 0.15s; }
+.btn:hover { border-color: var(--accent); color: var(--accent); }
+.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 600; }
+.btn-primary:hover { background: var(--accent-hover); }
+.strength-item { padding: 0.5rem 1rem; border-top: 1px solid var(--border); }
+.strength-item .title { font-weight: 600; font-size: 0.9rem; color: var(--strength); }
+.strength-item .detail { font-size: 0.85rem; color: var(--text-muted); }
+.analysis-section { padding: 0.75rem 1rem; border-top: 1px solid var(--border); }
+.analysis-section h4 { font-size: 0.9rem; margin-bottom: 0.25rem; }
+.analysis-section p { font-size: 0.85rem; color: var(--text-muted); }
+.analysis-finding { font-size: 0.85rem; padding: 0.25rem 0 0.25rem 1rem; border-left: 2px solid var(--border); margin: 0.25rem 0; color: var(--text-muted); }
+.recs { padding: 0.75rem 1rem; border-top: 1px solid var(--border); }
+.rec { padding: 0.3rem 0; font-size: 0.9rem; }
+.rec-rank { font-weight: 700; color: var(--accent); margin-right: 0.5rem; }
+.rec-resolves { font-size: 0.8rem; color: var(--text-dim); }
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200; align-items: center; justify-content: center; }
+.modal-overlay.visible { display: flex; }
+.modal { background: var(--surface); border: 1px solid var(--border); border-radius: 0.5rem; padding: 1.5rem; width: 90%; max-width: 700px; max-height: 80vh; overflow-y: auto; }
+.modal h3 { margin-bottom: 0.75rem; }
+.modal pre { background: var(--bg); border: 1px solid var(--border); border-radius: 0.375rem; padding: 1rem; font-family: var(--mono); font-size: 0.8rem; white-space: pre-wrap; word-wrap: break-word; max-height: 50vh; overflow-y: auto; }
+.modal-actions { display: flex; gap: 0.75rem; margin-top: 1rem; justify-content: flex-end; }
+</style>
+</head>
+<body>
+
+<div class="brand">BMad Method</div>
+<h1>Quality Analysis: <span id="skill-name"></span></h1>
+<div class="subtitle" id="subtitle"></div>
+
+<div id="portrait"></div>
+<div id="grade-area"></div>
+<div class="narrative" id="narrative"></div>
+
+<div id="capabilities-section"></div>
+<div id="broken-section"></div>
+<div id="opportunities-section"></div>
+<div id="strengths-section"></div>
+<div id="recommendations-section"></div>
+<div id="detailed-section"></div>
+
+<div class="modal-overlay" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <h3 id="modal-title">Generated Prompt</h3>
+    <pre id="modal-content"></pre>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">Close</button>
+      <button class="btn btn-primary" onclick="copyModal()">Copy to Clipboard</button>
+    </div>
+  </div>
+</div>
+
+<script id="report-data" type="application/json">{"meta": {"skill_name": "tjce-agent-docs", "skill_path": "/home/rodgb/projetos/ctrve/skills/tjce-agent-docs", "timestamp": "2026-04-16T08:11:19Z", "scanner_count": 8, "type": "agent"}, "agent_profile": {"icon": "", "display_name": "Technical Writer TJCE", "title": "Redator Tecnico Didatico para Manuais do Usuario", "portrait": "O Technical Writer TJCE e um redator tecnico paciente e didatico que transforma estorias de usuario e catalogos de mensagens em manuais que qualquer servidor, magistrado ou advogado consegue seguir sem suporte. Sua voz e a de quem explica para um colega leigo — formal mas acessivel, sempre no imperativo, com zero jargao tecnico. O principio mais forte do agente e a recusa em inventar: se nao sabe como uma tela funciona, para e pergunta."}, "capabilities": [{"name": "MANUAL — Gerar Manual do Usuario", "file": "references/manual-capability.md", "status": "needs-attention", "finding_count": 3, "findings": [{"title": "Sem condicoes de progressao entre passos criticos", "severity": "high", "source": "structure-capabilities-prepass"}, {"title": "Passos procedurais poderiam ser condensados em descricoes de resultado", "severity": "medium", "source": "structure-analysis"}, {"title": "Template de estrutura rigido pode restringir adaptacao", "severity": "medium", "source": "structure-analysis"}]}], "narrative": "Agente bem construido com identidade coesa, estrutura limpa e um contrato headless maduro. O principal gargalo e a ausencia de modo incremental e estrategia para conjuntos grandes de estorias, o que limita a utilidade em projetos reais de longa duracao.", "grade": "Good", "broken": [], "opportunities": [{"name": "Falta de Modo Incremental e Estrategia de Escala", "description": "Em projetos reais do TJCE, estorias de usuario sao adicionadas ao longo de sprints. Sem um modo de atualizacao incremental, o manual inteiro precisa ser regenerado a cada mudanca — arriscando sobrescrever edicoes manuais e desperdicando tokens. Sistemas com 50-200+ estorias excedem o limite da janela de contexto, causando degradacao silenciosa.", "severity": "high", "impact": "Transforma o agente de uma ferramenta de uso unico em um companheiro de documentacao continua.", "action": "Adicionar um modo --update que le o manual existente, identifica secoes novas/alteradas, e gera apenas o delta. Implementar estrategia de chunking para conjuntos grandes (gerar em lotes de 15-20 US, escrevendo incrementalmente).", "finding_count": 5, "findings": [{"title": "Sem modo de atualizacao incremental", "file": "references/manual-capability.md", "line": 77, "detail": "O agente sempre gera o manual completo do zero. Em projetos reais onde estorias sao adicionadas por sprint, isso forca regeneracao total.", "source": "enhancement-opportunities"}, {"title": "Sem capacidade incremental/update", "file": "references/manual-capability.md", "line": 77, "detail": "Se o manual ja existe e novos requisitos sao adicionados, o usuario deve regenerar tudo do zero.", "source": "agent-cohesion"}, {"title": "Sem estrategia para conjuntos grandes de US", "file": "references/manual-capability.md", "line": 79, "detail": "Um sistema com 100+ estorias vai exceder o limite de contexto, causando degradacao silenciosa nas secoes finais.", "source": "enhancement-opportunities"}, {"title": "Intent-before-ingestion ausente", "file": "SKILL.md", "line": 37, "detail": "O agente pula direto para verificacao de prerequisitos sem entender a intencao do usuario (gerar completo, atualizar, verificar cobertura).", "source": "enhancement-opportunities"}, {"title": "Sem loop de revisao/refinamento estruturado", "file": "references/manual-capability.md", "line": 148, "detail": "Apos a geracao, o agente oferece ler secoes mas nao tem capacidade estruturada para iterar sobre o manual.", "source": "agent-cohesion"}]}, {"name": "Condicoes de Progressao Ausentes na Capability", "description": "O arquivo manual-capability.md nao tem gates de progressao entre os passos criticos. Em modo headless, o agente poderia pular a validacao se o contexto compactar. Em modo interativo, poderia avancar sem confirmar completude do mapeamento de telas.", "severity": "medium", "impact": "Aumenta a confiabilidade da geracao, especialmente em modo headless e sob compactacao de contexto.", "action": "Adicionar condicoes de progressao minimas: apos Passo 1 ('Prosseguir somente quando inventario de US estiver completo') e apos Passo 5 ('Prosseguir para escrita somente quando todas as verificacoes passarem ou lacunas estiverem marcadas').", "finding_count": 3, "findings": [{"title": "Nenhuma keyword de progressao encontrada no capability file", "file": "references/manual-capability.md", "line": 153, "detail": "Pre-pass estrutural detectou ausencia total de keywords de progressao no arquivo de capability.", "source": "structure-capabilities-prepass"}, {"title": "Sem gates de progressao explicitos entre passos", "file": "references/manual-capability.md", "line": 79, "detail": "O agente pode pular validacao em headless mode se contexto compactar durante geracao.", "source": "prompt-craft"}, {"title": "Capability sem condicoes de progressao", "file": "references/manual-capability.md", "line": 153, "detail": "Para um workflow linear de geracao de documentos, adicionar marcador de progressao apos validacao de cobertura tornaria o pipeline mais robusto.", "source": "structure-analysis"}]}, {"name": "Contrato Headless Incompleto para Automacao", "description": "O contrato headless e solido mas tem lacunas que impedem integracao seamless em pipelines CI/CD: caminho {tmp} indefinido, sem parametro para telas pre-computadas, default de --project nao documentado, sem indicador de progresso.", "severity": "medium", "impact": "Permite que o agente se integre perfeitamente em pipelines generate-requirements -> extract-screens -> generate-manual -> publish.", "action": "Definir {tmp} como {output_folder}/.tmp, adicionar parametro --screens-json <path>, documentar default de --project (derivar de config.yaml ou nome do diretorio).", "finding_count": 4, "findings": [{"title": "Caminho {tmp} indefinido para screen inventory", "file": "SKILL.md", "line": 59, "detail": "O pre-pass escreve em {tmp}/screens.json mas {tmp} nao esta definido no sistema de config. Automadores nao sabem onde escrever o output.", "source": "enhancement-opportunities"}, {"title": "Sem parametro --screens-json para automadores", "file": "SKILL.md", "line": 72, "detail": "Nao ha como passar um inventario de telas pre-computado em modo headless.", "source": "enhancement-opportunities"}, {"title": "Default de --project nao documentado", "file": "SKILL.md", "line": 80, "detail": "O JSON summary tem campo project mas nao ha default documentado quando config.yaml esta ausente.", "source": "enhancement-opportunities"}, {"title": "Sem indicador de progresso em modo headless", "file": "SKILL.md", "line": 72, "detail": "Uma invocacao headless longa nao da nenhum sinal ate a conclusao.", "source": "enhancement-opportunities"}]}, {"name": "Validacao Pos-Geracao Depende Apenas do LLM", "description": "A validacao de cobertura e a checagem de jargao tecnico sao feitas inteiramente pelo LLM, que pode falhar silenciosamente. Scripts deterministicos seriam mais confiaveis e economizariam tokens.", "severity": "medium", "impact": "Melhora a confiabilidade da validacao e reduz custo de tokens (~550-1000 tokens por invocacao).", "action": "Criar script validate-manual.py que verifica cobertura de US, cobertura de mensagens e termos tecnicos proibidos como pos-processamento deterministico.", "finding_count": 3, "findings": [{"title": "Coverage validation checklist como script", "file": "references/manual-capability.md", "line": 127, "detail": "O LLM re-le seu proprio output para validar cobertura. Um script faz isso deterministicamente e nunca perde um item.", "source": "script-opportunities"}, {"title": "Deteccao de jargao tecnico como script", "file": "references/manual-capability.md", "line": 111, "detail": "A lista de termos proibidos e regras-based — perfeita para um scanner por regex com numeros de linha.", "source": "script-opportunities"}, {"title": "Sem passo de validacao automatica de jargao", "file": "references/manual-capability.md", "line": 111, "detail": "O agente depende da propria disciplina para evitar jargao, o que e inerentemente pouco confiavel com LLMs.", "source": "enhancement-opportunities"}]}, {"name": "Pre-Pass de Dados Estruturais Pode Ser Scriptado", "description": "Os Passos 1-3 sao operacoes de extracao deterministica que o LLM executa sequencialmente. Scripts Python poderiam extrair esses dados em paralelo, economizando tokens e permitindo que o LLM foque na redacao.", "severity": "medium", "impact": "Reduz latencia e custo de tokens na fase de coleta de dados (~500-1300 tokens).", "action": "Criar scripts extract-us-inventory.py e extract-messages.py que produzem JSON estruturado. Reestruturar Passos 1-3 como fase paralela de coleta.", "finding_count": 3, "findings": [{"title": "Extracao de inventario de US como script", "file": "references/manual-capability.md", "line": 79, "detail": "Parse de user-stories.md para extrair IDs, titulos e tipos de interacao e deterministic e custa ~300-800 tokens ao LLM.", "source": "script-opportunities"}, {"title": "Parse de catalogo de mensagens como script", "file": "references/manual-capability.md", "line": 95, "detail": "Extracao de codigos, textos e referencias de US em messages.md e deterministic e custa ~200-500 tokens.", "source": "script-opportunities"}, {"title": "Reads sequenciais independentes nos Passos 1-3", "file": "references/manual-capability.md", "line": 79, "detail": "Steps 1, 2 e 3 sao reads independentes que poderiam ser batched em paralelo, eliminando 2 round-trips.", "source": "execution-efficiency"}]}], "strengths": [{"title": "Identidade afiada com principio zero-jargao executavel", "detail": "O agente sabe exatamente o que e e o que se recusa a fazer. A lista de termos proibidos e tabela de substituicao transformam um principio vago em regras executaveis que o LLM consegue aplicar consistentemente."}, {"title": "Missao exemplar como framework de decisao", "detail": "'Nenhum usuario do tribunal precisa pedir ajuda para usar o sistema' define o que bom significa em uma unica frase. O agente pode usar essa missao como criterio de decisao para qualquer caso de borda."}, {"title": "Zero desperdicio de tokens", "detail": "Nenhum padding defensivo, nenhuma meta-explicacao, nenhuma back-reference. Pre-pass confirmou zero waste patterns. Total de ~3011 tokens e enxuto e eficiente para um agente de capability unica."}, {"title": "Separacao persona-capability limpa", "detail": "SKILL.md cuida de identidade, voz e principios. O capability prompt cuida de workflow e regras de dominio. Onde regras comportamentais sao reafirmadas no capability prompt, e feito corretamente para sobrevivencia de compactacao de contexto."}, {"title": "Contrato headless maduro", "detail": "Exit codes (0/1/2), JSON summary estruturado e degradacao graciosa (marcando secoes incompletas ao inves de inventar) mostram maturidade de design. Raro e valioso para um agente de documentacao."}, {"title": "Tooling de suporte com testes", "detail": "extract-screens.py com testes mostra maturidade operacional. O padrao de pre-pass que compacta source frontend em JSON ja esta estabelecido e pode ser replicado."}, {"title": "Design de pipeline autocontido", "detail": "Depende de artefatos de saida de tjce-agent-requirements (nao do agente em runtime). Prerequisite check com mensagens claras e guidance para o usuario. Testavel isoladamente."}, {"title": "Principio nunca-inventar e load-bearing", "detail": "Estabelecido em Principles e reforcado em quatro pontos do capability prompt. Para um agente de documentacao, esta e a restricao comportamental mais critica — tela inventada e pior que tela ausente."}], "detailed_analysis": {"structure": {"assessment": "Agente estruturalmente solido com todas as secoes obrigatorias presentes, frontmatter limpo, e arquitetura de capability unica bem definida. Sequencia de ativacao logicamente ordenada. Um achado estrutural: capability sem condicoes de progressao.", "findings": [{"title": "Secao Screen Pre-Pass referencia python3 sem verificar disponibilidade", "file": "SKILL.md", "line": 58, "detail": "Adicionar nota: 'Se script indisponivel, pular — capability prompt trata o fallback.'", "severity": "low", "source": "prompt-craft"}, {"title": "Template de estrutura do manual pode ser rigido demais", "file": "references/manual-capability.md", "line": 36, "detail": "Considerar nota-lo como 'estrutura default' adaptavel para sistemas com perfis de funcionalidades muito diferentes.", "severity": "medium", "source": "structure-analysis"}]}, "persona": {"assessment": "Persona bem construida com identidade distinta, communication style concreto e principios load-bearing. Overview de 9 linhas e proporcional ao dominio. Zero redundancia entre Identity e Communication Style.", "overview_quality": "appropriate", "findings": [{"title": "Tabela de substituicao inline pode crescer alem do ideal", "file": "references/manual-capability.md", "line": 114, "detail": "Atualmente 7 linhas — aceitavel. Se crescer alem de ~15 entradas, extrair para references/terminology-map.md.", "severity": "low", "source": "prompt-craft"}]}, "cohesion": {"assessment": "Agente altamente coeso com identidade de proposito unico. A persona e perfeitamente refletida no design da capability. Integracao externa limpa. Gaps em completude de capabilities (modo incremental, formato de exportacao).", "dimensions": {"persona_capability_alignment": {"score": "strong", "notes": "Identidade de escritor tecnico didatico e operacionalizada diretamente nos passos de geracao. Nenhum gap entre quem o agente diz ser e o que pode fazer."}}, "findings": [{"title": "Sem conversao de formato (PDF/DOCX)", "file": "references/manual-capability.md", "line": 136, "detail": "Output e sempre Markdown. Instituicao judicial pode precisar de PDF ou DOCX. Considerar ao menos reconhecer a necessidade de formato.", "severity": "low", "source": "agent-cohesion"}, {"title": "Sem geracao de glossario standalone", "file": "references/manual-capability.md", "line": 99, "detail": "Dado o enfase em traduzir termos tecnicos, um glossario seria fit natural. Termos juridicos do TJCE tambem poderiam ser explicados.", "severity": "low", "source": "agent-cohesion"}, {"title": "Regras de negocio subespecificadas no workflow", "file": "references/manual-capability.md", "line": 28, "detail": "business-rules.md e listado como input opcional mas os passos de geracao nunca descrevem como incorporar regras de negocio no manual.", "severity": "low", "source": "agent-cohesion"}]}, "efficiency": {"assessment": "Agente enxuto e razoavelmente eficiente. Zero problemas de dependencia ou ciclos detectados pelo pre-pass. Extract-screens.py e um padrao de eficiencia solido. Oportunidade principal: paralelizar reads independentes dos Passos 1-3.", "findings": [{"title": "Checks de prerequisito sao sequenciais", "file": "SKILL.md", "line": 48, "detail": "Tres checks de existencia de arquivo poderiam ser batched em uma unica mensagem para economizar 1-2 round-trips.", "severity": "low", "source": "execution-efficiency"}]}, "experience": {"assessment": "O agente esta proximo de ser headless-ready de primeira classe. Degradacao graciosa em tres camadas e bem desenhada. Gaps em guidance para primeiro uso, fast-track para experts, e tratamento de edge cases (story sets grandes, idioma misto).", "journeys": [{"archetype": "first-timer", "summary": "Usuario consegue iniciar facilmente gracas ao prerequisite check claro e tom acolhedor, mas falta guidance sobre como invocar tjce-agent-requirements e quando usar o pre-pass script.", "friction_points": ["Referencia a tjce-agent-requirements sem explicar como invocar", "Pre-pass descrito como optional sem orientacao sobre quando usar", "Config files (_bmad/config.yaml) nao explicados"], "bright_spots": ["Prerequisite check claro com parada imediata", "Identidade acolhedora como quem explica para colega leigo"]}, {"archetype": "expert", "summary": "Expert com conhecimento de telas nao tem fast-track — deve rodar o script Python ou responder perguntas uma a uma. Sem dry-run ou modo parcial.", "friction_points": ["Sem fast-track para quem ja tem conhecimento de telas", "Sem modo parcial — sempre geracao completa", "Sem --dry-run para preview do mapeamento US-secao"], "bright_spots": ["Headless mode com --json bem desenhado para pipeline", "Exit codes claros e acionaveis"]}, {"archetype": "confused", "summary": "Alguem que queria documentacao tecnica/API vai rapidamente perceber que nao e a ferramenta certa, mas poderia ser redirecionado mais cedo.", "friction_points": ["Trigger phrase 'end-user documentation' pode atrair quem quer dev docs", "Sem check de intencao inicial"], "bright_spots": ["Identidade forte ('nunca usa jargao tecnico') sinaliza rapidamente o escopo"]}, {"archetype": "edge-case", "summary": "Inputs validos mas inesperados (200+ stories, idioma misto, mensagens duplicadas) nao tem tratamento documentado.", "friction_points": ["Sem orientacao para story sets muito grandes — truncacao silenciosa", "Sem deteccao de idioma — pode misturar portugues e ingles", "Sem deduplicacao de mensagens"], "bright_spots": []}, {"archetype": "hostile-environment", "summary": "Degradacao graciosa em tres camadas funciona bem. Gap menor no exit code do script vs. expectativa do usuario.", "friction_points": ["Script exits 1 se nao encontrar telas, mas documentacao diz que e opcional — conflito de sinais", "Sem recovery documentado para user-stories.md vazio ou malformado"], "bright_spots": ["Tres niveis de degradacao para info de tela bem desenhados"]}, {"archetype": "automator", "summary": "Exit codes e JSON summary sao excelentes. Gaps no {tmp} path e parametros de input impedem integracao seamless.", "friction_points": ["{tmp} path indefinido para screens.json", "Sem --screens-json para passar inventario pre-computado", "Default de --project nao documentado", "Sem indicador de progresso durante execucao"], "bright_spots": ["Exit codes 0/1/2 claros e acionaveis", "JSON summary com contagens de cobertura", "Caminho de output previsivel para consumo downstream"]}], "autonomous": {"potential": "headless-ready", "notes": "O agente ja suporta modo headless com exit codes, JSON summary e degradacao graciosa. Lacunas menores no contrato de automacao ({tmp}, --screens-json, --project default) impedem integracao totalmente seamless em pipelines CI/CD."}, "findings": [{"title": "Extract-screens.py limitado a React/Next.js", "file": "scripts/extract-screens.py", "line": 1, "detail": "Script hardcoded para patterns React/JSX. Projetos Vue/Angular/Svelte produzem zero resultados com exit 1, podendo confundir o usuario.", "severity": "low", "source": "agent-cohesion"}]}, "scripts": {"assessment": "O agente ja tem uma base solida com extract-screens.py (com testes). Ha oportunidades significativas para scripts adicionais que economizariam ~1280-2630 tokens por invocacao, cobrindo extracao de inventario, parse de mensagens, validacao de cobertura e deteccao de jargao.", "token_savings": "~1.280-2.630 tokens por invocacao", "findings": [{"title": "Prerequisite check como pre-pass script", "file": "SKILL.md", "line": 48, "detail": "Check de existencia de arquivos via pathlib.Path.exists() poderia short-circuit sem consumir tokens LLM. ~80 tokens salvos.", "severity": "low", "source": "script-opportunities"}, {"title": "Geracao de JSON summary headless como script", "file": "SKILL.md", "line": 80, "detail": "Contagem de secoes, markers TELA NAO IDENTIFICADA e cobertura de mensagens sao pura agregacao — zero julgamento semantico. ~150-250 tokens.", "severity": "low", "source": "script-opportunities"}, {"title": "uv nao encontrado no PATH — lint Python nao executado", "file": "scripts/extract-screens.py", "line": 0, "detail": "Ruff nao pode ser executado para lint do script Python. Instalar uv para habilitar linting.", "severity": "high", "source": "scripts-temp"}]}}, "recommendations": [{"rank": 1, "action": "Adicionar condicoes de progressao em manual-capability.md — gates apos Passo 1 e Passo 5 para prevenir avancos prematuros sob compactacao de contexto", "resolves": 3, "effort": "low"}, {"rank": 2, "action": "Implementar modo incremental (--update) que le manual existente, diff com requisitos atuais, e gera apenas secoes novas/alteradas, com estrategia de chunking para story sets grandes", "resolves": 5, "effort": "high"}, {"rank": 3, "action": "Completar contrato headless: definir {tmp} como {output_folder}/.tmp, adicionar --screens-json <path>, documentar default de --project", "resolves": 4, "effort": "low"}, {"rank": 4, "action": "Criar script validate-manual.py para validacao deterministica de cobertura US, cobertura de mensagens e jargao proibido como pos-processamento", "resolves": 3, "effort": "medium"}, {"rank": 5, "action": "Criar scripts extract-us-inventory.py e extract-messages.py para paralelizar coleta de dados e economizar ~500-1300 tokens na fase pre-pass", "resolves": 3, "effort": "medium"}, {"rank": 6, "action": "Adicionar check de intencao antes da ingestao de artefatos em modo interativo — permitir que o usuario escolha entre gerar completo, atualizar, ou verificar cobertura", "resolves": 2, "effort": "low"}]}</script>
+<script>
+const RAW = JSON.parse(document.getElementById('report-data').textContent);
+const DATA = normalize(RAW);
+
+function normalize(d) {
+  if (d.meta) {
+    d.meta.skill_name = d.meta.skill_name || d.meta.skill || d.meta.name || 'Unknown';
+    d.meta.scanner_count = typeof d.meta.scanner_count === 'number' ? d.meta.scanner_count
+      : Array.isArray(d.meta.scanners_run) ? d.meta.scanners_run.length
+      : d.meta.scanner_count || 0;
+  }
+  d.strengths = (d.strengths || []).map(s =>
+    typeof s === 'string' ? { title: s, detail: '' } : { title: s.title || '', detail: s.detail || '' }
+  );
+  (d.opportunities || []).forEach(o => {
+    o.name = o.name || o.title || '';
+    o.finding_count = o.finding_count || (o.findings || o.findings_resolved || []).length;
+    if (!o.findings && o.findings_resolved) o.findings = [];
+    o.action = o.action || o.fix || '';
+  });
+  (d.broken || []).forEach(b => {
+    b.detail = b.detail || b.description || '';
+    b.action = b.action || b.fix || '';
+  });
+  (d.recommendations || []).forEach((r, i) => {
+    r.action = r.action || r.description || '';
+    r.rank = r.rank || i + 1;
+  });
+  // Fix journeys
+  if (d.detailed_analysis && d.detailed_analysis.experience) {
+    d.detailed_analysis.experience.journeys = (d.detailed_analysis.experience.journeys || []).map(j => ({
+      archetype: j.archetype || j.persona || j.name || 'Unknown',
+      summary: j.summary || j.journey_summary || j.description || j.friction || '',
+      friction_points: j.friction_points || (j.friction ? [j.friction] : []),
+      bright_spots: j.bright_spots || (j.bright ? [j.bright] : [])
+    }));
+  }
+  // Fix capabilities
+  (d.capabilities || []).forEach(c => {
+    c.finding_count = c.finding_count || (c.findings || []).length;
+    c.status = c.status || (c.finding_count > 0 ? 'needs-attention' : 'good');
+  });
+  return d;
+}
+
+function esc(s) {
+  if (!s) return '';
+  const d = document.createElement('div');
+  d.textContent = String(s);
+  return d.innerHTML;
+}
+
+function init() {
+  const m = DATA.meta;
+  document.getElementById('skill-name').textContent = m.skill_name;
+  document.getElementById('subtitle').innerHTML =
+    `${esc(m.skill_path)} &bull; ${m.timestamp ? m.timestamp.split('T')[0] : ''} &bull; ${m.scanner_count || 0} scanners &bull; <a href="quality-report.md">Full Report &nearr;</a>`;
+
+  renderPortrait();
+  document.getElementById('grade-area').innerHTML = `<div class="grade grade-${DATA.grade}">${esc(DATA.grade)}</div>`;
+  document.getElementById('narrative').textContent = DATA.narrative || '';
+
+  renderCapabilities();
+  renderBroken();
+  renderOpportunities();
+  renderStrengths();
+  renderRecommendations();
+  renderDetailed();
+}
+
+function renderPortrait() {
+  const p = DATA.agent_profile;
+  if (!p) return;
+  let html = `<div class="portrait"><div class="portrait-header">`;
+  if (p.icon) html += `<span class="portrait-icon">${esc(p.icon)}</span>`;
+  html += `<div><div class="portrait-name">${esc(p.display_name)}</div>`;
+  if (p.title) html += `<div class="portrait-title">${esc(p.title)}</div>`;
+  html += `</div></div>`;
+  if (p.portrait) html += `<div class="portrait-desc">${esc(p.portrait)}</div>`;
+  html += `</div>`;
+  document.getElementById('portrait').innerHTML = html;
+}
+
+function renderCapabilities() {
+  const caps = DATA.capabilities || [];
+  if (!caps.length) return;
+  const good = caps.filter(c => c.status === 'good').length;
+  const attn = caps.length - good;
+  let summary = `${caps.length} capabilities`;
+  if (attn > 0) summary += ` \u00b7 ${attn} need attention`;
+
+  let html = `<div class="section"><div class="section-header open" onclick="toggleSection(this)">`;
+  html += `<span class="arrow">&#9654;</span><span class="label">Capabilities (${summary})</span>`;
+  html += `</div><div class="section-body open">`;
+  caps.forEach((cap, idx) => {
+    const statusBadge = cap.status === 'good'
+      ? `<span class="badge badge-good">Good</span>`
+      : `<span class="badge badge-attention">${cap.finding_count} observation${cap.finding_count !== 1 ? 's' : ''}</span>`;
+    const hasFindings = cap.findings && cap.findings.length > 0;
+    html += `<div class="cap-row" ${hasFindings ? `onclick="toggleCapFindings(${idx})" style="cursor:pointer"` : ''}>`;
+    html += `${statusBadge} <span class="cap-name">${esc(cap.name)}</span>`;
+    if (cap.file) html += `<span class="cap-file">${esc(cap.file)}</span>`;
+    html += `</div>`;
+    if (hasFindings) {
+      html += `<div class="cap-findings" id="cap-findings-${idx}">`;
+      cap.findings.forEach(f => {
+        html += `<div class="cap-finding">`;
+        if (f.severity) html += `<span class="badge badge-${f.severity}">${esc(f.severity)}</span> `;
+        html += `${esc(f.title)}`;
+        if (f.source) html += ` <span class="source" style="font-size:0.75rem;color:var(--text-dim)">[${esc(f.source)}]</span>`;
+        html += `</div>`;
+      });
+      html += `</div>`;
+    }
+  });
+  html += `</div></div>`;
+  document.getElementById('capabilities-section').innerHTML = html;
+}
+
+function renderBroken() {
+  const items = DATA.broken || [];
+  if (!items.length) return;
+  let html = `<div class="section"><div class="section-header open" onclick="toggleSection(this)">`;
+  html += `<span class="arrow">&#9654;</span><span class="label">Broken / Critical (${items.length})</span>`;
+  html += `<div class="actions"><button class="btn btn-primary" onclick="event.stopPropagation();showBrokenPrompt()">Fix These</button></div>`;
+  html += `</div><div class="section-body open">`;
+  items.forEach(item => {
+    const loc = item.file ? `${item.file}${item.line ? ':'+item.line : ''}` : '';
+    html += `<div class="item"><span class="badge badge-${item.severity || 'high'}">${esc(item.severity || 'high')}</span> `;
+    if (loc) html += `<span class="item-file">${esc(loc)}</span>`;
+    html += `<div class="item-title">${esc(item.title)}</div>`;
+    if (item.detail) html += `<div class="item-desc">${esc(item.detail)}</div>`;
+    if (item.action) html += `<div class="item-action"><strong>Fix:</strong> ${esc(item.action)}</div>`;
+    html += `</div>`;
+  });
+  html += `</div></div>`;
+  document.getElementById('broken-section').innerHTML = html;
+}
+
+function renderOpportunities() {
+  const opps = DATA.opportunities || [];
+  if (!opps.length) return;
+  let html = `<div class="section"><div class="section-header open" onclick="toggleSection(this)">`;
+  html += `<span class="arrow">&#9654;</span><span class="label">Opportunities (${opps.length})</span>`;
+  html += `</div><div class="section-body open">`;
+  opps.forEach((opp, idx) => {
+    html += `<div class="opp"><div class="opp-header">`;
+    html += `<span class="badge badge-${opp.severity || 'medium'}">${esc(opp.severity || 'medium')}</span>`;
+    html += `<span class="opp-name">${idx+1}. ${esc(opp.name)}</span>`;
+    html += `<span class="opp-count">${opp.finding_count || (opp.findings||[]).length} observations</span>`;
+    html += `<button class="btn" onclick="toggleFindings(${idx})">Details</button>`;
+    html += `<button class="btn btn-primary" onclick="showThemePrompt(${idx})">Fix This</button>`;
+    html += `</div>`;
+    html += `<div class="opp-desc">${esc(opp.description)}</div>`;
+    if (opp.impact) html += `<div class="opp-impact">Impact: ${esc(opp.impact)}</div>`;
+    html += `<div class="opp-findings" id="findings-${idx}">`;
+    (opp.findings || []).forEach(f => {
+      const loc = f.file ? `${f.file}${f.line ? ':'+f.line : ''}` : '';
+      html += `<div class="opp-finding"><strong>${esc(f.title)}</strong>`;
+      if (loc) html += ` <span class="item-file">${esc(loc)}</span>`;
+      if (f.source) html += ` <span class="source">[${esc(f.source)}]</span>`;
+      if (f.detail) html += `<br>${esc(f.detail)}`;
+      html += `</div>`;
+    });
+    html += `</div></div>`;
+  });
+  html += `</div></div>`;
+  document.getElementById('opportunities-section').innerHTML = html;
+}
+
+function renderStrengths() {
+  const items = DATA.strengths || [];
+  if (!items.length) return;
+  let html = `<div class="section"><div class="section-header" onclick="toggleSection(this)">`;
+  html += `<span class="arrow">&#9654;</span><span class="label">Strengths (${items.length})</span>`;
+  html += `</div><div class="section-body">`;
+  items.forEach(s => {
+    html += `<div class="strength-item"><div class="title">${esc(s.title)}</div>`;
+    if (s.detail) html += `<div class="detail">${esc(s.detail)}</div>`;
+    html += `</div>`;
+  });
+  html += `</div></div>`;
+  document.getElementById('strengths-section').innerHTML = html;
+}
+
+function renderRecommendations() {
+  const recs = DATA.recommendations || [];
+  if (!recs.length) return;
+  let html = `<div class="section"><div class="section-header open" onclick="toggleSection(this)">`;
+  html += `<span class="arrow">&#9654;</span><span class="label">Recommendations</span>`;
+  html += `</div><div class="section-body open"><div class="recs">`;
+  recs.forEach(r => {
+    html += `<div class="rec"><span class="rec-rank">#${r.rank}</span>${esc(r.action)}`;
+    if (r.resolves) html += ` <span class="rec-resolves">(resolves ${r.resolves} observations)</span>`;
+    html += `</div>`;
+  });
+  html += `</div></div></div>`;
+  document.getElementById('recommendations-section').innerHTML = html;
+}
+
+function renderDetailed() {
+  const da = DATA.detailed_analysis;
+  if (!da) return;
+  const dims = [
+    ['structure', 'Structure & Capabilities'],
+    ['persona', 'Persona & Voice'],
+    ['cohesion', 'Identity Cohesion'],
+    ['efficiency', 'Execution Efficiency'],
+    ['experience', 'Conversation Experience'],
+    ['scripts', 'Script Opportunities']
+  ];
+  let html = `<div class="section"><div class="section-header" onclick="toggleSection(this)">`;
+  html += `<span class="arrow">&#9654;</span><span class="label">Detailed Analysis</span>`;
+  html += `</div><div class="section-body">`;
+  dims.forEach(([key, label]) => {
+    const dim = da[key];
+    if (!dim) return;
+    html += `<div class="analysis-section"><h4>${label}</h4>`;
+    if (dim.assessment) html += `<p>${esc(dim.assessment)}</p>`;
+    if (dim.dimensions) {
+      html += `<table style="width:100%;font-size:0.85rem;margin:0.5rem 0;border-collapse:collapse;">`;
+      html += `<tr><th style="text-align:left;padding:0.3rem;border-bottom:1px solid var(--border)">Dimension</th><th style="text-align:left;padding:0.3rem;border-bottom:1px solid var(--border)">Score</th><th style="text-align:left;padding:0.3rem;border-bottom:1px solid var(--border)">Notes</th></tr>`;
+      Object.entries(dim.dimensions).forEach(([d, v]) => {
+        if (v && typeof v === 'object') {
+          html += `<tr><td style="padding:0.3rem;border-bottom:1px solid var(--border)">${esc(d.replace(/_/g,' '))}</td><td style="padding:0.3rem;border-bottom:1px solid var(--border)">${esc(v.score||'')}</td><td style="padding:0.3rem;border-bottom:1px solid var(--border)">${esc(v.notes||'')}</td></tr>`;
+        }
+      });
+      html += `</table>`;
+    }
+    if (dim.journeys && dim.journeys.length) {
+      dim.journeys.forEach(j => {
+        html += `<div style="margin:0.5rem 0"><strong>${esc(j.archetype)}</strong>: ${esc(j.summary || j.journey_summary || '')}`;
+        if (j.friction_points && j.friction_points.length) {
+          html += `<ul style="color:var(--high);font-size:0.85rem;padding-left:1.25rem">`;
+          j.friction_points.forEach(fp => { html += `<li>${esc(fp)}</li>`; });
+          html += `</ul>`;
+        }
+        html += `</div>`;
+      });
+    }
+    if (dim.autonomous) {
+      const a = dim.autonomous;
+      html += `<p><strong>Headless Potential:</strong> ${esc(a.potential||'')}`;
+      if (a.notes) html += ` \u2014 ${esc(a.notes)}`;
+      html += `</p>`;
+    }
+    (dim.findings || []).forEach(f => {
+      const loc = f.file ? `${f.file}${f.line ? ':'+f.line : ''}` : '';
+      html += `<div class="analysis-finding">`;
+      if (f.severity) html += `<span class="badge badge-${f.severity}">${esc(f.severity)}</span> `;
+      html += `${esc(f.title)}`;
+      if (loc) html += ` <span class="item-file">${esc(loc)}</span>`;
+      html += `</div>`;
+    });
+    html += `</div>`;
+  });
+  html += `</div></div>`;
+  document.getElementById('detailed-section').innerHTML = html;
+}
+
+function toggleSection(el) { el.classList.toggle('open'); el.nextElementSibling.classList.toggle('open'); }
+function toggleFindings(idx) { document.getElementById('findings-'+idx).classList.toggle('open'); }
+function toggleCapFindings(idx) { document.getElementById('cap-findings-'+idx).classList.toggle('open'); }
+
+function showThemePrompt(idx) {
+  const opp = DATA.opportunities[idx];
+  if (!opp) return;
+  let prompt = `## Task: ${opp.name}\nAgent path: ${DATA.meta.skill_path}\n\n### Problem\n${opp.description}\n\n### Fix\n${opp.action}\n\n`;
+  if (opp.findings && opp.findings.length) {
+    prompt += `### Specific observations to address:\n\n`;
+    opp.findings.forEach((f, i) => {
+      const loc = f.file ? (f.line ? `${f.file}:${f.line}` : f.file) : '';
+      prompt += `${i+1}. **${f.title}**`;
+      if (loc) prompt += ` (${loc})`;
+      if (f.detail) prompt += `\n   ${f.detail}`;
+      prompt += `\n`;
+    });
+  }
+  document.getElementById('modal-title').textContent = `Fix: ${opp.name}`;
+  document.getElementById('modal-content').textContent = prompt.trim();
+  document.getElementById('modal').classList.add('visible');
+}
+
+function showBrokenPrompt() {
+  const items = DATA.broken || [];
+  let prompt = `## Task: Fix Critical Issues\nAgent path: ${DATA.meta.skill_path}\n\n`;
+  items.forEach((item, i) => {
+    const loc = item.file ? (item.line ? `${item.file}:${item.line}` : item.file) : '';
+    prompt += `${i+1}. **[${(item.severity||'high').toUpperCase()}] ${item.title}**\n`;
+    if (loc) prompt += `   File: ${loc}\n`;
+    if (item.detail) prompt += `   Context: ${item.detail}\n`;
+    if (item.action) prompt += `   Fix: ${item.action}\n\n`;
+  });
+  document.getElementById('modal-title').textContent = 'Fix Critical Issues';
+  document.getElementById('modal-content').textContent = prompt.trim();
+  document.getElementById('modal').classList.add('visible');
+}
+
+function closeModal() { document.getElementById('modal').classList.remove('visible'); }
+function copyModal() {
+  navigator.clipboard.writeText(document.getElementById('modal-content').textContent).then(() => {
+    const btn = document.querySelector('.modal .btn-primary');
+    btn.textContent = 'Copied!';
+    setTimeout(() => { btn.textContent = 'Copy to Clipboard'; }, 1500);
+  });
+}
+
+init();
+</script>
+</body>
+</html>

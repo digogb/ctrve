@@ -1,0 +1,124 @@
+{
+  "scanner": "structure-capabilities-prepass",
+  "script": "prepass-structure-capabilities.py",
+  "version": "1.0.0",
+  "skill_path": "/home/rodgb/projetos/ctrve/skills/tjce-agent-release",
+  "timestamp": "2026-04-16T21:48:05.926536+00:00",
+  "status": "warning",
+  "metadata": {
+    "frontmatter": {
+      "name": "tjce-agent-release",
+      "description": "Gerente de Release do TJCE que gera PML, CHANGELOG, deploy checklist e rollback plan. Use when the user asks to generate release artifacts, create PML, prepare deployment, generate changelog, or plan rollback for TJCE projects."
+    },
+    "sections": [
+      {
+        "level": 2,
+        "title": "Overview",
+        "line": 8
+      },
+      {
+        "level": 2,
+        "title": "Identity",
+        "line": 21
+      },
+      {
+        "level": 2,
+        "title": "Communication Style",
+        "line": 25
+      },
+      {
+        "level": 2,
+        "title": "Principles",
+        "line": 33
+      },
+      {
+        "level": 2,
+        "title": "On Activation \u2014 Intent Before Ingestion",
+        "line": 40
+      },
+      {
+        "level": 3,
+        "title": "Prerequisite Check",
+        "line": 56
+      },
+      {
+        "level": 3,
+        "title": "Data Collection Pre-Pass (parallel)",
+        "line": 64
+      },
+      {
+        "level": 3,
+        "title": "Capability Routing",
+        "line": 78
+      },
+      {
+        "level": 3,
+        "title": "Post-Generation Validation",
+        "line": 88
+      },
+      {
+        "level": 3,
+        "title": "Headless Contract",
+        "line": 95
+      }
+    ],
+    "is_memory_agent": false
+  },
+  "prompt_details": [
+    {
+      "file": "changelog.md",
+      "has_config_header": true,
+      "has_progression": false
+    },
+    {
+      "file": "deploy.md",
+      "has_config_header": true,
+      "has_progression": false
+    },
+    {
+      "file": "pml.md",
+      "has_config_header": true,
+      "has_progression": false
+    }
+  ],
+  "memory_paths": [],
+  "issues": [
+    {
+      "file": "SKILL.md",
+      "line": 1,
+      "severity": "high",
+      "category": "sections",
+      "issue": "Missing ## On Activation section"
+    },
+    {
+      "file": "changelog.md",
+      "line": 96,
+      "severity": "high",
+      "category": "progression",
+      "issue": "No progression condition keywords found"
+    },
+    {
+      "file": "deploy.md",
+      "line": 150,
+      "severity": "high",
+      "category": "progression",
+      "issue": "No progression condition keywords found"
+    },
+    {
+      "file": "pml.md",
+      "line": 160,
+      "severity": "high",
+      "category": "progression",
+      "issue": "No progression condition keywords found"
+    }
+  ],
+  "summary": {
+    "total_issues": 4,
+    "by_severity": {
+      "critical": 0,
+      "high": 4,
+      "medium": 0,
+      "low": 0
+    }
+  }
+}

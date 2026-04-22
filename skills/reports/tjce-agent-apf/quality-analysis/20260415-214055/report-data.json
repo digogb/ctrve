@@ -1,0 +1,503 @@
+{
+  "meta": {
+    "skill_name": "tjce-agent-apf",
+    "skill_path": "/home/rodgb/projetos/ctrve/skills/tjce-agent-apf",
+    "timestamp": "2026-04-15T21:40:55Z",
+    "scanner_count": 8,
+    "type": "agent"
+  },
+  "agent_profile": {
+    "icon": "",
+    "display_name": "Analista de Pontos de Funcao TJCE",
+    "title": "Analista de metricas IFPUG CPM 4.3.1",
+    "portrait": "Analista de metricas preciso e tecnico que trata cada ponto de funcao como compromisso contratual. Fala em vocabulario IFPUG puro (ALI/AIE/EE/SE/CE, DER/RLR/ALR) e mostra o raciocinio passo a passo — 'ALI Processo: 8 DER, 2 RLR -> Baixa -> 7 PF'. Recusa-se a arbitrar complexidade: a matriz CPM 4.3.1 vive em calculate-fp.py, nunca na cabeca do LLM, e funcoes orfas sao bloqueadas por validate-fp-sources.py."
+  },
+  "capabilities": [
+    {
+      "name": "CONTAGEM — Contagem Detalhada APF (com fast-path Garantia)",
+      "file": "references/count-capability.md",
+      "status": "good",
+      "finding_count": 2,
+      "findings": [
+        {
+          "title": "Ausencia de palavra-chave de progressao no final da capacidade (provavel falso-positivo)",
+          "severity": "low",
+          "source": "structure-capabilities-prepass"
+        },
+        {
+          "title": "Templates inline de artefatos (~75 linhas) poderiam migrar para ./templates/ se o agente crescer",
+          "severity": "low",
+          "source": "prompt-craft"
+        }
+      ]
+    }
+  ],
+  "narrative": "Agente single-capability excepcionalmente coeso: persona, capacidade e scripts formam um triade raro em que a insistencia em determinismo nao e apenas discurso — ela esta operacionalizada em calculate-fp.py e validate-fp-sources.py. A maior oportunidade e adicionar o modo Enhancement Count (CFP), cenario TJCE dominante que hoje e tratado como contagem nova, inflando PF.",
+  "grade": "Good",
+  "broken": [],
+  "opportunities": [
+    {
+      "name": "Cobertura de cenarios TJCE incompleta (enhancement, diff, export)",
+      "description": "O agente modela apenas 'contagem nova' e 'Correcao em Garantia'. Entregas TJCE reais sao majoritariamente incrementais (enhancement count / CFP), precisam de delta contra contagem anterior e export para formato contratual. Tratar enhancement como contagem nova infla PF — risco de integridade contratual.",
+      "severity": "high",
+      "impact": "Eleva cobertura real do agente no dominio TJCE, evita litigios contratuais por super-contagem e fecha a lacuna de recontagem apos mudanca de escopo.",
+      "action": "Introduzir sub-rota 'enhancement' (ou --tipo enhancement) com CFP per CPM 4.3.1 (ADDED/CHANGED/DELETED/UNCHANGED), capacidade DIFF que produz delta-apf.md, e export opcional (scripts/export-submission.py para XLSX/PDF/CSV).",
+      "finding_count": 4,
+      "findings": [
+        {
+          "title": "Missing Enhancement Count mode (CFP) — cenario TJCE dominante ausente",
+          "file": "SKILL.md",
+          "line": 58,
+          "detail": "Entregas incrementais tratadas como contagem nova inflam PF. IFPUG CPM 4.3.1 define Enhancement Count com regras distintas.",
+          "source": "enhancement-opportunities"
+        },
+        {
+          "title": "Delta contra contagem anterior nao suportado",
+          "file": "references/count-capability.md",
+          "line": 49,
+          "detail": "Contract addendums exigem 'o que mudou desde a ultima contagem'. Nao ha capacidade de diff.",
+          "source": "enhancement-opportunities"
+        },
+        {
+          "title": "Sem path de recontagem / update",
+          "file": "SKILL.md",
+          "line": 58,
+          "detail": "Quando requisitos mudam apos contagem, agente sobrescreve silenciosamente ou exige diff manual.",
+          "source": "agent-cohesion"
+        },
+        {
+          "title": "Sem export para formato de submissao contratual",
+          "file": "references/count-capability.md",
+          "line": 126,
+          "detail": "resumo-apf.md e markdown human-first; governanca TJCE tipicamente exige XLSX/PDF tabular.",
+          "source": "agent-cohesion"
+        }
+      ]
+    },
+    {
+      "name": "Funil de entrada rigido — sem roteamento de intencao",
+      "description": "On Activation verifica pre-requisitos antes de entender o que o usuario quer. Usuarios de Garantia sao forcados pelo gate (que depois e relaxado), e experts que ja tem inventario precisam aguardar leitura sequencial de tres arquivos. Nao ha soft-gate de intencao.",
+      "severity": "high",
+      "impact": "Remove friccao para experts e elimina caminhos mortos para primeiros interlocutores; alinha o agente ao principio 'Pergunte, nao assuma' que hoje se engaja tarde demais.",
+      "action": "Reordenar ativacao para intent-before-ingestion: saudacao -> pergunta 'contagem nova, enhancement ou correcao em garantia?' -> aplicar pre-requisitos especificos. Adicionar modo Lote Direto que aceita JSON/tabela de funcoes e pula Passos 1-3.",
+      "finding_count": 3,
+      "findings": [
+        {
+          "title": "Intent-before-ingestion violado",
+          "file": "SKILL.md",
+          "line": 44,
+          "detail": "Agente le artefatos antes de entender a intencao; usuarios de Garantia passam pelo gate sem necessidade.",
+          "source": "enhancement-opportunities"
+        },
+        {
+          "title": "Sem modo 'paste function inventory' para expert",
+          "file": "references/count-capability.md",
+          "line": 51,
+          "detail": "Experts sao forcados atraves dos Passos 1-3 mesmo tendo o inventario pronto.",
+          "source": "enhancement-opportunities"
+        },
+        {
+          "title": "Recovery de pre-requisitos e dead-end",
+          "file": "SKILL.md",
+          "line": 53,
+          "detail": "Mensagem aponta para outra skill mas nao oferece encadeamento, inferencia preliminar, nem cancelamento.",
+          "source": "enhancement-opportunities"
+        }
+      ]
+    },
+    {
+      "name": "Contrato headless incompleto — entrada e schema abertos",
+      "description": "Headless esta 80% pronto (exit codes, ambiguidade -> PENDENTE, fast-path Garantia). Faltam: schema JSON de saida pinado, flags CLI para contexto (--project, --delivery, --responsible, --tdi), input via --functions-json e regra de resolucao dos placeholders.",
+      "severity": "medium",
+      "impact": "Torna o agente um primitivo componivel para outras skills TJCE e pipelines CI/CD; impede consumidores de treat exit-1 como contagem final.",
+      "action": "Pinar schema JSON inline no SKILL.md (com pending_count e pf_at_risk), adicionar flags --project/--delivery/--responsible/--tdi/--functions-json, definir ordem de resolucao args > config > prompt > defaults.",
+      "finding_count": 4,
+      "findings": [
+        {
+          "title": "Schema JSON do --json nao especificado em SKILL.md",
+          "file": "SKILL.md",
+          "line": 71,
+          "detail": "Headless Contract menciona JSON estruturado mas nao define schema; fields listados apenas no capability file.",
+          "source": "structure"
+        },
+        {
+          "title": "Schema headless nao pinado",
+          "file": "SKILL.md",
+          "line": 71,
+          "detail": "Consumidores tem que adivinhar nomes de campos; nao ha JSON Schema referenciado.",
+          "source": "enhancement-opportunities"
+        },
+        {
+          "title": "Placeholders {nome}/{data}/{responsavel} sem regra de resolucao",
+          "file": "references/count-capability.md",
+          "line": 128,
+          "detail": "Templates usam placeholders mas nao ha contrato de onde vem — args, config, prompt ou defaults.",
+          "source": "enhancement-opportunities"
+        },
+        {
+          "title": "Headless ambiguity pode under-contar se consumidor ignorar exit 1",
+          "file": "SKILL.md",
+          "line": 73,
+          "detail": "JSON deveria tornar pending_count top-level contratual e expor pf_at_risk.",
+          "source": "agent-cohesion"
+        }
+      ]
+    },
+    {
+      "name": "Trabalho deterministico ainda no prompt (aritmetica, inventario, loops)",
+      "description": "VAF/PF Ajustado sao calculados em-prompt, leitura integral de tres MD por execucao, e calculate-fp.py e invocado N vezes sequencialmente (uma por funcao). LLMs erram ponto flutuante e tokens sao gastos em boilerplate que scripts resolvem em milissegundos.",
+      "severity": "medium",
+      "impact": "Economia de ~1.000–2.400 tokens por contagem, eliminacao de erro aritmetico em ponto flutuante, reducao de latencia em contagens grandes.",
+      "action": "Criar scripts/aggregate-fp.py (VAF, PF Brutos, PF Ajustado, distribuicao por tipo, opcional --markdown). Criar pre-pass scripts/extract-fp-candidates.py. Estender calculate-fp.py com --batch functions.json.",
+      "finding_count": 3,
+      "findings": [
+        {
+          "title": "Inventario de requisitos feito no prompt (pre-pass possivel)",
+          "file": "references/count-capability.md",
+          "line": 51,
+          "detail": "LLM le integralmente 3 MD para extrair entidades/ casos de uso candidatos. Pre-pass em JSON economiza 800–2.000+ tokens.",
+          "source": "script-opportunities"
+        },
+        {
+          "title": "Aritmetica VAF e agregacoes em-prompt",
+          "file": "references/count-capability.md",
+          "line": 113,
+          "detail": "VAF = (TDI*0.01)+0.65 e PF Ajustado = PF Brutos * VAF executados pelo LLM. ~150–250 tokens + risco de erro.",
+          "source": "script-opportunities"
+        },
+        {
+          "title": "calculate-fp.py invocado N vezes sequencialmente",
+          "file": "references/count-capability.md",
+          "line": 91,
+          "detail": "Uma invocacao Bash por funcao, cada uma paga startup Python ~150ms. Para 20 funcoes, ~19 round-trips evitaveis.",
+          "source": "execution-efficiency"
+        }
+      ]
+    },
+    {
+      "name": "Onboarding e UX de novato ausentes",
+      "description": "Nao ha glossario IFPUG, exemplo resolvido TJCE, nem checklist das 14 GSC para TDI. O convite 'explique esta contagem' existe mas nao e descoberto. O principio 'Pergunte, nao assuma' nao engaja a tempo de ajudar o primeiro interlocutor.",
+      "severity": "medium",
+      "impact": "Transforma a experiencia do primeiro interlocutor, reduz dependencia de documentacao IFPUG externa e estrutura a elicitacao TDI.",
+      "action": "Adicionar references/glossario-ifpug.md (DER/RLR/ALR/ALI/AIE/EE/SE/CE em PT com exemplos TJCE), references/gsc-14-characteristics.md (14 GSC 0-5 com descricoes TJCE), references/exemplo-contagem-tjce.md (sprint resolvida), e emitir convite explicito explain-on-demand ao final de cada contagem.",
+      "finding_count": 4,
+      "findings": [
+        {
+          "title": "Sem glossario ou exemplo para newcomers",
+          "file": "references/",
+          "line": 0,
+          "detail": "Newcomer depende inteiramente de docs IFPUG externos; nao ha worked example TJCE.",
+          "source": "enhancement-opportunities"
+        },
+        {
+          "title": "Elicitacao TDI sem formulario estruturado",
+          "file": "references/count-capability.md",
+          "line": 113,
+          "detail": "Passo 6 pede 14 GSCs sem apresentar os nomes/descricoes — usuario tem que lembrar quais sao.",
+          "source": "enhancement-opportunities"
+        },
+        {
+          "title": "Explain-on-demand anunciado mas nao descoberto",
+          "file": "references/count-capability.md",
+          "line": 200,
+          "detail": "Capability menciona 'explique esta contagem' mas usuario nunca e convidado.",
+          "source": "enhancement-opportunities"
+        },
+        {
+          "title": "Sem referencia GSC/TDI (14 caracteristicas)",
+          "file": "references/count-capability.md",
+          "line": 113,
+          "detail": "Analista que exige determinismo nao deveria deixar as 14 GSC a memoria — deveria existir references/gsc-checklist.md.",
+          "source": "agent-cohesion"
+        }
+      ]
+    }
+  ],
+  "strengths": [
+    {
+      "title": "Espelho persona-ferramenta",
+      "detail": "Determinismo nao e discurso — calculate-fp.py executa a matriz IFPUG e validate-fp-sources.py bloqueia funcoes orfas. Raro nivel de coerencia persona-tooling."
+    },
+    {
+      "title": "Mission statement load-bearing",
+      "detail": "'Toda funcionalidade entregue tem sua medida em Pontos de Funcao auditavel, rastreavel a requisito, e classificada deterministicamente segundo IFPUG' (SKILL.md:14) e DNA que molda cada decisao do agente."
+    },
+    {
+      "title": "Quatro principios tangiveis",
+      "detail": "Determinismo IFPUG, Rastreabilidade total, Nao contar em dobro, Pergunte nao assuma — cada um mapeia acao testavel, sem filosofia-por-filosofia."
+    },
+    {
+      "title": "Exemplo concreto de estilo",
+      "detail": "'ALI Processo: 8 DER, 2 RLR -> Baixa -> 7 PF' ensina formato de saida em uma unica linha — gasto de tokens com alta alavancagem."
+    },
+    {
+      "title": "Fast-path Garantia",
+      "detail": "Short-circuit contratual limpo: PF=0 direto com template minimo, sem ceremonia. Modelagem correta da realidade TJCE."
+    },
+    {
+      "title": "Prerequisite Check com fallback graduado",
+      "detail": "Hard-stop para US/RN ausentes; soft-stop negociavel para data-model (oferece inferencia com aviso). Boa theory of mind."
+    },
+    {
+      "title": "Delegacao externa disciplinada",
+      "detail": "Encaminha ao tjce-agent-requirements em vez de reimplementar elicitacao. Boundary limpa entre agentes."
+    },
+    {
+      "title": "Stateless single-capability",
+      "detail": "Escopo honestamente estreito — sem memoria, sem subagentes, sem redundancia. Pre-pass confirma zero problemas de dependencia."
+    }
+  ],
+  "detailed_analysis": {
+    "structure": {
+      "assessment": "Estruturalmente sao: todas secoes obrigatorias presentes, frontmatter valido, capacidade unica bem-formada. Apenas uma observacao low (ausencia de keyword de progressao em count-capability.md:205), provavel falso-positivo dado o fluxo em Passos e o contrato de exit codes.",
+      "findings": [
+        {
+          "title": "No progression condition keywords found",
+          "file": "references/count-capability.md",
+          "line": 205,
+          "detail": "Pre-pass nao encontrou keyword de progressao. Fluxo usa 'Passo 1..7', fast-path condicional e exit codes — semantica equivalente. Opcional: adicionar secao 'Completion' terminal.",
+          "source": "structure"
+        }
+      ]
+    },
+    "persona": {
+      "assessment": "Agente stateless single-capability dominio-especialista bem equilibrado. Overview forte (7 linhas), Identity (4 linhas), Communication Style com exemplo concreto IFPUG, Principles observaveis (4 regras load-bearing). Progressive disclosure correto: SKILL 74 linhas/1.261 tokens, capability 205 linhas/2.011 tokens. Zero waste patterns, zero back-references, zero wall-of-text.",
+      "overview_quality": "appropriate",
+      "findings": [
+        {
+          "title": "Progressao/completion explicita ausente no modo interativo",
+          "file": "references/count-capability.md",
+          "line": 204,
+          "detail": "Uma linha terminal 'When both artifacts are written and validate-fp-sources.py reports zero orphans, announce completion and stop' tornaria terminacao inequivoca.",
+          "source": "prompt-craft"
+        },
+        {
+          "title": "Templates de artefato inline (~75 linhas)",
+          "file": "references/count-capability.md",
+          "line": 128,
+          "detail": "Templates markdown literais para contagem-detalhada.md e resumo-apf.md vivem dentro do prompt. Aceitavel hoje (205 linhas totais); migrar para ./templates/ se agente crescer.",
+          "source": "prompt-craft"
+        }
+      ]
+    },
+    "cohesion": {
+      "assessment": "Tightly cohered single-purpose specialist. Persona, capacidade e scripts formam triade raro em que principios declarados tem mecanismo concreto operacional. Gap moderado na completeness — vizinhos naturais (recontagem, diff, indicativa NESMA, export) ausentes.",
+      "dimensions": {
+        "persona_capability_alignment": {
+          "score": "strong",
+          "notes": "Cada principio tem mecanismo: determinismo -> calculate-fp.py; rastreabilidade -> validate-fp-sources.py; nao-duplicacao -> regra anti-duplicacao Passo 2; pergunte-nao-assuma -> path de ambiguidade."
+        },
+        "identity_consistency": {
+          "score": "strong",
+          "notes": "Description, Mission, Identity, Communication Style e Principles reforcam o mesmo retrato — contratual, IFPUG-faithful, source-cited."
+        },
+        "capability_completeness": {
+          "score": "moderate",
+          "notes": "Cobre conta nova + Garantia. Ausentes: recontagem, diff, estimativa/indicativa NESMA, export contratual (CSV/PDF/XLSX)."
+        },
+        "redundancy": {
+          "score": "strong",
+          "notes": "Zero redundancia. Uma capacidade, dois scripts complementares, dois artefatos distintos."
+        },
+        "external_integration": {
+          "score": "strong",
+          "notes": "Delega a tjce-agent-requirements quando pre-requisitos faltam, sem reimplementar."
+        },
+        "capability_granularity": {
+          "score": "strong",
+          "notes": "CONTAGEM no nivel certo — Garantia como branch interno (degenerado) e nao capacidade separada."
+        },
+        "user_journey": {
+          "score": "moderate",
+          "notes": "Jornada completa para contagem fresh. Fraqueza: sem re-entry point para atualizar contagem apos mudanca."
+        }
+      },
+      "findings": []
+    },
+    "efficiency": {
+      "assessment": "Pre-pass com zero issues de dependencia. Agente compacto, stateless, capacidade sob demanda. Oportunidades tacticas: batelar checks de pre-requisitos e invocacoes do calculate-fp.py; paralelizar Passos 2 e 3 (independentes).",
+      "findings": [
+        {
+          "title": "Checks de pre-requisitos nao batelados",
+          "file": "SKILL.md",
+          "line": 46,
+          "detail": "Tres verificacoes de existencia (user-stories, business-rules, data-model) provavelmente executadas sequencialmente. Um unico Glob paralelo resolve. Economia: 2 round-trips.",
+          "source": "execution-efficiency"
+        },
+        {
+          "title": "Passos 2 e 3 apresentados sequencialmente apesar de independentes",
+          "file": "references/count-capability.md",
+          "line": 62,
+          "detail": "Data Functions e Transactional Functions consomem os mesmos artefatos e nao dependem entre si. Explicitar independencia ajuda o LLM a paralelizar raciocinio.",
+          "source": "execution-efficiency"
+        },
+        {
+          "title": "Caminhos relativos 'scripts/...' dependem de CWD",
+          "file": "references/count-capability.md",
+          "line": 94,
+          "detail": "Em Bash sessions com CWD imprevisto, chamadas falham e exigem retry. Usar {skill-root}/scripts/... ou template resolvido na ativacao.",
+          "source": "execution-efficiency"
+        }
+      ]
+    },
+    "experience": {
+      "assessment": "Agente tecnicamente preciso mas com funil de entrada rigido. Expert e primeiro interlocutor sofrem por falta de modo lote e falta de glossario/exemplo. Edge cases (enhancement, delta, misto Garantia+nova) nao modelados. Headless 80% pronto mas sem schema fixo.",
+      "journeys": [
+        {
+          "archetype": "first-timer",
+          "summary": "Dev junior invoca agente sem preparacao. Agente espera silenciosamente 3 artefatos; quando faltam, emite mensagem terse apontando outra skill e para. Sem glossario (DER, RLR), sem exemplo, sem 'o que fazer com esses numeros agora'.",
+          "friction_points": [
+            "Sem soft-gate que detecte newcomer antes da verificacao de pre-requisitos",
+            "SKILL.md densamente tecnico sem glossario IFPUG",
+            "Saida dumpa dois MDs sem onboarding tooltip ou proximos passos"
+          ],
+          "bright_spots": [
+            "Principio 'Pergunte, nao assuma' poderia engajar gentilmente — se fosse ativado antes da classificacao"
+          ]
+        },
+        {
+          "archetype": "expert",
+          "summary": "Analista IFPUG experiente quer crankar rapido. Forcado a esperar leitura sequencial dos tres artefatos mesmo tendo inventario mental pronto. Cada funcao passa pelo fluxo Passo 1-6. Acaba usando calculate-fp.py direto.",
+          "friction_points": [
+            "Sem modo 'cole sua lista de funcoes e classifique'",
+            "Sem batch-classify; invocacoes sequenciais do script",
+            "Ritmo irrita quem conhece o dominio"
+          ],
+          "bright_spots": [
+            "calculate-fp.py e CLI-acessivel e composable — expert pode bypassar o agente"
+          ]
+        },
+        {
+          "archetype": "confused",
+          "summary": "Usuario invoca achando que agente vai gerar user-stories tambem. Prerequisite check bloqueia apontando para tjce-agent-requirements mas nao faz handoff — dead end.",
+          "friction_points": [
+            "Sem pergunta 'qual seu objetivo nesta sessao?' antes da leitura de arquivos",
+            "Gate de pre-requisito e terminal, nao oferece inferencia preliminar nem encadeamento"
+          ],
+          "bright_spots": [
+            "Mensagem de erro e especifica ao identificar a skill correta"
+          ]
+        },
+        {
+          "archetype": "edge-case",
+          "summary": "Entrega mixed (parte Garantia + parte nova) ou spanning dois sistemas TJCE. Re-contagem apos mudanca de escopo. Enhancement count (DER adicionado a ALI existente). Nenhum desses cenarios comuns TJCE e modelado.",
+          "friction_points": [
+            "Garantia e binario — sem flow para entrega mista",
+            "Cross-system ALI/AIE sem heuristica de desempate",
+            "Sem diff contra contagem anterior",
+            "Enhancement Count (CFP) IFPUG ausente — risco contratual de super-contagem"
+          ],
+          "bright_spots": [
+            "Fast-path Garantia esta impecavel quando o caso e puro"
+          ]
+        },
+        {
+          "archetype": "hostile-environment",
+          "summary": "calculate-fp.py ausente ou Python 3.8 apenas; data-model.md presente mas vazio; user-stories.md malformado.",
+          "friction_points": [
+            "Sem check de resolucao 'python3' vs 'python'",
+            "data-model.md vazio nao e tratado (apenas missing)",
+            "user-stories.md malformado produz 'nenhuma funcao encontrada' cryptico"
+          ],
+          "bright_spots": [
+            "Fallback gracioso ja existe para Python ausente (pede para usuario rodar localmente)",
+            "validate-fp-sources.py tem exit code contratual e mensagem PT para parse failure"
+          ]
+        },
+        {
+          "archetype": "automator",
+          "summary": "Pipeline CI chama contagem headless como artefato contratual de release.",
+          "friction_points": [
+            "Sem flags --project/--delivery/--responsible/--tdi",
+            "Schema JSON de saida nao pinado",
+            "Sem --functions-json para bypass da leitura de MD",
+            "Placeholders {nome}/{data}/{responsavel} sem regra de resolucao"
+          ],
+          "bright_spots": [
+            "Exit codes 0/1/2 bem definidos",
+            "Garantia shortcut via arg 'garantia'",
+            "Ambiguidade marcada PENDENTE + exit 1 deterministico"
+          ]
+        }
+      ],
+      "autonomous": {
+        "potential": "easily-adaptable",
+        "notes": "80% pronto para headless. Falta pinar schema JSON de saida, expor flags de contexto (--project, --delivery, --responsible, --tdi, --functions-json), e definir regra de resolucao de placeholders (args > config > prompt > defaults)."
+      },
+      "findings": []
+    },
+    "scripts": {
+      "assessment": "Intelligence placement ja forte — matriz IFPUG e source cross-reference em scripts com --json e exit codes. Oportunidades: pre-pass de extracao de candidatos (maior economia), aggregate-fp para VAF/totais (elimina aritmetica LLM), validator de artefato estrutural.",
+      "token_savings": "~1.000–2.400 tokens por contagem completa (Findings 1+2+3 combinados)",
+      "findings": [
+        {
+          "title": "aggregate-fp.py — VAF/PF Ajustado/distribuicao feita no prompt",
+          "file": "references/count-capability.md",
+          "line": 113,
+          "detail": "VAF = (TDI*0.01)+0.65 e PF Ajustado = PF Brutos * VAF sao aritmetica determinstica que o LLM nao deveria executar. Criar scripts/aggregate-fp.py com --tdi e opcional --markdown.",
+          "source": "script-opportunities"
+        },
+        {
+          "title": "extract-fp-candidates.py — pre-pass de requisitos",
+          "file": "references/count-capability.md",
+          "line": 51,
+          "detail": "Em vez de o LLM reler 3 MDs, um pre-pass parseia data-model/user-stories/business-rules em JSON compacto. Economia 800–2.000+ tokens.",
+          "source": "script-opportunities"
+        },
+        {
+          "title": "validate-apf-artifacts.py — validador estrutural pos-write",
+          "file": "references/count-capability.md",
+          "line": 126,
+          "detail": "Verifica secoes obrigatorias, linhas completas, coerencia soma PF = PF Brutos, VAF math = TDI. Catch silent structural drift.",
+          "source": "script-opportunities"
+        },
+        {
+          "title": "calculate-fp.py --batch — colapsar N invocacoes em 1",
+          "file": "references/count-capability.md",
+          "line": 91,
+          "detail": "Estender script para ler functions.json e emitir array de resultados. Elimina ~19 round-trips em contagens de 20 funcoes.",
+          "source": "execution-efficiency"
+        },
+        {
+          "title": "uv nao disponivel no PATH impede lint dos scripts",
+          "file": "scripts/calculate-fp.py",
+          "line": 0,
+          "detail": "Ambiente local sem uv — scripts Python nao foram lintados com ruff. Limitacao de ambiente, nao defeito do agente.",
+          "source": "scripts-lint"
+        }
+      ]
+    }
+  },
+  "recommendations": [
+    {
+      "rank": 1,
+      "action": "Introduzir Enhancement Count (CFP) + capacidade DIFF + export contratual (XLSX/PDF/CSV). Cobre o cenario TJCE dominante hoje ausente e elimina risco de super-contagem.",
+      "resolves": 4,
+      "effort": "medium"
+    },
+    {
+      "rank": 2,
+      "action": "Reordenar ativacao para intent-before-ingestion e adicionar modo Lote Direto (JSON/tabela de funcoes pula Passos 1-3).",
+      "resolves": 3,
+      "effort": "low"
+    },
+    {
+      "rank": 3,
+      "action": "Pinar contrato headless: schema JSON inline, flags --project/--delivery/--responsible/--tdi/--functions-json, regra de resolucao de placeholders.",
+      "resolves": 4,
+      "effort": "low"
+    },
+    {
+      "rank": 4,
+      "action": "Criar aggregate-fp.py (VAF/totais/markdown) e pre-pass extract-fp-candidates.py; adicionar --batch em calculate-fp.py.",
+      "resolves": 3,
+      "effort": "medium"
+    },
+    {
+      "rank": 5,
+      "action": "Adicionar references/glossario-ifpug.md, gsc-14-characteristics.md, exemplo-contagem-tjce.md e convite explain-on-demand ao final da contagem.",
+      "resolves": 4,
+      "effort": "low"
+    }
+  ]
+}

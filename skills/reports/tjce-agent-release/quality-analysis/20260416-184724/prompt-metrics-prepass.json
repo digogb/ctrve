@@ -1,0 +1,520 @@
+{
+  "scanner": "prompt-craft-prepass",
+  "script": "prepass-prompt-metrics.py",
+  "version": "1.0.0",
+  "skill_path": "/home/rodgb/projetos/ctrve/skills/tjce-agent-release",
+  "timestamp": "2026-04-16T21:48:05.937023+00:00",
+  "status": "info",
+  "is_memory_agent": false,
+  "skill_md_summary": {
+    "line_count": 132,
+    "token_estimate": 1514,
+    "overview_lines": 12,
+    "table_count": 1,
+    "table_lines": 5,
+    "fenced_block_count": 3,
+    "fenced_block_lines": 35,
+    "section_count": 10
+  },
+  "prompt_health": {
+    "total_prompts": 3,
+    "prompts_with_config_header": 3,
+    "prompts_with_progression": 0
+  },
+  "aggregate": {
+    "total_files_scanned": 4,
+    "total_token_estimate": 4613,
+    "total_waste_patterns": 0,
+    "total_back_references": 0,
+    "total_suggestive_loading": 0,
+    "total_wall_of_text": 1
+  },
+  "resource_sizes": {},
+  "files": [
+    {
+      "file": "SKILL.md",
+      "line_count": 132,
+      "token_estimate": 1514,
+      "sections": [
+        {
+          "level": 2,
+          "title": "Overview",
+          "line": 8
+        },
+        {
+          "level": 2,
+          "title": "Identity",
+          "line": 21
+        },
+        {
+          "level": 2,
+          "title": "Communication Style",
+          "line": 25
+        },
+        {
+          "level": 2,
+          "title": "Principles",
+          "line": 33
+        },
+        {
+          "level": 2,
+          "title": "On Activation \u2014 Intent Before Ingestion",
+          "line": 40
+        },
+        {
+          "level": 3,
+          "title": "Prerequisite Check",
+          "line": 56
+        },
+        {
+          "level": 3,
+          "title": "Data Collection Pre-Pass (parallel)",
+          "line": 64
+        },
+        {
+          "level": 3,
+          "title": "Capability Routing",
+          "line": 78
+        },
+        {
+          "level": 3,
+          "title": "Post-Generation Validation",
+          "line": 88
+        },
+        {
+          "level": 3,
+          "title": "Headless Contract",
+          "line": 95
+        }
+      ],
+      "table_count": 1,
+      "table_lines": 5,
+      "fenced_block_count": 3,
+      "fenced_block_lines": 35,
+      "waste_patterns": [],
+      "back_references": [],
+      "suggestive_loading": [],
+      "has_config_header": true,
+      "has_progression": false,
+      "wall_of_text": [
+        {
+          "start_line": 107,
+          "length": 24
+        }
+      ],
+      "overview_lines": 12,
+      "is_skill_md": true
+    },
+    {
+      "file": "references/changelog.md",
+      "line_count": 96,
+      "token_estimate": 670,
+      "sections": [
+        {
+          "level": 2,
+          "title": "What Success Looks Like",
+          "line": 13
+        },
+        {
+          "level": 2,
+          "title": "Inputs",
+          "line": 20
+        },
+        {
+          "level": 3,
+          "title": "Pre-pass Data (preferred)",
+          "line": 22
+        },
+        {
+          "level": 3,
+          "title": "Fallback",
+          "line": 26
+        },
+        {
+          "level": 2,
+          "title": "Estrutura do CHANGELOG",
+          "line": 31
+        },
+        {
+          "level": 2,
+          "title": "Funcionalidades Implementadas",
+          "line": 40
+        },
+        {
+          "level": 3,
+          "title": "US-001 \u2014 {Titulo da Estoria}",
+          "line": 42
+        },
+        {
+          "level": 3,
+          "title": "US-002 \u2014 {Titulo da Estoria}",
+          "line": 46
+        },
+        {
+          "level": 2,
+          "title": "Manutencao e Infraestrutura",
+          "line": 49
+        },
+        {
+          "level": 2,
+          "title": "Estatisticas",
+          "line": 53
+        },
+        {
+          "level": 2,
+          "title": "Passos de Geracao",
+          "line": 60
+        },
+        {
+          "level": 3,
+          "title": "Passo 1 \u2014 Extrair Commits",
+          "line": 62
+        },
+        {
+          "level": 3,
+          "title": "Passo 2 \u2014 Enriquecer com Titulos",
+          "line": 73
+        },
+        {
+          "level": 3,
+          "title": "Passo 3 \u2014 Redigir CHANGELOG",
+          "line": 77
+        },
+        {
+          "level": 3,
+          "title": "Passo 4 \u2014 Escrever Artefato",
+          "line": 86
+        },
+        {
+          "level": 2,
+          "title": "Headless Mode",
+          "line": 90
+        }
+      ],
+      "table_count": 0,
+      "table_lines": 0,
+      "fenced_block_count": 2,
+      "fenced_block_lines": 28,
+      "waste_patterns": [],
+      "back_references": [],
+      "suggestive_loading": [],
+      "has_config_header": true,
+      "has_progression": false,
+      "wall_of_text": [],
+      "is_skill_md": false,
+      "prompt_frontmatter": {
+        "has_frontmatter": true,
+        "fields": {
+          "name": "changelog-capability",
+          "description": "Derive release notes from Git commits since last tag, grouped by user story (US-XXX). Identifies unmapped commits and validates story references against spec.",
+          "menu-code": "C"
+        },
+        "missing_fields": []
+      }
+    },
+    {
+      "file": "references/deploy.md",
+      "line_count": 150,
+      "token_estimate": 1092,
+      "sections": [
+        {
+          "level": 2,
+          "title": "What Success Looks Like",
+          "line": 15
+        },
+        {
+          "level": 2,
+          "title": "Inputs",
+          "line": 23
+        },
+        {
+          "level": 3,
+          "title": "Pre-pass Data (preferred)",
+          "line": 25
+        },
+        {
+          "level": 3,
+          "title": "Fallback",
+          "line": 29
+        },
+        {
+          "level": 2,
+          "title": "Estrutura do Deploy Checklist",
+          "line": 34
+        },
+        {
+          "level": 2,
+          "title": "Pre-Deploy",
+          "line": 43
+        },
+        {
+          "level": 2,
+          "title": "Deploy \u2014 Banco de Dados",
+          "line": 50
+        },
+        {
+          "level": 2,
+          "title": "Deploy \u2014 Backend",
+          "line": 55
+        },
+        {
+          "level": 2,
+          "title": "Deploy \u2014 Frontend",
+          "line": 61
+        },
+        {
+          "level": 2,
+          "title": "Pos-Deploy",
+          "line": 68
+        },
+        {
+          "level": 2,
+          "title": "Estrutura do Rollback Plan",
+          "line": 75
+        },
+        {
+          "level": 2,
+          "title": "Criterios para Rollback",
+          "line": 83
+        },
+        {
+          "level": 2,
+          "title": "Procedimento",
+          "line": 87
+        },
+        {
+          "level": 3,
+          "title": "1. Frontend",
+          "line": 89
+        },
+        {
+          "level": 3,
+          "title": "2. Backend",
+          "line": 92
+        },
+        {
+          "level": 3,
+          "title": "3. Banco de Dados",
+          "line": 97
+        },
+        {
+          "level": 3,
+          "title": "4. Configuracoes",
+          "line": 101
+        },
+        {
+          "level": 2,
+          "title": "Validacao Pos-Rollback",
+          "line": 104
+        },
+        {
+          "level": 2,
+          "title": "Passos de Geracao",
+          "line": 111
+        },
+        {
+          "level": 3,
+          "title": "Passo 1 \u2014 Detectar Mudancas",
+          "line": 113
+        },
+        {
+          "level": 3,
+          "title": "Passo 2 \u2014 Montar Checklist",
+          "line": 123
+        },
+        {
+          "level": 3,
+          "title": "Passo 3 \u2014 Montar Rollback",
+          "line": 135
+        },
+        {
+          "level": 3,
+          "title": "Passo 4 \u2014 Escrever Artefatos",
+          "line": 141
+        },
+        {
+          "level": 2,
+          "title": "Headless Mode",
+          "line": 145
+        }
+      ],
+      "table_count": 0,
+      "table_lines": 0,
+      "fenced_block_count": 3,
+      "fenced_block_lines": 70,
+      "waste_patterns": [],
+      "back_references": [],
+      "suggestive_loading": [],
+      "has_config_header": true,
+      "has_progression": false,
+      "wall_of_text": [],
+      "is_skill_md": false,
+      "prompt_frontmatter": {
+        "has_frontmatter": true,
+        "fields": {
+          "name": "deploy-capability",
+          "description": "Generate deployment checklist with ordered steps and mandatory rollback plan. Detects migrations, dependency changes, and config changes from Git diff.",
+          "menu-code": "D"
+        },
+        "missing_fields": []
+      }
+    },
+    {
+      "file": "references/pml.md",
+      "line_count": 160,
+      "token_estimate": 1337,
+      "sections": [
+        {
+          "level": 2,
+          "title": "What Success Looks Like",
+          "line": 13
+        },
+        {
+          "level": 2,
+          "title": "Inputs",
+          "line": 22
+        },
+        {
+          "level": 3,
+          "title": "Pre-pass Data (preferred)",
+          "line": 24
+        },
+        {
+          "level": 3,
+          "title": "Fallback (if pre-pass unavailable)",
+          "line": 29
+        },
+        {
+          "level": 3,
+          "title": "Metadata (from CLI flags or interactive input)",
+          "line": 35
+        },
+        {
+          "level": 2,
+          "title": "Estrutura do PML",
+          "line": 43
+        },
+        {
+          "level": 2,
+          "title": "1. Identificacao",
+          "line": 48
+        },
+        {
+          "level": 2,
+          "title": "2. Descricao da Mudanca",
+          "line": 58
+        },
+        {
+          "level": 2,
+          "title": "3. Analise de Impacto",
+          "line": 65
+        },
+        {
+          "level": 3,
+          "title": "3.1. Banco de Dados",
+          "line": 67
+        },
+        {
+          "level": 3,
+          "title": "3.2. Configuracoes",
+          "line": 70
+        },
+        {
+          "level": 3,
+          "title": "3.3. Dependencias",
+          "line": 73
+        },
+        {
+          "level": 3,
+          "title": "3.4. Integracoes",
+          "line": 76
+        },
+        {
+          "level": 3,
+          "title": "3.5. Indisponibilidade",
+          "line": 79
+        },
+        {
+          "level": 2,
+          "title": "4. Procedimento de Implantacao",
+          "line": 82
+        },
+        {
+          "level": 2,
+          "title": "5. Procedimento de Rollback",
+          "line": 87
+        },
+        {
+          "level": 2,
+          "title": "6. Validacao Pos-Implantacao",
+          "line": 92
+        },
+        {
+          "level": 2,
+          "title": "Passos de Geracao",
+          "line": 99
+        },
+        {
+          "level": 3,
+          "title": "Passo 1 \u2014 Coletar Metadata",
+          "line": 101
+        },
+        {
+          "level": 3,
+          "title": "Passo 2 \u2014 Mapear Mudancas por Estoria",
+          "line": 105
+        },
+        {
+          "level": 3,
+          "title": "Passo 3 \u2014 Analisar Impacto",
+          "line": 113
+        },
+        {
+          "level": 3,
+          "title": "Passo 4 \u2014 Montar Procedimento de Deploy",
+          "line": 123
+        },
+        {
+          "level": 3,
+          "title": "Passo 5 \u2014 Montar Rollback",
+          "line": 137
+        },
+        {
+          "level": 3,
+          "title": "Passo 6 \u2014 Validacao Pos-Implantacao",
+          "line": 147
+        },
+        {
+          "level": 3,
+          "title": "Passo 7 \u2014 Escrever Artefato",
+          "line": 151
+        },
+        {
+          "level": 2,
+          "title": "Headless Mode",
+          "line": 155
+        }
+      ],
+      "table_count": 1,
+      "table_lines": 7,
+      "fenced_block_count": 1,
+      "fenced_block_lines": 51,
+      "waste_patterns": [],
+      "back_references": [],
+      "suggestive_loading": [],
+      "has_config_header": true,
+      "has_progression": false,
+      "wall_of_text": [],
+      "is_skill_md": false,
+      "prompt_frontmatter": {
+        "has_frontmatter": true,
+        "fields": {
+          "name": "pml-capability",
+          "description": "Generate PML (Plano de Mudanca e Liberacao), the mandatory TJCE release document with identification, change description, impact analysis, deployment procedure, rollback, and post-deployment validation.",
+          "menu-code": "P"
+        },
+        "missing_fields": []
+      }
+    }
+  ]
+}

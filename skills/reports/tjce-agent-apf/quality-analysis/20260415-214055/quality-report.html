@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BMad Method · Quality Analysis: tjce-agent-apf</title>
+<style>
+:root {
+  --bg: #0d1117; --surface: #161b22; --surface2: #21262d; --border: #30363d;
+  --text: #e6edf3; --text-muted: #8b949e; --text-dim: #6e7681;
+  --critical: #f85149; --high: #f0883e; --medium: #d29922; --low: #58a6ff;
+  --strength: #3fb950; --suggestion: #a371f7;
+  --accent: #58a6ff; --accent-hover: #79c0ff;
+  --brand: #a371f7;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #ffffff; --surface: #f6f8fa; --surface2: #eaeef2; --border: #d0d7de;
+    --text: #1f2328; --text-muted: #656d76; --text-dim: #8c959f;
+    --critical: #cf222e; --high: #bc4c00; --medium: #9a6700; --low: #0969da;
+    --strength: #1a7f37; --suggestion: #8250df;
+    --accent: #0969da; --accent-hover: #0550ae;
+    --brand: #8250df;
+  }
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); line-height: 1.5; padding: 2rem; max-width: 900px; margin: 0 auto; }
+.brand { color: var(--brand); font-size: 0.8rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 0.25rem; }
+h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
+.subtitle { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem; }
+.subtitle a { color: var(--accent); text-decoration: none; }
+.subtitle a:hover { text-decoration: underline; }
+.portrait { background: var(--surface); border: 1px solid var(--border); border-radius: 0.5rem; padding: 1.25rem; margin-bottom: 1.5rem; }
+.portrait-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem; }
+.portrait-icon { font-size: 2rem; }
+.portrait-name { font-size: 1.25rem; font-weight: 700; }
+.portrait-title { font-size: 0.9rem; color: var(--text-muted); }
+.portrait-desc { font-size: 0.95rem; color: var(--text-muted); line-height: 1.6; font-style: italic; }
+.grade { font-size: 2.5rem; font-weight: 700; margin: 0.5rem 0; }
+.grade-Excellent { color: var(--strength); }
+.grade-Good { color: var(--low); }
+.grade-Fair { color: var(--medium); }
+.grade-Poor { color: var(--critical); }
+.narrative { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem; line-height: 1.6; }
+.badge { display: inline-flex; align-items: center; padding: 0.15rem 0.5rem; border-radius: 2rem; font-size: 0.75rem; font-weight: 600; }
+.badge-critical { background: color-mix(in srgb, var(--critical) 20%, transparent); color: var(--critical); }
+.badge-high { background: color-mix(in srgb, var(--high) 20%, transparent); color: var(--high); }
+.badge-medium { background: color-mix(in srgb, var(--medium) 20%, transparent); color: var(--medium); }
+.badge-low { background: color-mix(in srgb, var(--low) 20%, transparent); color: var(--low); }
+.badge-strength { background: color-mix(in srgb, var(--strength) 20%, transparent); color: var(--strength); }
+.badge-good { background: color-mix(in srgb, var(--strength) 15%, transparent); color: var(--strength); }
+.badge-attention { background: color-mix(in srgb, var(--medium) 15%, transparent); color: var(--medium); }
+.section { border: 1px solid var(--border); border-radius: 0.5rem; margin: 0.75rem 0; overflow: hidden; }
+.section-header { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; background: var(--surface); cursor: pointer; user-select: none; }
+.section-header:hover { background: var(--surface2); }
+.section-header .arrow { font-size: 0.7rem; transition: transform 0.15s; color: var(--text-muted); width: 1rem; }
+.section-header.open .arrow { transform: rotate(90deg); }
+.section-header .label { font-weight: 600; flex: 1; }
+.section-header .actions { display: flex; gap: 0.5rem; }
+.section-body { display: none; }
+.section-body.open { display: block; }
+.cap-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 1rem; border-top: 1px solid var(--border); }
+.cap-row:hover { background: var(--surface); }
+.cap-name { font-weight: 600; font-size: 0.9rem; flex: 1; }
+.cap-file { font-family: var(--mono); font-size: 0.75rem; color: var(--text-dim); }
+.cap-findings { display: none; padding: 0.5rem 1rem 0.5rem 2rem; border-top: 1px solid var(--border); background: var(--bg); }
+.cap-findings.open { display: block; }
+.cap-finding { font-size: 0.85rem; padding: 0.25rem 0; color: var(--text-muted); }
+.item { padding: 0.75rem 1rem; border-top: 1px solid var(--border); }
+.item:hover { background: var(--surface); }
+.item-title { font-weight: 600; font-size: 0.9rem; }
+.item-file { font-family: var(--mono); font-size: 0.75rem; color: var(--text-muted); }
+.item-desc { font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem; }
+.item-action { font-size: 0.85rem; margin-top: 0.25rem; }
+.item-action strong { color: var(--strength); }
+.opp { padding: 1rem; border-top: 1px solid var(--border); }
+.opp-header { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+.opp-name { font-weight: 600; font-size: 1rem; flex: 1; }
+.opp-count { font-size: 0.8rem; color: var(--text-muted); }
+.opp-desc { font-size: 0.9rem; color: var(--text-muted); margin: 0.5rem 0; }
+.opp-impact { font-size: 0.85rem; color: var(--text-dim); font-style: italic; }
+.opp-findings { margin-top: 0.75rem; padding-left: 1rem; border-left: 2px solid var(--border); display: none; }
+.opp-findings.open { display: block; }
+.opp-finding { font-size: 0.85rem; padding: 0.25rem 0; color: var(--text-muted); }
+.opp-finding .source { font-size: 0.75rem; color: var(--text-dim); }
+.btn { background: none; border: 1px solid var(--border); border-radius: 0.25rem; padding: 0.3rem 0.7rem; cursor: pointer; color: var(--text-muted); font-size: 0.8rem; transition: all 0.15s; }
+.btn:hover { border-color: var(--accent); color: var(--accent); }
+.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 600; }
+.btn-primary:hover { background: var(--accent-hover); }
+.strength-item { padding: 0.5rem 1rem; border-top: 1px solid var(--border); }
+.strength-item .title { font-weight: 600; font-size: 0.9rem; color: var(--strength); }
+.strength-item .detail { font-size: 0.85rem; color: var(--text-muted); }
+.analysis-section { padding: 0.75rem 1rem; border-top: 1px solid var(--border); }
+.analysis-section h4 { font-size: 0.9rem; margin-bottom: 0.25rem; }
+.analysis-section p { font-size: 0.85rem; color: var(--text-muted); }
+.analysis-finding { font-size: 0.85rem; padding: 0.25rem 0 0.25rem 1rem; border-left: 2px solid var(--border); margin: 0.25rem 0; color: var(--text-muted); }
+.recs { padding: 0.75rem 1rem; border-top: 1px solid var(--border); }
+.rec { padding: 0.3rem 0; font-size: 0.9rem; }
+.rec-rank { font-weight: 700; color: var(--accent); margin-right: 0.5rem; }
+.rec-resolves { font-size: 0.8rem; color: var(--text-dim); }
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200; align-items: center; justify-content: center; }
+.modal-overlay.visible { display: flex; }
+.modal { background: var(--surface); border: 1px solid var(--border); border-radius: 0.5rem; padding: 1.5rem; width: 90%; max-width: 700px; max-height: 80vh; overflow-y: auto; }
+.modal h3 { margin-bottom: 0.75rem; }
+.modal pre { background: var(--bg); border: 1px solid var(--border); border-radius: 0.375rem; padding: 1rem; font-family: var(--mono); font-size: 0.8rem; white-space: pre-wrap; word-wrap: break-word; max-height: 50vh; overflow-y: auto; }
+.modal-actions { display: flex; gap: 0.75rem; margin-top: 1rem; justify-content: flex-end; }
+</style>
+</head>
+<body>
+
+<div class="brand">BMad Method</div>
+<h1>Quality Analysis: <span id="skill-name"></span></h1>
+<div class="subtitle" id="subtitle"></div>
+
+<div id="portrait"></div>
+<div id="grade-area"></div>
+<div class="narrative" id="narrative"></div>
+
+<div id="capabilities-section"></div>
+<div id="broken-section"></div>
+<div id="opportunities-section"></div>
+<div id="strengths-section"></div>
+<div id="recommendations-section"></div>
+<div id="detailed-section"></div>
+
+<div class="modal-overlay" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <h3 id="modal-title">Generated Prompt</h3>
+    <pre id="modal-content"></pre>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">Close</button>
+      <button class="btn btn-primary" onclick="copyModal()">Copy to Clipboard</button>
+    </div>
+  </div>
+</div>
+
+<script id="report-data" type="application/json">{"meta": {"skill_name": "tjce-agent-apf", "skill_path": "/home/rodgb/projetos/ctrve/skills/tjce-agent-apf", "timestamp": "2026-04-15T21:40:55Z", "scanner_count": 8, "type": "agent"}, "agent_profile": {"icon": "", "display_name": "Analista de Pontos de Funcao TJCE", "title": "Analista de metricas IFPUG CPM 4.3.1", "portrait": "Analista de metricas preciso e tecnico que trata cada ponto de funcao como compromisso contratual. Fala em vocabulario IFPUG puro (ALI/AIE/EE/SE/CE, DER/RLR/ALR) e mostra o raciocinio passo a passo — 'ALI Processo: 8 DER, 2 RLR -> Baixa -> 7 PF'. Recusa-se a arbitrar complexidade: a matriz CPM 4.3.1 vive em calculate-fp.py, nunca na cabeca do LLM, e funcoes orfas sao bloqueadas por validate-fp-sources.py."}, "capabilities": [{"name": "CONTAGEM — Contagem Detalhada APF (com fast-path Garantia)", "file": "references/count-capability.md", "status": "good", "finding_count": 2, "findings": [{"title": "Ausencia de palavra-chave de progressao no final da capacidade (provavel falso-positivo)", "severity": "low", "source": "structure-capabilities-prepass"}, {"title": "Templates inline de artefatos (~75 linhas) poderiam migrar para ./templates/ se o agente crescer", "severity": "low", "source": "prompt-craft"}]}], "narrative": "Agente single-capability excepcionalmente coeso: persona, capacidade e scripts formam um triade raro em que a insistencia em determinismo nao e apenas discurso — ela esta operacionalizada em calculate-fp.py e validate-fp-sources.py. A maior oportunidade e adicionar o modo Enhancement Count (CFP), cenario TJCE dominante que hoje e tratado como contagem nova, inflando PF.", "grade": "Good", "broken": [], "opportunities": [{"name": "Cobertura de cenarios TJCE incompleta (enhancement, diff, export)", "description": "O agente modela apenas 'contagem nova' e 'Correcao em Garantia'. Entregas TJCE reais sao majoritariamente incrementais (enhancement count / CFP), precisam de delta contra contagem anterior e export para formato contratual. Tratar enhancement como contagem nova infla PF — risco de integridade contratual.", "severity": "high", "impact": "Eleva cobertura real do agente no dominio TJCE, evita litigios contratuais por super-contagem e fecha a lacuna de recontagem apos mudanca de escopo.", "action": "Introduzir sub-rota 'enhancement' (ou --tipo enhancement) com CFP per CPM 4.3.1 (ADDED/CHANGED/DELETED/UNCHANGED), capacidade DIFF que produz delta-apf.md, e export opcional (scripts/export-submission.py para XLSX/PDF/CSV).", "finding_count": 4, "findings": [{"title": "Missing Enhancement Count mode (CFP) — cenario TJCE dominante ausente", "file": "SKILL.md", "line": 58, "detail": "Entregas incrementais tratadas como contagem nova inflam PF. IFPUG CPM 4.3.1 define Enhancement Count com regras distintas.", "source": "enhancement-opportunities"}, {"title": "Delta contra contagem anterior nao suportado", "file": "references/count-capability.md", "line": 49, "detail": "Contract addendums exigem 'o que mudou desde a ultima contagem'. Nao ha capacidade de diff.", "source": "enhancement-opportunities"}, {"title": "Sem path de recontagem / update", "file": "SKILL.md", "line": 58, "detail": "Quando requisitos mudam apos contagem, agente sobrescreve silenciosamente ou exige diff manual.", "source": "agent-cohesion"}, {"title": "Sem export para formato de submissao contratual", "file": "references/count-capability.md", "line": 126, "detail": "resumo-apf.md e markdown human-first; governanca TJCE tipicamente exige XLSX/PDF tabular.", "source": "agent-cohesion"}]}, {"name": "Funil de entrada rigido — sem roteamento de intencao", "description": "On Activation verifica pre-requisitos antes de entender o que o usuario quer. Usuarios de Garantia sao forcados pelo gate (que depois e relaxado), e experts que ja tem inventario precisam aguardar leitura sequencial de tres arquivos. Nao ha soft-gate de intencao.", "severity": "high", "impact": "Remove friccao para experts e elimina caminhos mortos para primeiros interlocutores; alinha o agente ao principio 'Pergunte, nao assuma' que hoje se engaja tarde demais.", "action": "Reordenar ativacao para intent-before-ingestion: saudacao -> pergunta 'contagem nova, enhancement ou correcao em garantia?' -> aplicar pre-requisitos especificos. Adicionar modo Lote Direto que aceita JSON/tabela de funcoes e pula Passos 1-3.", "finding_count": 3, "findings": [{"title": "Intent-before-ingestion violado", "file": "SKILL.md", "line": 44, "detail": "Agente le artefatos antes de entender a intencao; usuarios de Garantia passam pelo gate sem necessidade.", "source": "enhancement-opportunities"}, {"title": "Sem modo 'paste function inventory' para expert", "file": "references/count-capability.md", "line": 51, "detail": "Experts sao forcados atraves dos Passos 1-3 mesmo tendo o inventario pronto.", "source": "enhancement-opportunities"}, {"title": "Recovery de pre-requisitos e dead-end", "file": "SKILL.md", "line": 53, "detail": "Mensagem aponta para outra skill mas nao oferece encadeamento, inferencia preliminar, nem cancelamento.", "source": "enhancement-opportunities"}]}, {"name": "Contrato headless incompleto — entrada e schema abertos", "description": "Headless esta 80% pronto (exit codes, ambiguidade -> PENDENTE, fast-path Garantia). Faltam: schema JSON de saida pinado, flags CLI para contexto (--project, --delivery, --responsible, --tdi), input via --functions-json e regra de resolucao dos placeholders.", "severity": "medium", "impact": "Torna o agente um primitivo componivel para outras skills TJCE e pipelines CI/CD; impede consumidores de treat exit-1 como contagem final.", "action": "Pinar schema JSON inline no SKILL.md (com pending_count e pf_at_risk), adicionar flags --project/--delivery/--responsible/--tdi/--functions-json, definir ordem de resolucao args > config > prompt > defaults.", "finding_count": 4, "findings": [{"title": "Schema JSON do --json nao especificado em SKILL.md", "file": "SKILL.md", "line": 71, "detail": "Headless Contract menciona JSON estruturado mas nao define schema; fields listados apenas no capability file.", "source": "structure"}, {"title": "Schema headless nao pinado", "file": "SKILL.md", "line": 71, "detail": "Consumidores tem que adivinhar nomes de campos; nao ha JSON Schema referenciado.", "source": "enhancement-opportunities"}, {"title": "Placeholders {nome}/{data}/{responsavel} sem regra de resolucao", "file": "references/count-capability.md", "line": 128, "detail": "Templates usam placeholders mas nao ha contrato de onde vem — args, config, prompt ou defaults.", "source": "enhancement-opportunities"}, {"title": "Headless ambiguity pode under-contar se consumidor ignorar exit 1", "file": "SKILL.md", "line": 73, "detail": "JSON deveria tornar pending_count top-level contratual e expor pf_at_risk.", "source": "agent-cohesion"}]}, {"name": "Trabalho deterministico ainda no prompt (aritmetica, inventario, loops)", "description": "VAF/PF Ajustado sao calculados em-prompt, leitura integral de tres MD por execucao, e calculate-fp.py e invocado N vezes sequencialmente (uma por funcao). LLMs erram ponto flutuante e tokens sao gastos em boilerplate que scripts resolvem em milissegundos.", "severity": "medium", "impact": "Economia de ~1.000–2.400 tokens por contagem, eliminacao de erro aritmetico em ponto flutuante, reducao de latencia em contagens grandes.", "action": "Criar scripts/aggregate-fp.py (VAF, PF Brutos, PF Ajustado, distribuicao por tipo, opcional --markdown). Criar pre-pass scripts/extract-fp-candidates.py. Estender calculate-fp.py com --batch functions.json.", "finding_count": 3, "findings": [{"title": "Inventario de requisitos feito no prompt (pre-pass possivel)", "file": "references/count-capability.md", "line": 51, "detail": "LLM le integralmente 3 MD para extrair entidades/ casos de uso candidatos. Pre-pass em JSON economiza 800–2.000+ tokens.", "source": "script-opportunities"}, {"title": "Aritmetica VAF e agregacoes em-prompt", "file": "references/count-capability.md", "line": 113, "detail": "VAF = (TDI*0.01)+0.65 e PF Ajustado = PF Brutos * VAF executados pelo LLM. ~150–250 tokens + risco de erro.", "source": "script-opportunities"}, {"title": "calculate-fp.py invocado N vezes sequencialmente", "file": "references/count-capability.md", "line": 91, "detail": "Uma invocacao Bash por funcao, cada uma paga startup Python ~150ms. Para 20 funcoes, ~19 round-trips evitaveis.", "source": "execution-efficiency"}]}, {"name": "Onboarding e UX de novato ausentes", "description": "Nao ha glossario IFPUG, exemplo resolvido TJCE, nem checklist das 14 GSC para TDI. O convite 'explique esta contagem' existe mas nao e descoberto. O principio 'Pergunte, nao assuma' nao engaja a tempo de ajudar o primeiro interlocutor.", "severity": "medium", "impact": "Transforma a experiencia do primeiro interlocutor, reduz dependencia de documentacao IFPUG externa e estrutura a elicitacao TDI.", "action": "Adicionar references/glossario-ifpug.md (DER/RLR/ALR/ALI/AIE/EE/SE/CE em PT com exemplos TJCE), references/gsc-14-characteristics.md (14 GSC 0-5 com descricoes TJCE), references/exemplo-contagem-tjce.md (sprint resolvida), e emitir convite explicito explain-on-demand ao final de cada contagem.", "finding_count": 4, "findings": [{"title": "Sem glossario ou exemplo para newcomers", "file": "references/", "line": 0, "detail": "Newcomer depende inteiramente de docs IFPUG externos; nao ha worked example TJCE.", "source": "enhancement-opportunities"}, {"title": "Elicitacao TDI sem formulario estruturado", "file": "references/count-capability.md", "line": 113, "detail": "Passo 6 pede 14 GSCs sem apresentar os nomes/descricoes — usuario tem que lembrar quais sao.", "source": "enhancement-opportunities"}, {"title": "Explain-on-demand anunciado mas nao descoberto", "file": "references/count-capability.md", "line": 200, "detail": "Capability menciona 'explique esta contagem' mas usuario nunca e convidado.", "source": "enhancement-opportunities"}, {"title": "Sem referencia GSC/TDI (14 caracteristicas)", "file": "references/count-capability.md", "line": 113, "detail": "Analista que exige determinismo nao deveria deixar as 14 GSC a memoria — deveria existir references/gsc-checklist.md.", "source": "agent-cohesion"}]}], "strengths": [{"title": "Espelho persona-ferramenta", "detail": "Determinismo nao e discurso — calculate-fp.py executa a matriz IFPUG e validate-fp-sources.py bloqueia funcoes orfas. Raro nivel de coerencia persona-tooling."}, {"title": "Mission statement load-bearing", "detail": "'Toda funcionalidade entregue tem sua medida em Pontos de Funcao auditavel, rastreavel a requisito, e classificada deterministicamente segundo IFPUG' (SKILL.md:14) e DNA que molda cada decisao do agente."}, {"title": "Quatro principios tangiveis", "detail": "Determinismo IFPUG, Rastreabilidade total, Nao contar em dobro, Pergunte nao assuma — cada um mapeia acao testavel, sem filosofia-por-filosofia."}, {"title": "Exemplo concreto de estilo", "detail": "'ALI Processo: 8 DER, 2 RLR -> Baixa -> 7 PF' ensina formato de saida em uma unica linha — gasto de tokens com alta alavancagem."}, {"title": "Fast-path Garantia", "detail": "Short-circuit contratual limpo: PF=0 direto com template minimo, sem ceremonia. Modelagem correta da realidade TJCE."}, {"title": "Prerequisite Check com fallback graduado", "detail": "Hard-stop para US/RN ausentes; soft-stop negociavel para data-model (oferece inferencia com aviso). Boa theory of mind."}, {"title": "Delegacao externa disciplinada", "detail": "Encaminha ao tjce-agent-requirements em vez de reimplementar elicitacao. Boundary limpa entre agentes."}, {"title": "Stateless single-capability", "detail": "Escopo honestamente estreito — sem memoria, sem subagentes, sem redundancia. Pre-pass confirma zero problemas de dependencia."}], "detailed_analysis": {"structure": {"assessment": "Estruturalmente sao: todas secoes obrigatorias presentes, frontmatter valido, capacidade unica bem-formada. Apenas uma observacao low (ausencia de keyword de progressao em count-capability.md:205), provavel falso-positivo dado o fluxo em Passos e o contrato de exit codes.", "findings": [{"title": "No progression condition keywords found", "file": "references/count-capability.md", "line": 205, "detail": "Pre-pass nao encontrou keyword de progressao. Fluxo usa 'Passo 1..7', fast-path condicional e exit codes — semantica equivalente. Opcional: adicionar secao 'Completion' terminal.", "source": "structure"}]}, "persona": {"assessment": "Agente stateless single-capability dominio-especialista bem equilibrado. Overview forte (7 linhas), Identity (4 linhas), Communication Style com exemplo concreto IFPUG, Principles observaveis (4 regras load-bearing). Progressive disclosure correto: SKILL 74 linhas/1.261 tokens, capability 205 linhas/2.011 tokens. Zero waste patterns, zero back-references, zero wall-of-text.", "overview_quality": "appropriate", "findings": [{"title": "Progressao/completion explicita ausente no modo interativo", "file": "references/count-capability.md", "line": 204, "detail": "Uma linha terminal 'When both artifacts are written and validate-fp-sources.py reports zero orphans, announce completion and stop' tornaria terminacao inequivoca.", "source": "prompt-craft"}, {"title": "Templates de artefato inline (~75 linhas)", "file": "references/count-capability.md", "line": 128, "detail": "Templates markdown literais para contagem-detalhada.md e resumo-apf.md vivem dentro do prompt. Aceitavel hoje (205 linhas totais); migrar para ./templates/ se agente crescer.", "source": "prompt-craft"}]}, "cohesion": {"assessment": "Tightly cohered single-purpose specialist. Persona, capacidade e scripts formam triade raro em que principios declarados tem mecanismo concreto operacional. Gap moderado na completeness — vizinhos naturais (recontagem, diff, indicativa NESMA, export) ausentes.", "dimensions": {"persona_capability_alignment": {"score": "strong", "notes": "Cada principio tem mecanismo: determinismo -> calculate-fp.py; rastreabilidade -> validate-fp-sources.py; nao-duplicacao -> regra anti-duplicacao Passo 2; pergunte-nao-assuma -> path de ambiguidade."}, "identity_consistency": {"score": "strong", "notes": "Description, Mission, Identity, Communication Style e Principles reforcam o mesmo retrato — contratual, IFPUG-faithful, source-cited."}, "capability_completeness": {"score": "moderate", "notes": "Cobre conta nova + Garantia. Ausentes: recontagem, diff, estimativa/indicativa NESMA, export contratual (CSV/PDF/XLSX)."}, "redundancy": {"score": "strong", "notes": "Zero redundancia. Uma capacidade, dois scripts complementares, dois artefatos distintos."}, "external_integration": {"score": "strong", "notes": "Delega a tjce-agent-requirements quando pre-requisitos faltam, sem reimplementar."}, "capability_granularity": {"score": "strong", "notes": "CONTAGEM no nivel certo — Garantia como branch interno (degenerado) e nao capacidade separada."}, "user_journey": {"score": "moderate", "notes": "Jornada completa para contagem fresh. Fraqueza: sem re-entry point para atualizar contagem apos mudanca."}}, "findings": []}, "efficiency": {"assessment": "Pre-pass com zero issues de dependencia. Agente compacto, stateless, capacidade sob demanda. Oportunidades tacticas: batelar checks de pre-requisitos e invocacoes do calculate-fp.py; paralelizar Passos 2 e 3 (independentes).", "findings": [{"title": "Checks de pre-requisitos nao batelados", "file": "SKILL.md", "line": 46, "detail": "Tres verificacoes de existencia (user-stories, business-rules, data-model) provavelmente executadas sequencialmente. Um unico Glob paralelo resolve. Economia: 2 round-trips.", "source": "execution-efficiency"}, {"title": "Passos 2 e 3 apresentados sequencialmente apesar de independentes", "file": "references/count-capability.md", "line": 62, "detail": "Data Functions e Transactional Functions consomem os mesmos artefatos e nao dependem entre si. Explicitar independencia ajuda o LLM a paralelizar raciocinio.", "source": "execution-efficiency"}, {"title": "Caminhos relativos 'scripts/...' dependem de CWD", "file": "references/count-capability.md", "line": 94, "detail": "Em Bash sessions com CWD imprevisto, chamadas falham e exigem retry. Usar {skill-root}/scripts/... ou template resolvido na ativacao.", "source": "execution-efficiency"}]}, "experience": {"assessment": "Agente tecnicamente preciso mas com funil de entrada rigido. Expert e primeiro interlocutor sofrem por falta de modo lote e falta de glossario/exemplo. Edge cases (enhancement, delta, misto Garantia+nova) nao modelados. Headless 80% pronto mas sem schema fixo.", "journeys": [{"archetype": "first-timer", "summary": "Dev junior invoca agente sem preparacao. Agente espera silenciosamente 3 artefatos; quando faltam, emite mensagem terse apontando outra skill e para. Sem glossario (DER, RLR), sem exemplo, sem 'o que fazer com esses numeros agora'.", "friction_points": ["Sem soft-gate que detecte newcomer antes da verificacao de pre-requisitos", "SKILL.md densamente tecnico sem glossario IFPUG", "Saida dumpa dois MDs sem onboarding tooltip ou proximos passos"], "bright_spots": ["Principio 'Pergunte, nao assuma' poderia engajar gentilmente — se fosse ativado antes da classificacao"]}, {"archetype": "expert", "summary": "Analista IFPUG experiente quer crankar rapido. Forcado a esperar leitura sequencial dos tres artefatos mesmo tendo inventario mental pronto. Cada funcao passa pelo fluxo Passo 1-6. Acaba usando calculate-fp.py direto.", "friction_points": ["Sem modo 'cole sua lista de funcoes e classifique'", "Sem batch-classify; invocacoes sequenciais do script", "Ritmo irrita quem conhece o dominio"], "bright_spots": ["calculate-fp.py e CLI-acessivel e composable — expert pode bypassar o agente"]}, {"archetype": "confused", "summary": "Usuario invoca achando que agente vai gerar user-stories tambem. Prerequisite check bloqueia apontando para tjce-agent-requirements mas nao faz handoff — dead end.", "friction_points": ["Sem pergunta 'qual seu objetivo nesta sessao?' antes da leitura de arquivos", "Gate de pre-requisito e terminal, nao oferece inferencia preliminar nem encadeamento"], "bright_spots": ["Mensagem de erro e especifica ao identificar a skill correta"]}, {"archetype": "edge-case", "summary": "Entrega mixed (parte Garantia + parte nova) ou spanning dois sistemas TJCE. Re-contagem apos mudanca de escopo. Enhancement count (DER adicionado a ALI existente). Nenhum desses cenarios comuns TJCE e modelado.", "friction_points": ["Garantia e binario — sem flow para entrega mista", "Cross-system ALI/AIE sem heuristica de desempate", "Sem diff contra contagem anterior", "Enhancement Count (CFP) IFPUG ausente — risco contratual de super-contagem"], "bright_spots": ["Fast-path Garantia esta impecavel quando o caso e puro"]}, {"archetype": "hostile-environment", "summary": "calculate-fp.py ausente ou Python 3.8 apenas; data-model.md presente mas vazio; user-stories.md malformado.", "friction_points": ["Sem check de resolucao 'python3' vs 'python'", "data-model.md vazio nao e tratado (apenas missing)", "user-stories.md malformado produz 'nenhuma funcao encontrada' cryptico"], "bright_spots": ["Fallback gracioso ja existe para Python ausente (pede para usuario rodar localmente)", "validate-fp-sources.py tem exit code contratual e mensagem PT para parse failure"]}, {"archetype": "automator", "summary": "Pipeline CI chama contagem headless como artefato contratual de release.", "friction_points": ["Sem flags --project/--delivery/--responsible/--tdi", "Schema JSON de saida nao pinado", "Sem --functions-json para bypass da leitura de MD", "Placeholders {nome}/{data}/{responsavel} sem regra de resolucao"], "bright_spots": ["Exit codes 0/1/2 bem definidos", "Garantia shortcut via arg 'garantia'", "Ambiguidade marcada PENDENTE + exit 1 deterministico"]}], "autonomous": {"potential": "easily-adaptable", "notes": "80% pronto para headless. Falta pinar schema JSON de saida, expor flags de contexto (--project, --delivery, --responsible, --tdi, --functions-json), e definir regra de resolucao de placeholders (args > config > prompt > defaults)."}, "findings": []}, "scripts": {"assessment": "Intelligence placement ja forte — matriz IFPUG e source cross-reference em scripts com --json e exit codes. Oportunidades: pre-pass de extracao de candidatos (maior economia), aggregate-fp para VAF/totais (elimina aritmetica LLM), validator de artefato estrutural.", "token_savings": "~1.000–2.400 tokens por contagem completa (Findings 1+2+3 combinados)", "findings": [{"title": "aggregate-fp.py — VAF/PF Ajustado/distribuicao feita no prompt", "file": "references/count-capability.md", "line": 113, "detail": "VAF = (TDI*0.01)+0.65 e PF Ajustado = PF Brutos * VAF sao aritmetica determinstica que o LLM nao deveria executar. Criar scripts/aggregate-fp.py com --tdi e opcional --markdown.", "source": "script-opportunities"}, {"title": "extract-fp-candidates.py — pre-pass de requisitos", "file": "references/count-capability.md", "line": 51, "detail": "Em vez de o LLM reler 3 MDs, um pre-pass parseia data-model/user-stories/business-rules em JSON compacto. Economia 800–2.000+ tokens.", "source": "script-opportunities"}, {"title": "validate-apf-artifacts.py — validador estrutural pos-write", "file": "references/count-capability.md", "line": 126, "detail": "Verifica secoes obrigatorias, linhas completas, coerencia soma PF = PF Brutos, VAF math = TDI. Catch silent structural drift.", "source": "script-opportunities"}, {"title": "calculate-fp.py --batch — colapsar N invocacoes em 1", "file": "references/count-capability.md", "line": 91, "detail": "Estender script para ler functions.json e emitir array de resultados. Elimina ~19 round-trips em contagens de 20 funcoes.", "source": "execution-efficiency"}, {"title": "uv nao disponivel no PATH impede lint dos scripts", "file": "scripts/calculate-fp.py", "line": 0, "detail": "Ambiente local sem uv — scripts Python nao foram lintados com ruff. Limitacao de ambiente, nao defeito do agente.", "source": "scripts-lint"}]}}, "recommendations": [{"rank": 1, "action": "Introduzir Enhancement Count (CFP) + capacidade DIFF + export contratual (XLSX/PDF/CSV). Cobre o cenario TJCE dominante hoje ausente e elimina risco de super-contagem.", "resolves": 4, "effort": "medium"}, {"rank": 2, "action": "Reordenar ativacao para intent-before-ingestion e adicionar modo Lote Direto (JSON/tabela de funcoes pula Passos 1-3).", "resolves": 3, "effort": "low"}, {"rank": 3, "action": "Pinar contrato headless: schema JSON inline, flags --project/--delivery/--responsible/--tdi/--functions-json, regra de resolucao de placeholders.", "resolves": 4, "effort": "low"}, {"rank": 4, "action": "Criar aggregate-fp.py (VAF/totais/markdown) e pre-pass extract-fp-candidates.py; adicionar --batch em calculate-fp.py.", "resolves": 3, "effort": "medium"}, {"rank": 5, "action": "Adicionar references/glossario-ifpug.md, gsc-14-characteristics.md, exemplo-contagem-tjce.md e convite explain-on-demand ao final da contagem.", "resolves": 4, "effort": "low"}]}</script>
+<script>
+const RAW = JSON.parse(document.getElementById('report-data').textContent);
+const DATA = normalize(RAW);
+
+function normalize(d) {
+  if (d.meta) {
+    d.meta.skill_name = d.meta.skill_name || d.meta.skill || d.meta.name || 'Unknown';
+    d.meta.scanner_count = typeof d.meta.scanner_count === 'number' ? d.meta.scanner_count
+      : Array.isArray(d.meta.scanners_run) ? d.meta.scanners_run.length
+      : d.meta.scanner_count || 0;
+  }
+  d.strengths = (d.strengths || []).map(s =>
+    typeof s === 'string' ? { title: s, detail: '' } : { title: s.title || '', detail: s.detail || '' }
+  );
+  (d.opportunities || []).forEach(o => {
+    o.name = o.name || o.title || '';
+    o.finding_count = o.finding_count || (o.findings || o.findings_resolved || []).length;
+    if (!o.findings && o.findings_resolved) o.findings = [];
+    o.action = o.action || o.fix || '';
+  });
+  (d.broken || []).forEach(b => {
+    b.detail = b.detail || b.description || '';
+    b.action = b.action || b.fix || '';
+  });
+  (d.recommendations || []).forEach((r, i) => {
+    r.action = r.action || r.description || '';
+    r.rank = r.rank || i + 1;
+  });
+  // Fix journeys
+  if (d.detailed_analysis && d.detailed_analysis.experience) {
+    d.detailed_analysis.experience.journeys = (d.detailed_analysis.experience.journeys || []).map(j => ({
+      archetype: j.archetype || j.persona || j.name || 'Unknown',
+      summary: j.summary || j.journey_summary || j.description || j.friction || '',
+      friction_points: j.friction_points || (j.friction ? [j.friction] : []),
+      bright_spots: j.bright_spots || (j.bright ? [j.bright] : [])
+    }));
+  }
+  // Fix capabilities
+  (d.capabilities || []).forEach(c => {
+    c.finding_count = c.finding_count || (c.findings || []).length;
+    c.status = c.status || (c.finding_count > 0 ? 'needs-attention' : 'good');
+  });
+  return d;
+}
+
+function esc(s) {
+  if (!s) return '';
+  const d = document.createElement('div');
+  d.textContent = String(s);
+  return d.innerHTML;
+}
+
+function init() {
+  const m = DATA.meta;
+  document.getElementById('skill-name').textContent = m.skill_name;
+  document.getElementById('subtitle').innerHTML =
+    `${esc(m.skill_path)} &bull; ${m.timestamp ? m.timestamp.split('T')[0] : ''} &bull; ${m.scanner_count || 0} scanners &bull; <a href="quality-report.md">Full Report &nearr;</a>`;
+
+  renderPortrait();
+  document.getElementById('grade-area').innerHTML = `<div class="grade grade-${DATA.grade}">${esc(DATA.grade)}</div>`;
+  document.getElementById('narrative').textContent = DATA.narrative || '';
+
+  renderCapabilities();
+  renderBroken();
+  renderOpportunities();
+  renderStrengths();
+  renderRecommendations();
+  renderDetailed();
+}
+
+function renderPortrait() {
+  const p = DATA.agent_profile;
+  if (!p) return;
+  let html = `<div class="portrait"><div class="portrait-header">`;
+  if (p.icon) html += `<span class="portrait-icon">${esc(p.icon)}</span>`;
+  html += `<div><div class="portrait-name">${esc(p.display_name)}</div>`;
+  if (p.title) html += `<div class="portrait-title">${esc(p.title)}</div>`;
+  html += `</div></div>`;
+  if (p.portrait) html += `<div class="portrait-desc">${esc(p.portrait)}</div>`;
+  html += `</div>`;
+  document.getElementById('portrait').innerHTML = html;
+}
+
+function renderCapabilities() {
+  const caps = DATA.capabilities || [];
+  if (!caps.length) return;
+  const good = caps.filter(c => c.status === 'good').length;
+  const attn = caps.length - good;
+  let summary = `${caps.length} capabilities`;
+  if (attn > 0) summary += ` \u00b7 ${attn} need attention`;
+
+  let html = `<div class="section"><div class="section-header open" onclick="toggleSection(this)">`;
+  html += `<span class="arrow">&#9654;</span><span class="label">Capabilities (${summary})</span>`;
+  html += `</div><div class="section-body open">`;
+  caps.forEach((cap, idx) => {
+    const statusBadge = cap.status === 'good'
+      ? `<span class="badge badge-good">Good</span>`
+      : `<span class="badge badge-attention">${cap.finding_count} observation${cap.finding_count !== 1 ? 's' : ''}</span>`;
+    const hasFindings = cap.findings && cap.findings.length > 0;
+    html += `<div class="cap-row" ${hasFindings ? `onclick="toggleCapFindings(${idx})" style="cursor:pointer"` : ''}>`;
+    html += `${statusBadge} <span class="cap-name">${esc(cap.name)}</span>`;
+    if (cap.file) html += `<span class="cap-file">${esc(cap.file)}</span>`;
+    html += `</div>`;
+    if (hasFindings) {
+      html += `<div class="cap-findings" id="cap-findings-${idx}">`;
+      cap.findings.forEach(f => {
+        html += `<div class="cap-finding">`;
+        if (f.severity) html += `<span class="badge badge-${f.severity}">${esc(f.severity)}</span> `;
+        html += `${esc(f.title)}`;
+        if (f.source) html += ` <span class="source" style="font-size:0.75rem;color:var(--text-dim)">[${esc(f.source)}]</span>`;
+        html += `</div>`;
+      });
+      html += `</div>`;
+    }
+  });
+  html += `</div></div>`;
+  document.getElementById('capabilities-section').innerHTML = html;
+}
+
+function renderBroken() {
+  const items = DATA.broken || [];
+  if (!items.length) return;
+  let html = `<div class="section"><div class="section-header open" onclick="toggleSection(this)">`;
+  html += `<span class="arrow">&#9654;</span><span class="label">Broken / Critical (${items.length})</span>`;
+  html += `<div class="actions"><button class="btn btn-primary" onclick="event.stopPropagation();showBrokenPrompt()">Fix These</button></div>`;
+  html += `</div><div class="section-body open">`;
+  items.forEach(item => {
+    const loc = item.file ? `${item.file}${item.line ? ':'+item.line : ''}` : '';
+    html += `<div class="item"><span class="badge badge-${item.severity || 'high'}">${esc(item.severity || 'high')}</span> `;
+    if (loc) html += `<span class="item-file">${esc(loc)}</span>`;
+    html += `<div class="item-title">${esc(item.title)}</div>`;
+    if (item.detail) html += `<div class="item-desc">${esc(item.detail)}</div>`;
+    if (item.action) html += `<div class="item-action"><strong>Fix:</strong> ${esc(item.action)}</div>`;
+    html += `</div>`;
+  });
+  html += `</div></div>`;
+  document.getElementById('broken-section').innerHTML = html;
+}
+
+function renderOpportunities() {
+  const opps = DATA.opportunities || [];
+  if (!opps.length) return;
+  let html = `<div class="section"><div class="section-header open" onclick="toggleSection(this)">`;
+  html += `<span class="arrow">&#9654;</span><span class="label">Opportunities (${opps.length})</span>`;
+  html += `</div><div class="section-body open">`;
+  opps.forEach((opp, idx) => {
+    html += `<div class="opp"><div class="opp-header">`;
+    html += `<span class="badge badge-${opp.severity || 'medium'}">${esc(opp.severity || 'medium')}</span>`;
+    html += `<span class="opp-name">${idx+1}. ${esc(opp.name)}</span>`;
+    html += `<span class="opp-count">${opp.finding_count || (opp.findings||[]).length} observations</span>`;
+    html += `<button class="btn" onclick="toggleFindings(${idx})">Details</button>`;
+    html += `<button class="btn btn-primary" onclick="showThemePrompt(${idx})">Fix This</button>`;
+    html += `</div>`;
+    html += `<div class="opp-desc">${esc(opp.description)}</div>`;
+    if (opp.impact) html += `<div class="opp-impact">Impact: ${esc(opp.impact)}</div>`;
+    html += `<div class="opp-findings" id="findings-${idx}">`;
+    (opp.findings || []).forEach(f => {
+      const loc = f.file ? `${f.file}${f.line ? ':'+f.line : ''}` : '';
+      html += `<div class="opp-finding"><strong>${esc(f.title)}</strong>`;
+      if (loc) html += ` <span class="item-file">${esc(loc)}</span>`;
+      if (f.source) html += ` <span class="source">[${esc(f.source)}]</span>`;
+      if (f.detail) html += `<br>${esc(f.detail)}`;
+      html += `</div>`;
+    });
+    html += `</div></div>`;
+  });
+  html += `</div></div>`;
+  document.getElementById('opportunities-section').innerHTML = html;
+}
+
+function renderStrengths() {
+  const items = DATA.strengths || [];
+  if (!items.length) return;
+  let html = `<div class="section"><div class="section-header" onclick="toggleSection(this)">`;
+  html += `<span class="arrow">&#9654;</span><span class="label">Strengths (${items.length})</span>`;
+  html += `</div><div class="section-body">`;
+  items.forEach(s => {
+    html += `<div class="strength-item"><div class="title">${esc(s.title)}</div>`;
+    if (s.detail) html += `<div class="detail">${esc(s.detail)}</div>`;
+    html += `</div>`;
+  });
+  html += `</div></div>`;
+  document.getElementById('strengths-section').innerHTML = html;
+}
+
+function renderRecommendations() {
+  const recs = DATA.recommendations || [];
+  if (!recs.length) return;
+  let html = `<div class="section"><div class="section-header open" onclick="toggleSection(this)">`;
+  html += `<span class="arrow">&#9654;</span><span class="label">Recommendations</span>`;
+  html += `</div><div class="section-body open"><div class="recs">`;
+  recs.forEach(r => {
+    html += `<div class="rec"><span class="rec-rank">#${r.rank}</span>${esc(r.action)}`;
+    if (r.resolves) html += ` <span class="rec-resolves">(resolves ${r.resolves} observations)</span>`;
+    html += `</div>`;
+  });
+  html += `</div></div></div>`;
+  document.getElementById('recommendations-section').innerHTML = html;
+}
+
+function renderDetailed() {
+  const da = DATA.detailed_analysis;
+  if (!da) return;
+  const dims = [
+    ['structure', 'Structure & Capabilities'],
+    ['persona', 'Persona & Voice'],
+    ['cohesion', 'Identity Cohesion'],
+    ['efficiency', 'Execution Efficiency'],
+    ['experience', 'Conversation Experience'],
+    ['scripts', 'Script Opportunities']
+  ];
+  let html = `<div class="section"><div class="section-header" onclick="toggleSection(this)">`;
+  html += `<span class="arrow">&#9654;</span><span class="label">Detailed Analysis</span>`;
+  html += `</div><div class="section-body">`;
+  dims.forEach(([key, label]) => {
+    const dim = da[key];
+    if (!dim) return;
+    html += `<div class="analysis-section"><h4>${label}</h4>`;
+    if (dim.assessment) html += `<p>${esc(dim.assessment)}</p>`;
+    if (dim.dimensions) {
+      html += `<table style="width:100%;font-size:0.85rem;margin:0.5rem 0;border-collapse:collapse;">`;
+      html += `<tr><th style="text-align:left;padding:0.3rem;border-bottom:1px solid var(--border)">Dimension</th><th style="text-align:left;padding:0.3rem;border-bottom:1px solid var(--border)">Score</th><th style="text-align:left;padding:0.3rem;border-bottom:1px solid var(--border)">Notes</th></tr>`;
+      Object.entries(dim.dimensions).forEach(([d, v]) => {
+        if (v && typeof v === 'object') {
+          html += `<tr><td style="padding:0.3rem;border-bottom:1px solid var(--border)">${esc(d.replace(/_/g,' '))}</td><td style="padding:0.3rem;border-bottom:1px solid var(--border)">${esc(v.score||'')}</td><td style="padding:0.3rem;border-bottom:1px solid var(--border)">${esc(v.notes||'')}</td></tr>`;
+        }
+      });
+      html += `</table>`;
+    }
+    if (dim.journeys && dim.journeys.length) {
+      dim.journeys.forEach(j => {
+        html += `<div style="margin:0.5rem 0"><strong>${esc(j.archetype)}</strong>: ${esc(j.summary || j.journey_summary || '')}`;
+        if (j.friction_points && j.friction_points.length) {
+          html += `<ul style="color:var(--high);font-size:0.85rem;padding-left:1.25rem">`;
+          j.friction_points.forEach(fp => { html += `<li>${esc(fp)}</li>`; });
+          html += `</ul>`;
+        }
+        html += `</div>`;
+      });
+    }
+    if (dim.autonomous) {
+      const a = dim.autonomous;
+      html += `<p><strong>Headless Potential:</strong> ${esc(a.potential||'')}`;
+      if (a.notes) html += ` \u2014 ${esc(a.notes)}`;
+      html += `</p>`;
+    }
+    (dim.findings || []).forEach(f => {
+      const loc = f.file ? `${f.file}${f.line ? ':'+f.line : ''}` : '';
+      html += `<div class="analysis-finding">`;
+      if (f.severity) html += `<span class="badge badge-${f.severity}">${esc(f.severity)}</span> `;
+      html += `${esc(f.title)}`;
+      if (loc) html += ` <span class="item-file">${esc(loc)}</span>`;
+      html += `</div>`;
+    });
+    html += `</div>`;
+  });
+  html += `</div></div>`;
+  document.getElementById('detailed-section').innerHTML = html;
+}
+
+function toggleSection(el) { el.classList.toggle('open'); el.nextElementSibling.classList.toggle('open'); }
+function toggleFindings(idx) { document.getElementById('findings-'+idx).classList.toggle('open'); }
+function toggleCapFindings(idx) { document.getElementById('cap-findings-'+idx).classList.toggle('open'); }
+
+function showThemePrompt(idx) {
+  const opp = DATA.opportunities[idx];
+  if (!opp) return;
+  let prompt = `## Task: ${opp.name}\nAgent path: ${DATA.meta.skill_path}\n\n### Problem\n${opp.description}\n\n### Fix\n${opp.action}\n\n`;
+  if (opp.findings && opp.findings.length) {
+    prompt += `### Specific observations to address:\n\n`;
+    opp.findings.forEach((f, i) => {
+      const loc = f.file ? (f.line ? `${f.file}:${f.line}` : f.file) : '';
+      prompt += `${i+1}. **${f.title}**`;
+      if (loc) prompt += ` (${loc})`;
+      if (f.detail) prompt += `\n   ${f.detail}`;
+      prompt += `\n`;
+    });
+  }
+  document.getElementById('modal-title').textContent = `Fix: ${opp.name}`;
+  document.getElementById('modal-content').textContent = prompt.trim();
+  document.getElementById('modal').classList.add('visible');
+}
+
+function showBrokenPrompt() {
+  const items = DATA.broken || [];
+  let prompt = `## Task: Fix Critical Issues\nAgent path: ${DATA.meta.skill_path}\n\n`;
+  items.forEach((item, i) => {
+    const loc = item.file ? (item.line ? `${item.file}:${item.line}` : item.file) : '';
+    prompt += `${i+1}. **[${(item.severity||'high').toUpperCase()}] ${item.title}**\n`;
+    if (loc) prompt += `   File: ${loc}\n`;
+    if (item.detail) prompt += `   Context: ${item.detail}\n`;
+    if (item.action) prompt += `   Fix: ${item.action}\n\n`;
+  });
+  document.getElementById('modal-title').textContent = 'Fix Critical Issues';
+  document.getElementById('modal-content').textContent = prompt.trim();
+  document.getElementById('modal').classList.add('visible');
+}
+
+function closeModal() { document.getElementById('modal').classList.remove('visible'); }
+function copyModal() {
+  navigator.clipboard.writeText(document.getElementById('modal-content').textContent).then(() => {
+    const btn = document.querySelector('.modal .btn-primary');
+    btn.textContent = 'Copied!';
+    setTimeout(() => { btn.textContent = 'Copy to Clipboard'; }, 1500);
+  });
+}
+
+init();
+</script>
+</body>
+</html>

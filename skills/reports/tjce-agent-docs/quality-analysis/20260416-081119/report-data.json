@@ -1,0 +1,500 @@
+{
+  "meta": {
+    "skill_name": "tjce-agent-docs",
+    "skill_path": "/home/rodgb/projetos/ctrve/skills/tjce-agent-docs",
+    "timestamp": "2026-04-16T08:11:19Z",
+    "scanner_count": 8,
+    "type": "agent"
+  },
+  "agent_profile": {
+    "icon": "",
+    "display_name": "Technical Writer TJCE",
+    "title": "Redator Tecnico Didatico para Manuais do Usuario",
+    "portrait": "O Technical Writer TJCE e um redator tecnico paciente e didatico que transforma estorias de usuario e catalogos de mensagens em manuais que qualquer servidor, magistrado ou advogado consegue seguir sem suporte. Sua voz e a de quem explica para um colega leigo — formal mas acessivel, sempre no imperativo, com zero jargao tecnico. O principio mais forte do agente e a recusa em inventar: se nao sabe como uma tela funciona, para e pergunta."
+  },
+  "capabilities": [
+    {
+      "name": "MANUAL — Gerar Manual do Usuario",
+      "file": "references/manual-capability.md",
+      "status": "needs-attention",
+      "finding_count": 3,
+      "findings": [
+        {
+          "title": "Sem condicoes de progressao entre passos criticos",
+          "severity": "high",
+          "source": "structure-capabilities-prepass"
+        },
+        {
+          "title": "Passos procedurais poderiam ser condensados em descricoes de resultado",
+          "severity": "medium",
+          "source": "structure-analysis"
+        },
+        {
+          "title": "Template de estrutura rigido pode restringir adaptacao",
+          "severity": "medium",
+          "source": "structure-analysis"
+        }
+      ]
+    }
+  ],
+  "narrative": "Agente bem construido com identidade coesa, estrutura limpa e um contrato headless maduro. O principal gargalo e a ausencia de modo incremental e estrategia para conjuntos grandes de estorias, o que limita a utilidade em projetos reais de longa duracao.",
+  "grade": "Good",
+  "broken": [],
+  "opportunities": [
+    {
+      "name": "Falta de Modo Incremental e Estrategia de Escala",
+      "description": "Em projetos reais do TJCE, estorias de usuario sao adicionadas ao longo de sprints. Sem um modo de atualizacao incremental, o manual inteiro precisa ser regenerado a cada mudanca — arriscando sobrescrever edicoes manuais e desperdicando tokens. Sistemas com 50-200+ estorias excedem o limite da janela de contexto, causando degradacao silenciosa.",
+      "severity": "high",
+      "impact": "Transforma o agente de uma ferramenta de uso unico em um companheiro de documentacao continua.",
+      "action": "Adicionar um modo --update que le o manual existente, identifica secoes novas/alteradas, e gera apenas o delta. Implementar estrategia de chunking para conjuntos grandes (gerar em lotes de 15-20 US, escrevendo incrementalmente).",
+      "finding_count": 5,
+      "findings": [
+        {
+          "title": "Sem modo de atualizacao incremental",
+          "file": "references/manual-capability.md",
+          "line": 77,
+          "detail": "O agente sempre gera o manual completo do zero. Em projetos reais onde estorias sao adicionadas por sprint, isso forca regeneracao total.",
+          "source": "enhancement-opportunities"
+        },
+        {
+          "title": "Sem capacidade incremental/update",
+          "file": "references/manual-capability.md",
+          "line": 77,
+          "detail": "Se o manual ja existe e novos requisitos sao adicionados, o usuario deve regenerar tudo do zero.",
+          "source": "agent-cohesion"
+        },
+        {
+          "title": "Sem estrategia para conjuntos grandes de US",
+          "file": "references/manual-capability.md",
+          "line": 79,
+          "detail": "Um sistema com 100+ estorias vai exceder o limite de contexto, causando degradacao silenciosa nas secoes finais.",
+          "source": "enhancement-opportunities"
+        },
+        {
+          "title": "Intent-before-ingestion ausente",
+          "file": "SKILL.md",
+          "line": 37,
+          "detail": "O agente pula direto para verificacao de prerequisitos sem entender a intencao do usuario (gerar completo, atualizar, verificar cobertura).",
+          "source": "enhancement-opportunities"
+        },
+        {
+          "title": "Sem loop de revisao/refinamento estruturado",
+          "file": "references/manual-capability.md",
+          "line": 148,
+          "detail": "Apos a geracao, o agente oferece ler secoes mas nao tem capacidade estruturada para iterar sobre o manual.",
+          "source": "agent-cohesion"
+        }
+      ]
+    },
+    {
+      "name": "Condicoes de Progressao Ausentes na Capability",
+      "description": "O arquivo manual-capability.md nao tem gates de progressao entre os passos criticos. Em modo headless, o agente poderia pular a validacao se o contexto compactar. Em modo interativo, poderia avancar sem confirmar completude do mapeamento de telas.",
+      "severity": "medium",
+      "impact": "Aumenta a confiabilidade da geracao, especialmente em modo headless e sob compactacao de contexto.",
+      "action": "Adicionar condicoes de progressao minimas: apos Passo 1 ('Prosseguir somente quando inventario de US estiver completo') e apos Passo 5 ('Prosseguir para escrita somente quando todas as verificacoes passarem ou lacunas estiverem marcadas').",
+      "finding_count": 3,
+      "findings": [
+        {
+          "title": "Nenhuma keyword de progressao encontrada no capability file",
+          "file": "references/manual-capability.md",
+          "line": 153,
+          "detail": "Pre-pass estrutural detectou ausencia total de keywords de progressao no arquivo de capability.",
+          "source": "structure-capabilities-prepass"
+        },
+        {
+          "title": "Sem gates de progressao explicitos entre passos",
+          "file": "references/manual-capability.md",
+          "line": 79,
+          "detail": "O agente pode pular validacao em headless mode se contexto compactar durante geracao.",
+          "source": "prompt-craft"
+        },
+        {
+          "title": "Capability sem condicoes de progressao",
+          "file": "references/manual-capability.md",
+          "line": 153,
+          "detail": "Para um workflow linear de geracao de documentos, adicionar marcador de progressao apos validacao de cobertura tornaria o pipeline mais robusto.",
+          "source": "structure-analysis"
+        }
+      ]
+    },
+    {
+      "name": "Contrato Headless Incompleto para Automacao",
+      "description": "O contrato headless e solido mas tem lacunas que impedem integracao seamless em pipelines CI/CD: caminho {tmp} indefinido, sem parametro para telas pre-computadas, default de --project nao documentado, sem indicador de progresso.",
+      "severity": "medium",
+      "impact": "Permite que o agente se integre perfeitamente em pipelines generate-requirements -> extract-screens -> generate-manual -> publish.",
+      "action": "Definir {tmp} como {output_folder}/.tmp, adicionar parametro --screens-json <path>, documentar default de --project (derivar de config.yaml ou nome do diretorio).",
+      "finding_count": 4,
+      "findings": [
+        {
+          "title": "Caminho {tmp} indefinido para screen inventory",
+          "file": "SKILL.md",
+          "line": 59,
+          "detail": "O pre-pass escreve em {tmp}/screens.json mas {tmp} nao esta definido no sistema de config. Automadores nao sabem onde escrever o output.",
+          "source": "enhancement-opportunities"
+        },
+        {
+          "title": "Sem parametro --screens-json para automadores",
+          "file": "SKILL.md",
+          "line": 72,
+          "detail": "Nao ha como passar um inventario de telas pre-computado em modo headless.",
+          "source": "enhancement-opportunities"
+        },
+        {
+          "title": "Default de --project nao documentado",
+          "file": "SKILL.md",
+          "line": 80,
+          "detail": "O JSON summary tem campo project mas nao ha default documentado quando config.yaml esta ausente.",
+          "source": "enhancement-opportunities"
+        },
+        {
+          "title": "Sem indicador de progresso em modo headless",
+          "file": "SKILL.md",
+          "line": 72,
+          "detail": "Uma invocacao headless longa nao da nenhum sinal ate a conclusao.",
+          "source": "enhancement-opportunities"
+        }
+      ]
+    },
+    {
+      "name": "Validacao Pos-Geracao Depende Apenas do LLM",
+      "description": "A validacao de cobertura e a checagem de jargao tecnico sao feitas inteiramente pelo LLM, que pode falhar silenciosamente. Scripts deterministicos seriam mais confiaveis e economizariam tokens.",
+      "severity": "medium",
+      "impact": "Melhora a confiabilidade da validacao e reduz custo de tokens (~550-1000 tokens por invocacao).",
+      "action": "Criar script validate-manual.py que verifica cobertura de US, cobertura de mensagens e termos tecnicos proibidos como pos-processamento deterministico.",
+      "finding_count": 3,
+      "findings": [
+        {
+          "title": "Coverage validation checklist como script",
+          "file": "references/manual-capability.md",
+          "line": 127,
+          "detail": "O LLM re-le seu proprio output para validar cobertura. Um script faz isso deterministicamente e nunca perde um item.",
+          "source": "script-opportunities"
+        },
+        {
+          "title": "Deteccao de jargao tecnico como script",
+          "file": "references/manual-capability.md",
+          "line": 111,
+          "detail": "A lista de termos proibidos e regras-based — perfeita para um scanner por regex com numeros de linha.",
+          "source": "script-opportunities"
+        },
+        {
+          "title": "Sem passo de validacao automatica de jargao",
+          "file": "references/manual-capability.md",
+          "line": 111,
+          "detail": "O agente depende da propria disciplina para evitar jargao, o que e inerentemente pouco confiavel com LLMs.",
+          "source": "enhancement-opportunities"
+        }
+      ]
+    },
+    {
+      "name": "Pre-Pass de Dados Estruturais Pode Ser Scriptado",
+      "description": "Os Passos 1-3 sao operacoes de extracao deterministica que o LLM executa sequencialmente. Scripts Python poderiam extrair esses dados em paralelo, economizando tokens e permitindo que o LLM foque na redacao.",
+      "severity": "medium",
+      "impact": "Reduz latencia e custo de tokens na fase de coleta de dados (~500-1300 tokens).",
+      "action": "Criar scripts extract-us-inventory.py e extract-messages.py que produzem JSON estruturado. Reestruturar Passos 1-3 como fase paralela de coleta.",
+      "finding_count": 3,
+      "findings": [
+        {
+          "title": "Extracao de inventario de US como script",
+          "file": "references/manual-capability.md",
+          "line": 79,
+          "detail": "Parse de user-stories.md para extrair IDs, titulos e tipos de interacao e deterministic e custa ~300-800 tokens ao LLM.",
+          "source": "script-opportunities"
+        },
+        {
+          "title": "Parse de catalogo de mensagens como script",
+          "file": "references/manual-capability.md",
+          "line": 95,
+          "detail": "Extracao de codigos, textos e referencias de US em messages.md e deterministic e custa ~200-500 tokens.",
+          "source": "script-opportunities"
+        },
+        {
+          "title": "Reads sequenciais independentes nos Passos 1-3",
+          "file": "references/manual-capability.md",
+          "line": 79,
+          "detail": "Steps 1, 2 e 3 sao reads independentes que poderiam ser batched em paralelo, eliminando 2 round-trips.",
+          "source": "execution-efficiency"
+        }
+      ]
+    }
+  ],
+  "strengths": [
+    {
+      "title": "Identidade afiada com principio zero-jargao executavel",
+      "detail": "O agente sabe exatamente o que e e o que se recusa a fazer. A lista de termos proibidos e tabela de substituicao transformam um principio vago em regras executaveis que o LLM consegue aplicar consistentemente."
+    },
+    {
+      "title": "Missao exemplar como framework de decisao",
+      "detail": "'Nenhum usuario do tribunal precisa pedir ajuda para usar o sistema' define o que bom significa em uma unica frase. O agente pode usar essa missao como criterio de decisao para qualquer caso de borda."
+    },
+    {
+      "title": "Zero desperdicio de tokens",
+      "detail": "Nenhum padding defensivo, nenhuma meta-explicacao, nenhuma back-reference. Pre-pass confirmou zero waste patterns. Total de ~3011 tokens e enxuto e eficiente para um agente de capability unica."
+    },
+    {
+      "title": "Separacao persona-capability limpa",
+      "detail": "SKILL.md cuida de identidade, voz e principios. O capability prompt cuida de workflow e regras de dominio. Onde regras comportamentais sao reafirmadas no capability prompt, e feito corretamente para sobrevivencia de compactacao de contexto."
+    },
+    {
+      "title": "Contrato headless maduro",
+      "detail": "Exit codes (0/1/2), JSON summary estruturado e degradacao graciosa (marcando secoes incompletas ao inves de inventar) mostram maturidade de design. Raro e valioso para um agente de documentacao."
+    },
+    {
+      "title": "Tooling de suporte com testes",
+      "detail": "extract-screens.py com testes mostra maturidade operacional. O padrao de pre-pass que compacta source frontend em JSON ja esta estabelecido e pode ser replicado."
+    },
+    {
+      "title": "Design de pipeline autocontido",
+      "detail": "Depende de artefatos de saida de tjce-agent-requirements (nao do agente em runtime). Prerequisite check com mensagens claras e guidance para o usuario. Testavel isoladamente."
+    },
+    {
+      "title": "Principio nunca-inventar e load-bearing",
+      "detail": "Estabelecido em Principles e reforcado em quatro pontos do capability prompt. Para um agente de documentacao, esta e a restricao comportamental mais critica — tela inventada e pior que tela ausente."
+    }
+  ],
+  "detailed_analysis": {
+    "structure": {
+      "assessment": "Agente estruturalmente solido com todas as secoes obrigatorias presentes, frontmatter limpo, e arquitetura de capability unica bem definida. Sequencia de ativacao logicamente ordenada. Um achado estrutural: capability sem condicoes de progressao.",
+      "findings": [
+        {
+          "title": "Secao Screen Pre-Pass referencia python3 sem verificar disponibilidade",
+          "file": "SKILL.md",
+          "line": 58,
+          "detail": "Adicionar nota: 'Se script indisponivel, pular — capability prompt trata o fallback.'",
+          "severity": "low",
+          "source": "prompt-craft"
+        },
+        {
+          "title": "Template de estrutura do manual pode ser rigido demais",
+          "file": "references/manual-capability.md",
+          "line": 36,
+          "detail": "Considerar nota-lo como 'estrutura default' adaptavel para sistemas com perfis de funcionalidades muito diferentes.",
+          "severity": "medium",
+          "source": "structure-analysis"
+        }
+      ]
+    },
+    "persona": {
+      "assessment": "Persona bem construida com identidade distinta, communication style concreto e principios load-bearing. Overview de 9 linhas e proporcional ao dominio. Zero redundancia entre Identity e Communication Style.",
+      "overview_quality": "appropriate",
+      "findings": [
+        {
+          "title": "Tabela de substituicao inline pode crescer alem do ideal",
+          "file": "references/manual-capability.md",
+          "line": 114,
+          "detail": "Atualmente 7 linhas — aceitavel. Se crescer alem de ~15 entradas, extrair para references/terminology-map.md.",
+          "severity": "low",
+          "source": "prompt-craft"
+        }
+      ]
+    },
+    "cohesion": {
+      "assessment": "Agente altamente coeso com identidade de proposito unico. A persona e perfeitamente refletida no design da capability. Integracao externa limpa. Gaps em completude de capabilities (modo incremental, formato de exportacao).",
+      "dimensions": {
+        "persona_capability_alignment": {
+          "score": "strong",
+          "notes": "Identidade de escritor tecnico didatico e operacionalizada diretamente nos passos de geracao. Nenhum gap entre quem o agente diz ser e o que pode fazer."
+        }
+      },
+      "findings": [
+        {
+          "title": "Sem conversao de formato (PDF/DOCX)",
+          "file": "references/manual-capability.md",
+          "line": 136,
+          "detail": "Output e sempre Markdown. Instituicao judicial pode precisar de PDF ou DOCX. Considerar ao menos reconhecer a necessidade de formato.",
+          "severity": "low",
+          "source": "agent-cohesion"
+        },
+        {
+          "title": "Sem geracao de glossario standalone",
+          "file": "references/manual-capability.md",
+          "line": 99,
+          "detail": "Dado o enfase em traduzir termos tecnicos, um glossario seria fit natural. Termos juridicos do TJCE tambem poderiam ser explicados.",
+          "severity": "low",
+          "source": "agent-cohesion"
+        },
+        {
+          "title": "Regras de negocio subespecificadas no workflow",
+          "file": "references/manual-capability.md",
+          "line": 28,
+          "detail": "business-rules.md e listado como input opcional mas os passos de geracao nunca descrevem como incorporar regras de negocio no manual.",
+          "severity": "low",
+          "source": "agent-cohesion"
+        }
+      ]
+    },
+    "efficiency": {
+      "assessment": "Agente enxuto e razoavelmente eficiente. Zero problemas de dependencia ou ciclos detectados pelo pre-pass. Extract-screens.py e um padrao de eficiencia solido. Oportunidade principal: paralelizar reads independentes dos Passos 1-3.",
+      "findings": [
+        {
+          "title": "Checks de prerequisito sao sequenciais",
+          "file": "SKILL.md",
+          "line": 48,
+          "detail": "Tres checks de existencia de arquivo poderiam ser batched em uma unica mensagem para economizar 1-2 round-trips.",
+          "severity": "low",
+          "source": "execution-efficiency"
+        }
+      ]
+    },
+    "experience": {
+      "assessment": "O agente esta proximo de ser headless-ready de primeira classe. Degradacao graciosa em tres camadas e bem desenhada. Gaps em guidance para primeiro uso, fast-track para experts, e tratamento de edge cases (story sets grandes, idioma misto).",
+      "journeys": [
+        {
+          "archetype": "first-timer",
+          "summary": "Usuario consegue iniciar facilmente gracas ao prerequisite check claro e tom acolhedor, mas falta guidance sobre como invocar tjce-agent-requirements e quando usar o pre-pass script.",
+          "friction_points": [
+            "Referencia a tjce-agent-requirements sem explicar como invocar",
+            "Pre-pass descrito como optional sem orientacao sobre quando usar",
+            "Config files (_bmad/config.yaml) nao explicados"
+          ],
+          "bright_spots": [
+            "Prerequisite check claro com parada imediata",
+            "Identidade acolhedora como quem explica para colega leigo"
+          ]
+        },
+        {
+          "archetype": "expert",
+          "summary": "Expert com conhecimento de telas nao tem fast-track — deve rodar o script Python ou responder perguntas uma a uma. Sem dry-run ou modo parcial.",
+          "friction_points": [
+            "Sem fast-track para quem ja tem conhecimento de telas",
+            "Sem modo parcial — sempre geracao completa",
+            "Sem --dry-run para preview do mapeamento US-secao"
+          ],
+          "bright_spots": [
+            "Headless mode com --json bem desenhado para pipeline",
+            "Exit codes claros e acionaveis"
+          ]
+        },
+        {
+          "archetype": "confused",
+          "summary": "Alguem que queria documentacao tecnica/API vai rapidamente perceber que nao e a ferramenta certa, mas poderia ser redirecionado mais cedo.",
+          "friction_points": [
+            "Trigger phrase 'end-user documentation' pode atrair quem quer dev docs",
+            "Sem check de intencao inicial"
+          ],
+          "bright_spots": [
+            "Identidade forte ('nunca usa jargao tecnico') sinaliza rapidamente o escopo"
+          ]
+        },
+        {
+          "archetype": "edge-case",
+          "summary": "Inputs validos mas inesperados (200+ stories, idioma misto, mensagens duplicadas) nao tem tratamento documentado.",
+          "friction_points": [
+            "Sem orientacao para story sets muito grandes — truncacao silenciosa",
+            "Sem deteccao de idioma — pode misturar portugues e ingles",
+            "Sem deduplicacao de mensagens"
+          ],
+          "bright_spots": []
+        },
+        {
+          "archetype": "hostile-environment",
+          "summary": "Degradacao graciosa em tres camadas funciona bem. Gap menor no exit code do script vs. expectativa do usuario.",
+          "friction_points": [
+            "Script exits 1 se nao encontrar telas, mas documentacao diz que e opcional — conflito de sinais",
+            "Sem recovery documentado para user-stories.md vazio ou malformado"
+          ],
+          "bright_spots": [
+            "Tres niveis de degradacao para info de tela bem desenhados"
+          ]
+        },
+        {
+          "archetype": "automator",
+          "summary": "Exit codes e JSON summary sao excelentes. Gaps no {tmp} path e parametros de input impedem integracao seamless.",
+          "friction_points": [
+            "{tmp} path indefinido para screens.json",
+            "Sem --screens-json para passar inventario pre-computado",
+            "Default de --project nao documentado",
+            "Sem indicador de progresso durante execucao"
+          ],
+          "bright_spots": [
+            "Exit codes 0/1/2 claros e acionaveis",
+            "JSON summary com contagens de cobertura",
+            "Caminho de output previsivel para consumo downstream"
+          ]
+        }
+      ],
+      "autonomous": {
+        "potential": "headless-ready",
+        "notes": "O agente ja suporta modo headless com exit codes, JSON summary e degradacao graciosa. Lacunas menores no contrato de automacao ({tmp}, --screens-json, --project default) impedem integracao totalmente seamless em pipelines CI/CD."
+      },
+      "findings": [
+        {
+          "title": "Extract-screens.py limitado a React/Next.js",
+          "file": "scripts/extract-screens.py",
+          "line": 1,
+          "detail": "Script hardcoded para patterns React/JSX. Projetos Vue/Angular/Svelte produzem zero resultados com exit 1, podendo confundir o usuario.",
+          "severity": "low",
+          "source": "agent-cohesion"
+        }
+      ]
+    },
+    "scripts": {
+      "assessment": "O agente ja tem uma base solida com extract-screens.py (com testes). Ha oportunidades significativas para scripts adicionais que economizariam ~1280-2630 tokens por invocacao, cobrindo extracao de inventario, parse de mensagens, validacao de cobertura e deteccao de jargao.",
+      "token_savings": "~1.280-2.630 tokens por invocacao",
+      "findings": [
+        {
+          "title": "Prerequisite check como pre-pass script",
+          "file": "SKILL.md",
+          "line": 48,
+          "detail": "Check de existencia de arquivos via pathlib.Path.exists() poderia short-circuit sem consumir tokens LLM. ~80 tokens salvos.",
+          "severity": "low",
+          "source": "script-opportunities"
+        },
+        {
+          "title": "Geracao de JSON summary headless como script",
+          "file": "SKILL.md",
+          "line": 80,
+          "detail": "Contagem de secoes, markers TELA NAO IDENTIFICADA e cobertura de mensagens sao pura agregacao — zero julgamento semantico. ~150-250 tokens.",
+          "severity": "low",
+          "source": "script-opportunities"
+        },
+        {
+          "title": "uv nao encontrado no PATH — lint Python nao executado",
+          "file": "scripts/extract-screens.py",
+          "line": 0,
+          "detail": "Ruff nao pode ser executado para lint do script Python. Instalar uv para habilitar linting.",
+          "severity": "high",
+          "source": "scripts-temp"
+        }
+      ]
+    }
+  },
+  "recommendations": [
+    {
+      "rank": 1,
+      "action": "Adicionar condicoes de progressao em manual-capability.md — gates apos Passo 1 e Passo 5 para prevenir avancos prematuros sob compactacao de contexto",
+      "resolves": 3,
+      "effort": "low"
+    },
+    {
+      "rank": 2,
+      "action": "Implementar modo incremental (--update) que le manual existente, diff com requisitos atuais, e gera apenas secoes novas/alteradas, com estrategia de chunking para story sets grandes",
+      "resolves": 5,
+      "effort": "high"
+    },
+    {
+      "rank": 3,
+      "action": "Completar contrato headless: definir {tmp} como {output_folder}/.tmp, adicionar --screens-json <path>, documentar default de --project",
+      "resolves": 4,
+      "effort": "low"
+    },
+    {
+      "rank": 4,
+      "action": "Criar script validate-manual.py para validacao deterministica de cobertura US, cobertura de mensagens e jargao proibido como pos-processamento",
+      "resolves": 3,
+      "effort": "medium"
+    },
+    {
+      "rank": 5,
+      "action": "Criar scripts extract-us-inventory.py e extract-messages.py para paralelizar coleta de dados e economizar ~500-1300 tokens na fase pre-pass",
+      "resolves": 3,
+      "effort": "medium"
+    },
+    {
+      "rank": 6,
+      "action": "Adicionar check de intencao antes da ingestao de artefatos em modo interativo — permitir que o usuario escolha entre gerar completo, atualizar, ou verificar cobertura",
+      "resolves": 2,
+      "effort": "low"
+    }
+  ]
+}

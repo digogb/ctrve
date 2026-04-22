@@ -1,0 +1,562 @@
+{
+  "meta": {
+    "skill_name": "tjce-agent-release",
+    "skill_path": "/home/rodgb/projetos/ctrve/skills/tjce-agent-release",
+    "timestamp": "2026-04-16T18:47:24Z",
+    "scanner_count": 6,
+    "type": "agent"
+  },
+  "agent_profile": {
+    "icon": "\ud83d\udccb",
+    "display_name": "Gerente de Release TJCE",
+    "title": "Gerente de Release para Sistemas Judiciais TJCE",
+    "portrait": "O Gerente de Release TJCE e um profissional meticuloso e formal que trata cada artefato de implantacao como documento oficial do tribunal. Sua personalidade se expressa em checklists ordenados, rastreabilidade obrigatoria entre commits e estorias de usuario, e uma insistencia inabalavel em planos de rollback \u2014 ate para mudancas triviais. Com vocabulario de engenharia de release e zero tolerancia a ambiguidade, ele produz pacotes completos de release (PML, CHANGELOG, deploy checklist e rollback plan) que refletem o rigor institucional esperado em um sistema judiciario."
+  },
+  "capabilities": [
+    {
+      "name": "PML \u2014 Plano de Mudanca e Liberacao",
+      "file": "references/pml.md",
+      "status": "needs-attention",
+      "finding_count": 3,
+      "findings": [
+        {
+          "title": "Sem condicoes de progressao definidas",
+          "severity": "high",
+          "source": "structure-prepass"
+        },
+        {
+          "title": "Prefixo ./ no caminho de routing",
+          "severity": "high",
+          "source": "path-standards"
+        },
+        {
+          "title": "Overlap parcial com Deploy capability nas secoes 4-6",
+          "severity": "medium",
+          "source": "structure-analysis"
+        }
+      ]
+    },
+    {
+      "name": "CHANGELOG \u2014 Release Notes por Estoria",
+      "file": "references/changelog.md",
+      "status": "needs-attention",
+      "finding_count": 2,
+      "findings": [
+        {
+          "title": "Sem condicoes de progressao definidas",
+          "severity": "high",
+          "source": "structure-prepass"
+        },
+        {
+          "title": "Computacao de estatisticas feita inline pelo LLM ao inves de script",
+          "severity": "medium",
+          "source": "script-opportunities"
+        }
+      ]
+    },
+    {
+      "name": "DEPLOY \u2014 Checklist de Implantacao e Rollback",
+      "file": "references/deploy.md",
+      "status": "needs-attention",
+      "finding_count": 3,
+      "findings": [
+        {
+          "title": "Sem condicoes de progressao definidas",
+          "severity": "high",
+          "source": "structure-prepass"
+        },
+        {
+          "title": "Prefixo ./ no caminho de routing",
+          "severity": "high",
+          "source": "path-standards"
+        },
+        {
+          "title": "Hardcode de ambiente Producao sem suporte multi-ambiente",
+          "severity": "medium",
+          "source": "agent-cohesion"
+        }
+      ]
+    }
+  ],
+  "narrative": "Este e um agente de dominio bem construido com design script-first, cobertura headless exemplar e identidade autentica para o contexto TJCE. Os principios declarados sao todos executados concretamente. As oportunidades de melhoria sao incrementais \u2014 adicionar condicoes de progressao, corrigir prefixos de caminho, e expandir validacao cruzada entre artefatos.",
+  "grade": "Good",
+  "broken": [],
+  "opportunities": [
+    {
+      "name": "Condicoes de Progressao Ausentes nos Prompts de Capability",
+      "description": "Nenhum dos 3 prompts de capability define condicoes de progressao (gates entre passos). Sem essas gates, o agente pode prosseguir gerando artefatos com dados vazios ao inves de parar e solicitar informacao \u2014 contradizendo diretamente o principio 'nenhuma secao vazia ou com placeholder'.",
+      "severity": "high",
+      "impact": "Adicionar gates evitaria artefatos incompletos e alinharia a execucao com os principios declarados do agente.",
+      "action": "Adicionar uma secao '## Done When' ao final de cada prompt de capability com criterios especificos. Exemplo para pml.md: 'Completo quando {output_folder}/release/PML.md estiver escrito e todas as 6 secoes populadas.' Adicionar tambem gates intermediarias nos passos criticos.",
+      "finding_count": 4,
+      "findings": [
+        {
+          "title": "Pre-pass reportou secao On Activation ausente (falso positivo por sufixo nao-padrao)",
+          "file": "SKILL.md",
+          "line": 1,
+          "detail": "Heading usa '## On Activation \u2014 Intent Before Ingestion' ao inves do padrao '## On Activation'",
+          "source": "structure-prepass"
+        },
+        {
+          "title": "Nenhuma keyword de progressao encontrada em changelog.md",
+          "file": "references/changelog.md",
+          "line": 96,
+          "detail": "Prompt nao define criterios de 'done' ou gates entre passos",
+          "source": "structure-prepass"
+        },
+        {
+          "title": "Nenhuma keyword de progressao encontrada em deploy.md",
+          "file": "references/deploy.md",
+          "line": 150,
+          "detail": "Prompt nao define criterios de 'done' ou gates entre passos",
+          "source": "structure-prepass"
+        },
+        {
+          "title": "Nenhuma keyword de progressao encontrada em pml.md",
+          "file": "references/pml.md",
+          "line": 160,
+          "detail": "Prompt nao define criterios de 'done' ou gates entre passos",
+          "source": "structure-prepass"
+        }
+      ]
+    },
+    {
+      "name": "Prefixos de Caminho ./ na Tabela de Routing",
+      "description": "A tabela de capability routing no SKILL.md usa './references/*.md' ao inves de 'references/*.md'. O prefixo './' significa 'mesma pasta' e e incorreto para referencias cross-directory, podendo causar falha na resolucao de caminhos.",
+      "severity": "high",
+      "impact": "Corrigir os caminhos garante resolucao confiavel dos arquivos de capability em qualquer contexto de execucao.",
+      "action": "Remover o prefixo './' das 3 entradas na tabela de routing do SKILL.md (linhas 82-84). Usar 'references/pml.md', 'references/changelog.md' e 'references/deploy.md'.",
+      "finding_count": 3,
+      "findings": [
+        {
+          "title": "Referencia cross-directory com ./ em pml.md",
+          "file": "SKILL.md",
+          "line": 82,
+          "detail": "| PML \u2014 Plano de Mudanca e Liberacao | P | Load `./references/pml.md` |",
+          "source": "path-standards"
+        },
+        {
+          "title": "Referencia cross-directory com ./ em changelog.md",
+          "file": "SKILL.md",
+          "line": 83,
+          "detail": "| CHANGELOG \u2014 Release Notes por estoria | C | Load `./references/changelog.md` |",
+          "source": "path-standards"
+        },
+        {
+          "title": "Referencia cross-directory com ./ em deploy.md",
+          "file": "SKILL.md",
+          "line": 84,
+          "detail": "| DEPLOY \u2014 Checklist de implantacao e rollback | D | Load `./references/deploy.md` |",
+          "source": "path-standards"
+        }
+      ]
+    },
+    {
+      "name": "Ambiente de Linting Incompleto e Dependencia Fora do Padrao",
+      "description": "Os 3 scripts Python nao puderam ser lintados porque 'uv' nao esta disponivel no PATH, e 'detect-deploy-changes.py' referencia requirements.txt ao inves de usar dependencias inline PEP 723, quebrando a consistencia com os outros scripts.",
+      "severity": "high",
+      "impact": "Resolver permite validacao automatica de qualidade de codigo e garante scripts auto-contidos.",
+      "action": "Instalar uv no ambiente de desenvolvimento. Substituir referencia a requirements.txt em detect-deploy-changes.py por bloco de dependencias inline PEP 723.",
+      "finding_count": 4,
+      "findings": [
+        {
+          "title": "detect-deploy-changes.py referencia requirements.txt",
+          "file": "scripts/detect-deploy-changes.py",
+          "line": 1,
+          "detail": "Deveria usar PEP 723 inline deps como os outros scripts",
+          "source": "scripts-lint"
+        },
+        {
+          "title": "uv nao encontrado para lint de detect-deploy-changes.py",
+          "file": "scripts/detect-deploy-changes.py",
+          "line": 0,
+          "detail": "Impossivel executar ruff sem uv instalado",
+          "source": "scripts-lint"
+        },
+        {
+          "title": "uv nao encontrado para lint de extract-git-changelog.py",
+          "file": "scripts/extract-git-changelog.py",
+          "line": 0,
+          "detail": "Impossivel executar ruff sem uv instalado",
+          "source": "scripts-lint"
+        },
+        {
+          "title": "uv nao encontrado para lint de validate-release-artifacts.py",
+          "file": "scripts/validate-release-artifacts.py",
+          "line": 0,
+          "detail": "Impossivel executar ruff sem uv instalado",
+          "source": "scripts-lint"
+        }
+      ]
+    },
+    {
+      "name": "Consistencia Cruzada Entre Artefatos Nao Verificada",
+      "description": "PML e deploy checklist descrevem o mesmo procedimento, PML e CHANGELOG referenciam as mesmas estorias, deploy checklist e rollback plan devem ser inversos. Porem nao ha mecanismo para garantir consistencia entre eles \u2014 o script de validacao verifica cada artefato isoladamente.",
+      "severity": "medium",
+      "impact": "Uma validacao cruzada eliminaria erros onde documentos parecem corretos individualmente mas se contradizem.",
+      "action": "Adicionar check de consistencia cruzada em validate-release-artifacts.py: (1) US references no PML devem aparecer no CHANGELOG, (2) passos de deploy no PML devem alinhar com deploy-checklist.md, (3) rollback no PML deve alinhar com rollback-plan.md.",
+      "finding_count": 3,
+      "findings": [
+        {
+          "title": "PML secoes 4-6 sobrepoe parcialmente com Deploy capability",
+          "file": "references/pml.md",
+          "line": 82,
+          "detail": "Procedimento de Implantacao, Rollback e Validacao aparecem em ambos artefatos sem enforcement de consistencia",
+          "source": "structure-analysis"
+        },
+        {
+          "title": "Validacao unidirecional de US references",
+          "file": "scripts/validate-release-artifacts.py",
+          "line": 0,
+          "detail": "Validator checa se US no PML existem em stories.md, mas nao verifica se todos US do Git aparecem no PML",
+          "source": "enhancement-opportunities"
+        },
+        {
+          "title": "Sem enforcement de consistencia entre 4 artefatos gerados",
+          "file": "scripts/validate-release-artifacts.py",
+          "line": 0,
+          "detail": "Cada artefato e validado isoladamente, inconsistencias cruzadas passam despercebidas",
+          "source": "agent-cohesion"
+        }
+      ]
+    },
+    {
+      "name": "Sem Suporte a Multiplos Ambientes",
+      "description": "O deploy checklist hardcoda 'Ambiente: Producao' e assume um unico ambiente-alvo. Projetos TJCE provavelmente possuem staging/homologacao com procedimentos e requisitos de aprovacao diferentes.",
+      "severity": "medium",
+      "impact": "Suporte multi-ambiente tornaria o agente util para o fluxo completo de implantacao.",
+      "action": "Adicionar flag '--environment staging|homologacao|producao' que ajusta template do checklist. URLs, requisitos de aprovacao e criterios de rollback podem variar por ambiente.",
+      "finding_count": 2,
+      "findings": [
+        {
+          "title": "Deploy checklist hardcoda producao",
+          "file": "references/deploy.md",
+          "line": 41,
+          "detail": "'Ambiente: Producao' fixo no template sem opcao de customizacao",
+          "source": "agent-cohesion"
+        },
+        {
+          "title": "Sem diferenciacao de ambiente para URLs e aprovacoes",
+          "file": "references/deploy.md",
+          "line": 41,
+          "detail": "Health check URLs, approval chains e notification targets poderiam variar por ambiente",
+          "source": "enhancement-opportunities"
+        }
+      ]
+    }
+  ],
+  "strengths": [
+    {
+      "title": "Design baseado em principios com enforcement automatizado",
+      "detail": "Cada principio declarado (documentacao oficial, rollback obrigatorio, rastreabilidade Git-to-Spec, ordem de deploy) e executado tanto nas instrucoes quanto em tooling automatizado. Raro em agentes BMad."
+    },
+    {
+      "title": "Dados reais, nao alucinacao",
+      "detail": "Scripts de pre-pass extraem dados concretos do Git antes do agente gerar prosa. A instrucao 'Nunca inventar impacto' e respaldada por mecanismo concreto que minimiza risco de fabricacao."
+    },
+    {
+      "title": "Degradacao graciosa em todas as capabilities",
+      "detail": "Cada input tem fonte preferida e fallback. user-stories.md ausente degrada agrupamento mas nao bloqueia geracao. Sem tags, usa primeiro commit. Funciona em condicoes reais."
+    },
+    {
+      "title": "Design headless-first exemplar",
+      "detail": "Contrato headless com exit codes, JSON estruturado e configuracao por flags torna o agente CI/CD-ready. Schema JSON de output completo para decisoes downstream."
+    },
+    {
+      "title": "Separacao limpa de responsabilidades",
+      "detail": "Scripts extraem dados, prompts geram artefatos, SKILL.md orquestra. Cada camada tem responsabilidade unica. Script de validacao independente e executavel separadamente."
+    },
+    {
+      "title": "Autenticidade de dominio TJCE",
+      "detail": "Terminologia especifica (PML, DES, PDS Unificado), assumptions do stack FastAPI + React + PostgreSQL, e awareness de Alembic migrations tornam o agente genuinamente util para seu contexto."
+    },
+    {
+      "title": "Eficiencia de tokens excelente",
+      "detail": "Budget total de ~4613 tokens para 4 arquivos cobrindo 3 capabilities com templates completos. Zero padroes de desperdicio, zero padding defensivo, zero back-references."
+    },
+    {
+      "title": "Self-containment completo nos prompts de capability",
+      "detail": "Cada prompt inclui inputs, fallback paths, passos de geracao, criterios de sucesso e modo headless. Nenhum depende do SKILL.md estar em contexto."
+    }
+  ],
+  "detailed_analysis": {
+    "structure": {
+      "assessment": "Estrutura solida com todas as secoes requeridas presentes. SKILL.md em 132 linhas (~1514 tokens) esta dentro do guideline de 250 linhas. As 3 capabilities possuem routing claro com codigos P/C/D. O heading On Activation com sufixo nao-padrao gerou falso positivo. A ausencia de condicoes de progressao e a principal questao estrutural.",
+      "findings": [
+        {
+          "title": "Heading On Activation com sufixo nao-padrao gera falso positivo",
+          "file": "SKILL.md",
+          "line": 40,
+          "severity": "low",
+          "detail": "Renomear para '## On Activation' para conformidade com padrao",
+          "source": "structure-analysis"
+        },
+        {
+          "title": "Passos de geracao procedurais nos prompts de capability sao potencialmente verbosos",
+          "file": "references/pml.md",
+          "line": 99,
+          "severity": "low",
+          "detail": "Contem conhecimento de dominio genuino, nao requer acao a menos que budget de tokens se torne concern",
+          "source": "structure-analysis"
+        }
+      ]
+    },
+    "persona": {
+      "assessment": "Persona bem calibrada para facilitador de workflow judicial. Identity concisa e nao-redundante. Communication Style domain-specific com 5 regras concretas. Principles distintos codificando constraints nao-obvias. A reafirmacao do principio 'Rollback ALWAYS' nos prompts de capability e forca, nao redundancia.",
+      "overview_quality": "appropriate",
+      "findings": [
+        {
+          "title": "Wall of text no JSON schema do headless contract",
+          "file": "SKILL.md",
+          "line": 107,
+          "severity": "low",
+          "detail": "Bloco de 24 linhas. Valido como template necessario, mas candidato a extracao se SKILL.md crescer alem de 200 linhas.",
+          "source": "prompt-craft"
+        }
+      ]
+    },
+    "cohesion": {
+      "assessment": "Coesao forte em todas as 6 dimensoes avaliadas. Persona refletida em cada capability. Capabilities formam pacote de release completo e coerente. Sem dependencias externas. Jornada do usuario clara e completa.",
+      "dimensions": {
+        "persona_capability_alignment": {
+          "score": "strong",
+          "notes": "Identidade de gerente meticuloso e formal refletida consistentemente em todas as capabilities. Cada principio tem implementacao concreta."
+        },
+        "capability_completeness": {
+          "score": "strong",
+          "notes": "Pipeline completo: coleta de dados -> geracao de artefatos -> validacao. PML, CHANGELOG e DEPLOY cobrem ciclo de documentacao de release."
+        },
+        "redundancy": {
+          "score": "strong",
+          "notes": "Sem redundancias significativas. PML e deploy servem audiencias diferentes (comite de mudancas vs. equipe de operacoes)."
+        },
+        "external_integration": {
+          "score": "strong",
+          "notes": "Agente auto-contido. Depende apenas de Git e seus proprios scripts. Integra com ecossistema BMad via config.yaml sem acoplamento."
+        },
+        "capability_granularity": {
+          "score": "strong",
+          "notes": "3 capabilities no nivel correto de abstracao. Nem granulares demais nem amplas demais. Flag --task-type oferece conveniencia e precisao."
+        },
+        "user_journey_coherence": {
+          "score": "strong",
+          "notes": "Jornada clara: ativacao -> intent -> prerequisites -> coleta -> geracao -> validacao -> saida. Sem dead-ends."
+        }
+      },
+      "findings": [
+        {
+          "title": "Sem awareness multi-ambiente no deploy",
+          "file": "references/deploy.md",
+          "line": 41,
+          "severity": "medium",
+          "detail": "Hardcode de producao limita uso em staging/homologacao",
+          "source": "agent-cohesion"
+        },
+        {
+          "title": "Sem tracking de aprovacao no PML",
+          "file": "references/pml.md",
+          "line": 48,
+          "severity": "low",
+          "detail": "Documento oficial sem campos de aprovador, data de aprovacao e status",
+          "source": "agent-cohesion"
+        }
+      ]
+    },
+    "efficiency": {
+      "assessment": "Fundamentos de eficiencia solidos. Pre-pass paraleliza corretamente dois scripts independentes. Agente stateless com carregamento seletivo de references. Operacoes pesadas delegadas a scripts Python. Execucao sequencial de capabilities e trade-off de design aceitavel.",
+      "findings": [
+        {
+          "title": "Fallback paths podem causar re-execucao redundante de scripts",
+          "file": "references/changelog.md",
+          "line": 64,
+          "severity": "medium",
+          "detail": "Prompts de capability incluem fallback que re-executa scripts ja rodados no pre-pass. Adicionar guard de existencia de arquivo.",
+          "source": "execution-efficiency"
+        },
+        {
+          "title": "Execucao sequencial de PML e CHANGELOG quando poderiam ser paralelos",
+          "file": "SKILL.md",
+          "line": 86,
+          "severity": "low",
+          "detail": "Trade-off aceitavel: contexto acumulado pode melhorar qualidade. Savings minimos na pratica.",
+          "source": "execution-efficiency"
+        }
+      ]
+    },
+    "experience": {
+      "assessment": "Agente headless-first com superficie interativa adequada ao proposito. Cobre bem automadores e experts. First-timers enfrentam friccao com prerequisites e convencoes. Usuarios confusos nao recebem clarificacao de audiencia.",
+      "journeys": [
+        {
+          "archetype": "first-timer",
+          "summary": "Desenvolvedor que nunca usou o agente recebe instrucao de gerar docs de release. Menu P/C/D/all e claro, mas prerequisites (_bmad-output/, user-stories.md) sao desconhecidos e nao ha guidance sobre como cria-los.",
+          "friction_points": [
+            "Nao sabe o que e _bmad-output ou onde encontrar user-stories.md",
+            "Se Python 3.9+ indisponivel, scripts falham sem mensagem clara",
+            "Equipe sem convencao US-NNN gera CHANGELOG com 100% commits nao-mapeados"
+          ],
+          "bright_spots": [
+            "Menu de intent claro e simples",
+            "Prerequisite check avisa mas continua, nao bloqueia primeiro uso"
+          ]
+        },
+        {
+          "archetype": "expert",
+          "summary": "Tech lead com 20 releases quer gerar PML rapidamente para hotfix de 3 commits. Pipeline completo roda mesmo para release trivial.",
+          "friction_points": [
+            "Sem fast-path para releases triviais (--hotfix)",
+            "Sem modo incremental para atualizar artefatos existentes",
+            "Geracao sequencial sem paralelismo para PML + CHANGELOG"
+          ],
+          "bright_spots": [
+            "Headless mode com --json ideal para CI",
+            "Cobertura completa de flags CLI"
+          ]
+        },
+        {
+          "archetype": "confused",
+          "summary": "Alguem que quer release notes para apresentacao ao cliente recebe documentacao tecnica interna cheia de SHAs e US references.",
+          "friction_points": [
+            "Sem pergunta sobre audiencia antes de gerar",
+            "Sem diferenciacao de formato (dev vs. PM vs. externo)"
+          ],
+          "bright_spots": [
+            "Estilo formal e checklist deixa claro rapidamente que e ferramenta tecnica"
+          ]
+        },
+        {
+          "archetype": "edge-case",
+          "summary": "Usuario com monorepo, branch workflow nao-linear, ou commits em ingles enfrenta limitacoes nao documentadas.",
+          "friction_points": [
+            "Monorepo conflaciona mudancas de servicos nao-relacionados",
+            "Branch workflow nao-linear (gitflow) pode perder cherry-picks",
+            "Commits em ingles geram documento misto com CHANGELOG em portugues",
+            "Multiplas US em um commit podem inflacionar contagem de mapeamento"
+          ],
+          "bright_spots": [
+            "Padrao US-NNN flexivel (US-001 ate US-99999)",
+            "detect-deploy-changes.py trata caso 'sem mudancas' gracefully"
+          ]
+        },
+        {
+          "archetype": "automator",
+          "summary": "Pipeline CI invocando agente headless. Contrato bem definido mas com gaps em granularidade de exit codes e progress reporting.",
+          "friction_points": [
+            "Sem suporte a stdin/pipe para metadata JSON",
+            "Exit codes nao distinguem warnings de CHANGELOG vs. PENDENTE em PML",
+            "Sem output de progresso estruturado durante execucao",
+            "Sem garantia de idempotencia entre execucoes"
+          ],
+          "bright_spots": [
+            "Contrato headless bem definido com exit codes e JSON",
+            "Args resolution order claramente especificado",
+            "Schema JSON de output completo"
+          ]
+        }
+      ],
+      "autonomous": {
+        "potential": "headless-ready",
+        "notes": "Agente projetado headless-first com contrato explicito, exit codes definidos, JSON estruturado e derivacao automatica de metadata. Um dos mais fortes contratos headless observados em agentes BMad. Unico gap: --des (DES task ID) nao tem estrategia de auto-derivacao."
+      },
+      "findings": [
+        {
+          "title": "Sem suporte a releases incrementais/delta",
+          "file": "SKILL.md",
+          "line": 86,
+          "severity": "medium",
+          "detail": "Cada invocacao regenera todos artefatos do zero. Sem modo --append ou --incremental.",
+          "source": "enhancement-opportunities"
+        },
+        {
+          "title": "Sem diferenciacao de audiencia no CHANGELOG",
+          "file": "references/changelog.md",
+          "line": 9,
+          "severity": "medium",
+          "detail": "Formato unico developer-oriented. Sem opcao --audience para PM ou externo.",
+          "source": "enhancement-opportunities"
+        },
+        {
+          "title": "Sem review de mudancas detectadas antes de gerar (modo interativo)",
+          "file": "SKILL.md",
+          "line": 64,
+          "severity": "low",
+          "detail": "Usuario nao tem chance de revisar e ajustar dados coletados antes da geracao.",
+          "source": "enhancement-opportunities"
+        }
+      ]
+    },
+    "scripts": {
+      "assessment": "Agente exemplifica design script-first com 3 scripts Python bem estruturados. As oportunidades restantes sao incrementais: estender payload JSON existente (~150 tokens), criar script de metadata (~100 tokens), adicionar guards de existencia. Economia total estimada: ~400-680 tokens por invocacao completa.",
+      "token_savings": "~400-680 tokens por invocacao completa (--task-type all)",
+      "findings": [
+        {
+          "title": "Computacao de estatisticas do CHANGELOG feita inline pelo LLM",
+          "file": "references/changelog.md",
+          "line": 53,
+          "severity": "medium",
+          "detail": "mapped_pct ja e computado no script (linha 213) mas nao incluido no payload JSON principal. Fix de uma linha economiza ~150 tokens.",
+          "source": "script-opportunities"
+        },
+        {
+          "title": "Derivacao de metadata em headless mode feita pelo LLM",
+          "file": "SKILL.md",
+          "line": 102,
+          "severity": "low",
+          "detail": "Operacoes deterministicas (basename, git describe, YAML lookup) poderiam ser script. ~100 tokens. Alto potencial de reuso entre agentes TJCE.",
+          "source": "script-opportunities"
+        },
+        {
+          "title": "Prerequisite checks feitos pelo LLM",
+          "file": "SKILL.md",
+          "line": 58,
+          "severity": "low",
+          "detail": "Verificacoes de existencia de arquivo poderiam ser script gating pre-pass. ~80 tokens.",
+          "source": "script-opportunities"
+        }
+      ]
+    }
+  },
+  "recommendations": [
+    {
+      "rank": 1,
+      "action": "Adicionar condicoes de progressao ('## Done When') aos 3 prompts de capability com criterios especificos e gates intermediarias nos passos criticos.",
+      "resolves": 4,
+      "effort": "low"
+    },
+    {
+      "rank": 2,
+      "action": "Instalar uv no ambiente de desenvolvimento e converter dependencia de detect-deploy-changes.py para PEP 723 inline deps.",
+      "resolves": 4,
+      "effort": "low"
+    },
+    {
+      "rank": 3,
+      "action": "Remover prefixo './' das 3 entradas na tabela de routing do SKILL.md (linhas 82-84) para usar caminhos bare skill-root relative.",
+      "resolves": 3,
+      "effort": "low"
+    },
+    {
+      "rank": 4,
+      "action": "Adicionar validacao cruzada entre artefatos em validate-release-artifacts.py: verificar consistencia de US references, passos de deploy e rollback entre PML, CHANGELOG, deploy-checklist e rollback-plan.",
+      "resolves": 3,
+      "effort": "medium"
+    },
+    {
+      "rank": 5,
+      "action": "Adicionar flag '--environment staging|homologacao|producao' ao SKILL.md e deploy.md para suporte multi-ambiente.",
+      "resolves": 2,
+      "effort": "medium"
+    },
+    {
+      "rank": 6,
+      "action": "Estender extract-git-changelog.py para incluir mapped_pct e authors_formatted no payload JSON principal (fix de uma linha).",
+      "resolves": 1,
+      "effort": "low"
+    },
+    {
+      "rank": 7,
+      "action": "Renomear heading '## On Activation \u2014 Intent Before Ingestion' para '## On Activation' no SKILL.md para conformidade com padrao.",
+      "resolves": 1,
+      "effort": "low"
+    }
+  ]
+}

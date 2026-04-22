@@ -1,0 +1,6 @@
+{
+  "timestamp": "2026-04-16T21:48:05.913594+00:00",
+  "skill_path": "/home/rodgb/projetos/ctrve/skills/tjce-agent-release",
+  "is_memory_agent": false,
+  "message": "Not a memory agent \u2014 no sanctum templates found in assets/"
+}

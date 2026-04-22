@@ -1,0 +1,211 @@
+{
+  "scanner": "prompt-craft-prepass",
+  "script": "prepass-prompt-metrics.py",
+  "version": "1.0.0",
+  "skill_path": "/home/rodgb/projetos/ctrve/skills/tjce-agent-apf",
+  "timestamp": "2026-04-16T00:41:01.138212+00:00",
+  "status": "info",
+  "is_memory_agent": false,
+  "skill_md_summary": {
+    "line_count": 74,
+    "token_estimate": 1261,
+    "overview_lines": 7,
+    "table_count": 1,
+    "table_lines": 3,
+    "fenced_block_count": 0,
+    "fenced_block_lines": 0,
+    "section_count": 8
+  },
+  "prompt_health": {
+    "total_prompts": 1,
+    "prompts_with_config_header": 1,
+    "prompts_with_progression": 0
+  },
+  "aggregate": {
+    "total_files_scanned": 2,
+    "total_token_estimate": 3272,
+    "total_waste_patterns": 0,
+    "total_back_references": 0,
+    "total_suggestive_loading": 0,
+    "total_wall_of_text": 0
+  },
+  "resource_sizes": {},
+  "files": [
+    {
+      "file": "SKILL.md",
+      "line_count": 74,
+      "token_estimate": 1261,
+      "sections": [
+        {
+          "level": 2,
+          "title": "Overview",
+          "line": 8
+        },
+        {
+          "level": 2,
+          "title": "Identity",
+          "line": 16
+        },
+        {
+          "level": 2,
+          "title": "Communication Style",
+          "line": 20
+        },
+        {
+          "level": 2,
+          "title": "Principles",
+          "line": 28
+        },
+        {
+          "level": 2,
+          "title": "On Activation",
+          "line": 35
+        },
+        {
+          "level": 3,
+          "title": "Prerequisite Check",
+          "line": 44
+        },
+        {
+          "level": 3,
+          "title": "Capability Routing",
+          "line": 58
+        },
+        {
+          "level": 3,
+          "title": "Headless Contract",
+          "line": 66
+        }
+      ],
+      "table_count": 1,
+      "table_lines": 3,
+      "fenced_block_count": 0,
+      "fenced_block_lines": 0,
+      "waste_patterns": [],
+      "back_references": [],
+      "suggestive_loading": [],
+      "has_config_header": true,
+      "has_progression": false,
+      "wall_of_text": [],
+      "overview_lines": 7,
+      "is_skill_md": true
+    },
+    {
+      "file": "references/count-capability.md",
+      "line_count": 205,
+      "token_estimate": 2011,
+      "sections": [
+        {
+          "level": 2,
+          "title": "What Success Looks Like",
+          "line": 13
+        },
+        {
+          "level": 2,
+          "title": "Fast-Path: Correcao em Garantia",
+          "line": 20
+        },
+        {
+          "level": 2,
+          "title": "Contagem Detalhada (fluxo normal)",
+          "line": 49
+        },
+        {
+          "level": 3,
+          "title": "Passo 1 \u2014 Leitura e Inventario",
+          "line": 51
+        },
+        {
+          "level": 3,
+          "title": "Passo 2 \u2014 Classificacao de Funcoes de Dados",
+          "line": 62
+        },
+        {
+          "level": 3,
+          "title": "Passo 3 \u2014 Classificacao de Funcoes Transacionais",
+          "line": 77
+        },
+        {
+          "level": 3,
+          "title": "Passo 4 \u2014 Calculo via Script",
+          "line": 91
+        },
+        {
+          "level": 3,
+          "title": "Passo 5 \u2014 Validacao de Fontes",
+          "line": 103
+        },
+        {
+          "level": 3,
+          "title": "Passo 6 \u2014 PF Brutos e Ajuste",
+          "line": 113
+        },
+        {
+          "level": 3,
+          "title": "Passo 7 \u2014 Escrever Artefatos",
+          "line": 126
+        },
+        {
+          "level": 2,
+          "title": "Funcoes de Dados",
+          "line": 138
+        },
+        {
+          "level": 2,
+          "title": "Funcoes Transacionais",
+          "line": 145
+        },
+        {
+          "level": 2,
+          "title": "Subtotais",
+          "line": 152
+        },
+        {
+          "level": 2,
+          "title": "Resultado",
+          "line": 171
+        },
+        {
+          "level": 2,
+          "title": "Distribuicao por Tipo",
+          "line": 180
+        },
+        {
+          "level": 2,
+          "title": "Parecer do Analista",
+          "line": 187
+        },
+        {
+          "level": 2,
+          "title": "Headless Mode",
+          "line": 192
+        },
+        {
+          "level": 2,
+          "title": "Interactive Mode",
+          "line": 200
+        }
+      ],
+      "table_count": 4,
+      "table_lines": 18,
+      "fenced_block_count": 7,
+      "fenced_block_lines": 71,
+      "waste_patterns": [],
+      "back_references": [],
+      "suggestive_loading": [],
+      "has_config_header": true,
+      "has_progression": false,
+      "wall_of_text": [],
+      "is_skill_md": false,
+      "prompt_frontmatter": {
+        "has_frontmatter": true,
+        "fields": {
+          "name": "count-capability",
+          "description": "Identify data and transactional functions, classify complexity deterministically via IFPUG matrices, compute PF brutos and adjusted PF, and produce auditable count reports.",
+          "menu-code": "C"
+        },
+        "missing_fields": []
+      }
+    }
+  ]
+}
