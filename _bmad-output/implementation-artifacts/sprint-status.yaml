@@ -45,7 +45,7 @@ development_status:
   # ── Epic 1: Autenticação e Gestão de Usuários ──────────────────────────────
   epic-1: in-progress
   1-1-login-no-sistema: review
-  1-2-cadastro-de-usuario: backlog
+  1-2-cadastro-de-usuario: review
   epic-1-retrospective: optional
 
   # ── Epic 2: Informações Gerais e Busca ─────────────────────────────────────

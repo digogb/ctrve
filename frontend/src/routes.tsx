@@ -1,6 +1,8 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import LoginForm from "./features/auth/LoginForm";
+import RegisterForm from "./features/auth/RegisterForm";
 import ProtectedRoute from "./components/ProtectedRoute";
+import RequireRole from "./components/RequireRole";
 
 function Dashboard() {
   return <div>Dashboard — em desenvolvimento</div>;
@@ -15,6 +17,16 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute>
             <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/register"
+        element={
+          <ProtectedRoute>
+            <RequireRole role="responsavel">
+              <RegisterForm />
+            </RequireRole>
           </ProtectedRoute>
         }
       />
