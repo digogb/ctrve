@@ -1,0 +1,40 @@
+code: tjce
+name: "TJCE - Processo Judicial AI-Native"
+description: "Agentes e workflows para processo de desenvolvimento AI-Native do Tribunal de Justica do Ceara. Inclui artefatos obrigatorios do PDS Unificado: Estorias, Regras de Negocio, Mensagens, Modelo de Dados, PML, APF, Manual do Usuario."
+module_version: 1.0.0
+default_selected: true
+module_greeting: >
+  Modulo TJCE configurado com sucesso!
+
+  Esteira de Desenvolvimento: SPEC -> GATE CHECK -> BUILD -> VERIFY -> SHIP
+
+  Skills disponiveis: Requisitos (RQ), Gate Check (GC), Testes (QB/QV),
+  Verificacao (VR), APF (AP), Manual (DM), Release (RL), Ship (SH).
+
+  Use 'bmad-help' para ver todas as capabilities e sua sequencia.
+  Execute novamente este setup para reconfigurar.
+
+output_folder:
+  prompt: "Diretorio de saida para artefatos do projeto?"
+  default: "_bmad-output"
+  result: "{project-root}/{value}"
+  directories:
+    - "{output_folder}/requirements"
+    - "{output_folder}/architecture"
+    - "{output_folder}/tests"
+    - "{output_folder}/ux"
+    - "{output_folder}/reports"
+    - "{output_folder}/release/apf"
+    - "{output_folder}/release/manual"
+
+coverage_threshold:
+  prompt: "Percentual minimo de cobertura de testes?"
+  default: "80"
+
+communication_language:
+  prompt: "Idioma de comunicacao dos agentes?"
+  default: "Portuguese"
+
+document_output_language:
+  prompt: "Idioma dos documentos gerados?"
+  default: "Portuguese Brasil"
