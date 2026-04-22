@@ -49,8 +49,8 @@ development_status:
   epic-1-retrospective: optional
 
   # ── Epic 2: Informações Gerais e Busca ─────────────────────────────────────
-  epic-2: backlog
-  2-1-criar-novo-checklist: backlog
+  epic-2: in-progress
+  2-1-criar-novo-checklist: review
   2-2-buscar-checklist-por-placa: backlog
   epic-2-retrospective: optional
 

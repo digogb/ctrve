@@ -4,9 +4,10 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.api.routes import auth, users
+from app.api.routes import auth, checklists, users
 from app.core.config import settings
 from app.database import create_db_and_tables
+from app.services.checklist_service import ChecklistError
 from app.services.user_service import UserError
 
 
@@ -35,5 +36,14 @@ async def user_error_handler(request: Request, exc: UserError):
     )
 
 
+@app.exception_handler(ChecklistError)
+async def checklist_error_handler(request: Request, exc: ChecklistError):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.detail, "message": exc.message, "fields": exc.fields},
+    )
+
+
 app.include_router(auth.router, prefix="/api/v1")
 app.include_router(users.router, prefix="/api/v1")
+app.include_router(checklists.router, prefix="/api/v1")
