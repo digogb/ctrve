@@ -1,0 +1,25 @@
+{
+  "script": "check-artifacts-exist",
+  "version": "1.0.0",
+  "output_folder": "/home/rodgb/projetos/ctrve/_bmad-output",
+  "timestamp": "2026-04-22T17:44:52.561874+00:00",
+  "status": "pass",
+  "findings": [
+    {
+      "severity": "low",
+      "category": "completeness",
+      "location": {
+        "file": "/home/rodgb/projetos/ctrve/_bmad-output/architecture/threat-model.md"
+      },
+      "issue": "Artefato recomendado ausente: architecture/threat-model.md",
+      "fix": "Considere gerar architecture/threat-model.md para maior cobertura"
+    }
+  ],
+  "summary": {
+    "total": 1,
+    "critical": 0,
+    "high": 0,
+    "medium": 0,
+    "low": 1
+  }
+}

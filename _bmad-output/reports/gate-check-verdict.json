@@ -1,0 +1,38 @@
+{
+  "script": "calculate-gate-score",
+  "version": "1.0.0",
+  "output_folder": "/home/rodgb/projetos/ctrve/_bmad-output",
+  "timestamp": "2026-04-22T17:49:00.523505+00:00",
+  "score": 100.0,
+  "threshold": 90,
+  "status": "PASS",
+  "fail_reason": null,
+  "layer_scores": {
+    "completeness": 40.0,
+    "cross-reference": 30.0,
+    "quality": 30.0
+  },
+  "missing": [],
+  "warnings": [
+    {
+      "issue": "Artefato recomendado ausente: architecture/threat-model.md",
+      "severity": "low"
+    }
+  ],
+  "task_type": "nova_funcionalidade",
+  "manual_required": true,
+  "data_model_required": true,
+  "apf_estimate": null,
+  "missing_inputs": [],
+  "findings_count": 1,
+  "summary": {
+    "total": 1,
+    "critical": 0,
+    "high": 0,
+    "medium": 0,
+    "low": 1
+  },
+  "gate_decision": "APROVADO",
+  "gate_approved_at": "2026-04-22T17:52:00.000000+00:00",
+  "gate_notes": "Aprovado pelo PO/Tech Lead. Manual necessario. Modelo de dados aplicavel. APF a estimar antes do BUILD."
+}
