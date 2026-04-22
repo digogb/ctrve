@@ -1,6 +1,6 @@
 # Story 1.2: Cadastro de Usuário
 
-Status: review
+Status: done
 
 ## Story
 
@@ -73,6 +73,19 @@ para que motoristas e outros responsáveis possam acessar o CTRVE.
   - [ ] `test_matricula_duplicada`: mock POST 400 MSG-003 → exibe erro no campo matrícula
   - [ ] `test_senha_fraca_frontend`: senha sem maiúscula → Zod bloqueia antes de submeter
   - [ ] `test_confirmacao_senha_diferente`: confirmação diferente da senha → Zod bloqueia
+
+### Review Findings
+
+- [x] [Review][Decision] Responsável pode atribuir role `responsavel` no dropdown — decisão: C — manter UI completa, backend bloqueia criação de Responsável até existir role de admin
+- [x] [Review][Patch] `PASSWORD_REGEX.match()` não ancora no fim da string — usar `re.fullmatch()` para evitar bypass com senhas contendo `\n` [`backend/app/services/user_service.py:29`]
+- [x] [Review][Patch] `IntegrityError` não capturado em `create_user` — matrícula e username duplicados simultâneos retornam 500 em vez de MSG-003/erro estruturado [`backend/app/services/user_service.py:40`]
+- [x] [Review][Patch] Username duplicado não tem verificação a nível de aplicação — `IntegrityError` do BD não tratado retorna 500 [`backend/app/services/user_service.py:38`]
+- [x] [Review][Patch] Validação de senha ocorre após query no BD — reordenar para falhar rápido antes do roundtrip [`backend/app/services/user_service.py:20-35`]
+- [x] [Review][Patch] `setTimeout` não cancelado no unmount do `RegisterForm` — usar `useEffect` com cleanup [`frontend/src/features/auth/RegisterForm.tsx:32`]
+- [x] [Review][Patch] MSG-023 com ponto final incorreto — `"Usuário cadastrado com sucesso."` deve ser `"Usuário cadastrado com sucesso"` [`frontend/src/features/auth/RegisterForm.tsx:30`]
+- [x] [Review][Patch] `_responsavel_headers` usa role do fixture sem garantir que é responsavel — renomear ou adicionar assert [`backend/tests/api/test_users.py:16`]
+- [x] [Review][Patch] `RequireRole` retorna `null` durante loading — exibir indicador de carregamento [`frontend/src/components/RequireRole.tsx:22`]
+- [x] [Review][Defer] `RequireRole` pode disparar segundo fetch de `/me` se `ProtectedRoute` não compartilhar cache React Query — verificar queryKey em uso — deferred, pré-existente
 
 ## Dev Notes
 

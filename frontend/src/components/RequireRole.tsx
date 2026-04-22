@@ -21,7 +21,7 @@ export default function RequireRole({ role, children }: RequireRoleProps) {
     staleTime: 5 * 60 * 1000,
   });
 
-  if (isLoading) return null;
+  if (isLoading) return <div className="loading-overlay" aria-busy="true" />;
   if (!user || user.role !== role) return <Navigate to="/" replace />;
   return <>{children}</>;
 }

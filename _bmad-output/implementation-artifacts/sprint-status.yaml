@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-04-22T18:00:00
-last_updated: 2026-04-22T18:00:00
+last_updated: 2026-04-22T20:00:00
 project: ctrve
 project_key: NOKEY
 tracking_system: file-system
@@ -45,7 +45,7 @@ development_status:
   # ── Epic 1: Autenticação e Gestão de Usuários ──────────────────────────────
   epic-1: in-progress
   1-1-login-no-sistema: review
-  1-2-cadastro-de-usuario: review
+  1-2-cadastro-de-usuario: done
   epic-1-retrospective: optional
 
   # ── Epic 2: Informações Gerais e Busca ─────────────────────────────────────

@@ -14,6 +14,7 @@ VALID_USER = {
 
 
 def _responsavel_headers(test_user) -> dict:
+    assert test_user.role == UserRole.responsavel, f"fixture deve ser responsavel, recebeu {test_user.role}"
     token = create_access_token({"sub": test_user.username, "role": test_user.role})
     return {"Authorization": f"Bearer {token}"}
 
@@ -100,6 +101,29 @@ def test_create_user_requires_responsavel(client, session, test_user):
         "/api/v1/users",
         json=VALID_USER,
         headers={"Authorization": f"Bearer {token}"},
+    )
+    assert response.status_code == 403
+    assert response.json()["detail"] == "MSG-026"
+
+
+def test_create_user_duplicate_username(client, test_user):
+    """P-3: username duplicado retorna 400 com fields=[username]."""
+    client.post("/api/v1/users", json=VALID_USER, headers=_responsavel_headers(test_user))
+    response = client.post(
+        "/api/v1/users",
+        json={**VALID_USER, "matricula": "888888"},
+        headers=_responsavel_headers(test_user),
+    )
+    assert response.status_code == 400
+    assert "username" in response.json()["fields"]
+
+
+def test_create_user_responsavel_role_forbidden(client, test_user):
+    """P-4: responsável não pode criar outro responsável — retorna MSG-026."""
+    response = client.post(
+        "/api/v1/users",
+        json={**VALID_USER, "role": "responsavel"},
+        headers=_responsavel_headers(test_user),
     )
     assert response.status_code == 403
     assert response.json()["detail"] == "MSG-026"

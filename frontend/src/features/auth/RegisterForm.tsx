@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,6 +10,13 @@ export default function RegisterForm() {
   const navigate = useNavigate();
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [serverError, setServerError] = useState<string | null>(null);
+  const redirectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (redirectTimer.current) clearTimeout(redirectTimer.current);
+    };
+  }, []);
 
   const {
     register,
@@ -26,8 +33,8 @@ export default function RegisterForm() {
     const { confirmPassword, ...payload } = data;
     try {
       await apiClient.post("/v1/users", payload);
-      setSuccessMessage("Usuário cadastrado com sucesso.");
-      setTimeout(() => navigate("/login"), 2000);
+      setSuccessMessage("Usuário cadastrado com sucesso");
+      redirectTimer.current = setTimeout(() => navigate("/login"), 2000);
     } catch (err) {
       if (axios.isAxiosError(err) && err.response) {
         const { detail, fields } = err.response.data ?? {};
