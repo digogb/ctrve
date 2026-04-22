@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -26,6 +27,34 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.exception_handler(RequestValidationError)
+async def request_validation_handler(request: Request, exc: RequestValidationError):
+    missing = [
+        str(e["loc"][-1])
+        for e in exc.errors()
+        if e.get("type") == "missing" and e.get("loc")
+    ]
+    if missing:
+        fields_str = ", ".join(missing)
+        return JSONResponse(
+            status_code=422,
+            content={
+                "detail": "MSG-005",
+                "message": f"Os seguintes campos obrigatórios não foram preenchidos: {fields_str}. Preencha-os para continuar.",
+                "fields": missing,
+            },
+        )
+    fields = list({str(e["loc"][-1]) for e in exc.errors() if e.get("loc")})
+    return JSONResponse(
+        status_code=422,
+        content={
+            "detail": "VALIDATION_ERROR",
+            "message": "Dados inválidos na requisição.",
+            "fields": fields,
+        },
+    )
 
 
 @app.exception_handler(UserError)

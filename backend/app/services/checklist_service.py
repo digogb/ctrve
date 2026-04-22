@@ -33,6 +33,15 @@ def create_checklist(session: Session, data: ChecklistCreate) -> Checklist:
             fields=["placa"],
         )
 
+    # P-4: quilometragem não pode ser negativa
+    if data.quilometragem_inicial < 0:
+        raise ChecklistError(
+            status_code=422,
+            detail="VALIDATION_ERROR",
+            message="A quilometragem inicial não pode ser negativa.",
+            fields=["quilometragem_inicial"],
+        )
+
     # RN-007: matrícula numérica
     if not data.matricula_motorista.isdigit():
         raise ChecklistError(

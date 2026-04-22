@@ -1,6 +1,6 @@
 # Story 2.1: Criar Novo Checklist
 
-Status: review
+Status: done
 
 ## Story
 
@@ -85,6 +85,18 @@ para que o processo de entrega seja iniciado com todas as informações de ident
   - [ ] `test_matricula_nao_numerica_bloqueada`: Zod bloqueia "ABC" com MSG-007
   - [ ] `test_submit_success_redireciona`: mock POST 201 → verifica navegação para `/checklists/1`
   - [ ] `test_entrega_duplicada_exibe_msg_008`: mock POST 400 MSG-008 → exibe alerta
+
+### Review Findings
+
+- [x] [Review][Decision] Campo "Nº de Controle (auto-gerado)" ausente do formulário — decisão A: campo somente leitura com placeholder "Gerado automaticamente"
+- [x] [Review][Decision] Campos obrigatórios ausentes retornam 422 padrão do FastAPI, não MSG-005 — decisão A: handler de `RequestValidationError` adicionado em `main.py`
+- [x] [Review][Patch] Zod de campos obrigatórios usa mensagens genéricas, não o texto de MSG-005 — AC-2 [`frontend/src/features/checklist/checklistSchema.ts`]
+- [x] [Review][Patch] `quilometragem_inicial` sem validação de mínimo no backend — service aceita valores negativos [`backend/app/services/checklist_service.py`]
+- [x] [Review][Patch] Placa Zod: `.regex()` executa antes de `.transform(toUpperCase())` — input em minúsculo falha no frontend mesmo sendo aceito pelo backend [`frontend/src/features/checklist/checklistSchema.ts`]
+- [x] [Review][Patch] Input de quilometragem sem atributo `min="0"` no HTML — browser permite negativos via spinner [`frontend/src/features/checklist/ChecklistForm.tsx`]
+- [x] [Review][Defer] `data_entrega` ausente do `ChecklistResponse` — campo sempre `None` nesta story; incluir quando for utilizado — deferred, pré-existente
+- [x] [Review][Defer] Normalização uppercase da placa não enforçada em nível de BD — inserções externas podem bypassar RN-008 — deferred, pré-existente
+- [x] [Review][Defer] `ChecklistError` não chama `super().__init__()` — mesmo padrão de `UserError` (story 1.2); corrigir em refactor cross-story — deferred, pré-existente
 
 ## Dev Notes
 

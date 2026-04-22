@@ -50,7 +50,7 @@ development_status:
 
   # ── Epic 2: Informações Gerais e Busca ─────────────────────────────────────
   epic-2: in-progress
-  2-1-criar-novo-checklist: review
+  2-1-criar-novo-checklist: done
   2-2-buscar-checklist-por-placa: backlog
   epic-2-retrospective: optional
 

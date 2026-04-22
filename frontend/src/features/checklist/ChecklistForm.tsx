@@ -7,6 +7,13 @@ import apiClient from "../../lib/apiClient";
 import { checklistInfoSchema, type ChecklistInfoData } from "./checklistSchema";
 import type { ChecklistResponse } from "../../types/checklist";
 
+const REQUIRED_FIELD_LABELS: Partial<Record<keyof ChecklistInfoData, string>> = {
+  placa: "Placa",
+  unidade: "Unidade",
+  motorista: "Motorista",
+  matricula_motorista: "Matrícula",
+};
+
 export default function ChecklistForm() {
   const navigate = useNavigate();
   const [serverError, setServerError] = useState<string | null>(null);
@@ -20,6 +27,20 @@ export default function ChecklistForm() {
     resolver: zodResolver(checklistInfoSchema),
   });
 
+  // P-3: exibe MSG-005 ao tentar submeter com campos obrigatórios vazios
+  const onInvalid = () => {
+    const missing = (
+      Object.entries(errors) as [keyof ChecklistInfoData, { type?: string } | undefined][]
+    )
+      .filter(([key, err]) => err?.type === "too_small" && key in REQUIRED_FIELD_LABELS)
+      .map(([key]) => REQUIRED_FIELD_LABELS[key]!);
+    if (missing.length > 0) {
+      setServerError(
+        `Os seguintes campos obrigatórios não foram preenchidos: ${missing.join(", ")}. Preencha-os para continuar.`
+      );
+    }
+  };
+
   const onSubmit = async (data: ChecklistInfoData) => {
     setServerError(null);
     try {
@@ -31,7 +52,11 @@ export default function ChecklistForm() {
     } catch (err) {
       if (axios.isAxiosError(err) && err.response) {
         const { detail, message, fields } = err.response.data ?? {};
-        if (detail === "MSG-008") {
+        if (detail === "MSG-005") {
+          setServerError(
+            message ?? "Os seguintes campos obrigatórios não foram preenchidos. Preencha-os para continuar."
+          );
+        } else if (detail === "MSG-008") {
           setServerError(message ?? "Já existe uma entrega aberta para este veículo.");
         } else if (detail === "MSG-006" && fields?.includes("placa")) {
           setError("placa", {
@@ -61,7 +86,20 @@ export default function ChecklistForm() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit(onSubmit)} noValidate>
+      <form onSubmit={handleSubmit(onSubmit, onInvalid)} noValidate>
+        {/* P-1: Nº de Controle auto-gerado — somente leitura antes da criação */}
+        <div className="form-field">
+          <label htmlFor="numero_controle">Nº de Controle</label>
+          <input
+            id="numero_controle"
+            type="text"
+            value="Gerado automaticamente"
+            readOnly
+            disabled
+            className="field-readonly"
+          />
+        </div>
+
         <div className="form-field">
           <label htmlFor="placa">Placa</label>
           <input id="placa" type="text" {...register("placa")} />
@@ -111,6 +149,7 @@ export default function ChecklistForm() {
             id="quilometragem_inicial"
             type="number"
             step="0.1"
+            min="0"
             {...register("quilometragem_inicial")}
           />
           {errors.quilometragem_inicial && (
