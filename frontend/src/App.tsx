@@ -1,26 +1,39 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { useEffect } from "react";
+import { BrowserRouter, useNavigate } from "react-router-dom";
+import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
+import { clearAccessToken } from "./lib/apiClient";
+import AppRoutes from "./routes";
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: { retry: false },
+  },
+});
+
+function SessionGuard() {
+  const navigate = useNavigate();
+  const qc = useQueryClient();
+
+  useEffect(() => {
+    const handler = () => {
+      clearAccessToken();
+      qc.clear();
+      navigate("/login");
+    };
+    window.addEventListener("session-expired", handler);
+    return () => window.removeEventListener("session-expired", handler);
+  }, [navigate, qc]);
+
+  return null;
 }
 
-export default App;
+export default function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <SessionGuard />
+        <AppRoutes />
+      </BrowserRouter>
+    </QueryClientProvider>
+  );
+}

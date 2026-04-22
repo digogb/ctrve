@@ -1,0 +1,77 @@
+# generated: 2026-04-22T18:00:00
+# last_updated: 2026-04-22T18:00:00
+# project: ctrve
+# project_key: NOKEY
+# tracking_system: file-system
+# story_location: _bmad-output/implementation-artifacts
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Epic Status Transitions:
+#   - backlog → in-progress: Automatically when first story is created (via create-story)
+#   - in-progress → done: Manually when all stories reach 'done' status
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created in stories folder
+#   - in-progress: Developer actively working on implementation
+#   - review: Ready for code review (via Dev's code-review workflow)
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when first story is created
+# - Stories can be worked in parallel if team capacity allows
+# - Developer typically creates next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+
+generated: 2026-04-22T18:00:00
+last_updated: 2026-04-22T18:00:00
+project: ctrve
+project_key: NOKEY
+tracking_system: file-system
+story_location: _bmad-output/implementation-artifacts
+
+development_status:
+  # ── Epic 1: Autenticação e Gestão de Usuários ──────────────────────────────
+  epic-1: in-progress
+  1-1-login-no-sistema: review
+  1-2-cadastro-de-usuario: backlog
+  epic-1-retrospective: optional
+
+  # ── Epic 2: Informações Gerais e Busca ─────────────────────────────────────
+  epic-2: backlog
+  2-1-criar-novo-checklist: backlog
+  2-2-buscar-checklist-por-placa: backlog
+  epic-2-retrospective: optional
+
+  # ── Epic 3: Checklist de Entrega ───────────────────────────────────────────
+  epic-3: backlog
+  3-1-preencher-checklist-de-entrega: backlog
+  3-2-registrar-avarias-no-mapa-do-veiculo: backlog
+  3-3-coletar-assinaturas-na-entrega: backlog
+  epic-3-retrospective: optional
+
+  # ── Epic 4: Checklist de Devolução ─────────────────────────────────────────
+  epic-4: backlog
+  4-1-preencher-checklist-de-devolucao: backlog
+  4-2-coletar-assinaturas-na-devolucao: backlog
+  4-3-registrar-observacoes: backlog
+  epic-4-retrospective: optional
+
+  # ── Epic 5: Ações, PDF e Navegação ─────────────────────────────────────────
+  epic-5: backlog
+  5-1-salvar-checklist: backlog
+  5-2-gerar-e-compartilhar-pdf: backlog
+  5-3-cancelar-checklist: backlog
+  5-4-navegar-entre-telas: backlog
+  epic-5-retrospective: optional

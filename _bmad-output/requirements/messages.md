@@ -27,3 +27,4 @@
 | MSG-023 | sucesso | Usuário cadastrado com sucesso. | RN-003 |
 | MSG-024 | sucesso | Login realizado com sucesso. | RN-001 |
 | MSG-025 | sucesso | PDF gerado com sucesso. | RN-023 |
+| MSG-026 | erro | Acesso negado. Seu perfil de usuário não tem permissão para esta operação. | — |
