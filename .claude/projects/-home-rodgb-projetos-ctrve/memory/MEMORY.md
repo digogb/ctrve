@@ -1,0 +1,1 @@
+- [Comunicação em Português](feedback_language.md) — Sempre falar em português com o usuário, não em inglês
