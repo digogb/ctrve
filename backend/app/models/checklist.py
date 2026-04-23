@@ -1,7 +1,9 @@
 from datetime import datetime, timezone
 from enum import Enum
+from typing import Any
 
-from sqlmodel import Field, SQLModel
+from sqlalchemy import JSON
+from sqlmodel import Column, Field, SQLModel
 
 
 class ChecklistStatus(str, Enum):
@@ -21,6 +23,9 @@ class Checklist(SQLModel, table=True):
     quilometragem_inicial: float
     status: ChecklistStatus = Field(default=ChecklistStatus.entregue)
     is_locked: bool = Field(default=False)
+    itens: list[Any] | None = Field(default=None, sa_column=Column(JSON))
+    avarias: list[Any] | None = Field(default=None, sa_column=Column(JSON))
+    nivel_combustivel: str | None = None
     data_entrega: datetime | None = None
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc)

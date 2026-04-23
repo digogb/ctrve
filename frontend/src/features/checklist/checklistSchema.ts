@@ -25,3 +25,33 @@ export const checklistInfoSchema = z.object({
 });
 
 export type ChecklistInfoData = z.infer<typeof checklistInfoSchema>;
+
+export const checklistItemSchema = z.object({
+  nome: z.string(),
+  status: z.enum(["ok", "nao_ok"], { message: "Selecione OK ou Não OK para este item." }),
+});
+
+export const damagePointSchema = z.object({
+  x: z.number().min(0).max(100),
+  y: z.number().min(0).max(100),
+  vista: z.enum(["topo", "lateral_esquerda", "lateral_direita", "frontal_traseira"]),
+  tipo: z.enum(["risco", "amassado", "trincado"], {
+    message:
+      "Selecione o tipo de avaria (Risco, Amassado ou Trincado) para cada ponto marcado no mapa do veículo.",
+  }),
+});
+
+export const checklistEntregaSchema = z.object({
+  itens: z.array(checklistItemSchema).length(20),
+  nivel_combustivel: z.enum(["1/4", "2/4", "3/4", "4/4"], {
+    message: "Selecione o nível de combustível do veículo (1/4, 2/4, 3/4 ou 4/4).",
+  }),
+  data_entrega: z
+    .string()
+    .min(1, "Informe a data e o horário da entrega.")
+    .refine((v) => !isNaN(new Date(v).getTime()), "Data e horário inválidos.")
+    .transform((v) => new Date(v).toISOString()),
+  avarias: z.array(damagePointSchema).default([]),
+});
+
+export type ChecklistEntregaData = z.infer<typeof checklistEntregaSchema>;

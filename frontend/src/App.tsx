@@ -1,8 +1,8 @@
 import { useEffect } from "react";
-import { BrowserRouter, useNavigate } from "react-router-dom";
-import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
-import { clearAccessToken } from "./lib/apiClient";
+import { BrowserRouter } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import AppRoutes from "./routes";
+import { AuthProvider, useAuthContext } from "./features/auth/AuthContext";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -11,18 +11,16 @@ const queryClient = new QueryClient({
 });
 
 function SessionGuard() {
-  const navigate = useNavigate();
-  const qc = useQueryClient();
+  const { logout } = useAuthContext();
 
   useEffect(() => {
-    const handler = () => {
-      clearAccessToken();
-      qc.clear();
-      navigate("/login");
-    };
+    const handler = () =>
+      logout(
+        "Sua sessão expirou por inatividade. Realize o login novamente para continuar."
+      );
     window.addEventListener("session-expired", handler);
     return () => window.removeEventListener("session-expired", handler);
-  }, [navigate, qc]);
+  }, [logout]);
 
   return null;
 }
@@ -31,8 +29,10 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <SessionGuard />
-        <AppRoutes />
+        <AuthProvider>
+          <SessionGuard />
+          <AppRoutes />
+        </AuthProvider>
       </BrowserRouter>
     </QueryClientProvider>
   );

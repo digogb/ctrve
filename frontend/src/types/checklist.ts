@@ -1,4 +1,13 @@
+import type { DamagePoint } from "./damage";
+
 export type ChecklistStatus = "entregue" | "devolvido";
+export type ChecklistItemStatus = "ok" | "nao_ok";
+export type NivelCombustivel = "1/4" | "2/4" | "3/4" | "4/4";
+
+export interface ChecklistItemData {
+  nome: string;
+  status: ChecklistItemStatus | null;
+}
 
 export interface ChecklistResponse {
   id: number;
@@ -10,5 +19,9 @@ export interface ChecklistResponse {
   quilometragem_inicial: number;
   status: ChecklistStatus;
   is_locked: boolean;
+  itens: ChecklistItemData[] | null;
+  nivel_combustivel: NivelCombustivel | null;
+  data_entrega: string | null;
+  avarias: DamagePoint[] | null;
   created_at: string;
 }

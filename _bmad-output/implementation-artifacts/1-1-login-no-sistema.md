@@ -1,6 +1,6 @@
 # Story 1.1: Login no Sistema
 
-Status: review
+Status: done
 
 ## Story
 
@@ -280,3 +280,47 @@ frontend/src/features/auth/useAuth.ts
 frontend/src/features/auth/LoginForm.tsx
 frontend/src/features/auth/__tests__/LoginForm.test.tsx
 frontend/src/components/ProtectedRoute.tsx
+
+### Review Findings
+
+> Code review executado em 2026-04-23 — 2 decision-needed, 21 patches, 6 deferred, 2 dismissed.
+
+#### Decisões necessárias
+
+- [x] [Review][Decision → Patch] Inactivity timer — implementar agora: listener DOM + timer de reset + logout automático aos 30min
+- [x] [Review][Decision → Patch] `AuthContext` sem Provider — refatorar: criar `AuthProvider`, `LoginForm` e `ProtectedRoute` consomem `useAuthContext()`
+
+#### Patches
+
+- [x] [Review][Patch] Cookie `secure` ausente no endpoint `/refresh` — cookie rotacionado não terá flag Secure em produção [backend/app/api/routes/auth.py:91]
+- [x] [Review][Patch] `matricula: str` — tipo Python em arquivo TypeScript, deveria ser `string` [frontend/src/types/user.ts:5]
+- [x] [Review][Patch] `user.is_active` acessado sem guarda `user is None` explícita — seguro apenas pela ordem atual das linhas [backend/app/api/routes/auth.py:33]
+- [x] [Review][Patch] MSG-024 nunca exibida no login bem-sucedido — AC-2 violado; `navigate("/")` sem toast/mensagem [frontend/src/features/auth/LoginForm.tsx:34]
+- [x] [Review][Patch] MSG-002 nunca exibida no redirect por sessão expirada — AC-4 violado; `SessionGuard` só navega, não passa a mensagem [frontend/src/App.tsx:22]
+- [x] [Review][Patch] `DUMMY_HASH` usa custo bcrypt `$2b$04$` — muito baixo; timing anti-enumeration é trivialmente detectável [backend/app/core/security.py:7]
+- [x] [Review][Patch] `initialData: null` em `useQuery` torna `isLoading` sempre `false` no mount — pode causar redirect prematuro para `/login` [frontend/src/features/auth/useAuth.ts:17]
+- [x] [Review][Patch] `DEBUG: bool = True` como padrão — inverte segurança; produção sem `.env` explícito emite cookies sem `Secure` [backend/app/core/config.py:9]
+- [x] [Review][Patch] Interceptor de refresh usa URL hardcoded `/api/v1/auth/refresh` ignorando `VITE_API_URL` [frontend/src/lib/apiClient.ts:30]
+- [x] [Review][Patch] Race condition: requisições concorrentes com 401 não são enfileiradas — a segunda falha silenciosamente enquanto `isRefreshing=true` [frontend/src/lib/apiClient.ts:24]
+- [x] [Review][Patch] `SECRET_KEY` com valor padrão público — deve falhar na inicialização se não houver valor real de ambiente [backend/app/core/config.py:5]
+- [x] [Review][Patch] `staleTime` inconsistente: `Infinity` em `useAuth` vs `5min` em `ProtectedRoute` para a mesma query `["me"]` [frontend/src/features/auth/useAuth.ts:17, frontend/src/components/ProtectedRoute.tsx:8]
+- [x] [Review][Patch] `login()` em `useAuth` não captura erros — `loginError` nunca é populado pelo hook [frontend/src/features/auth/useAuth.ts:27]
+- [x] [Review][Patch] `HTTPException` reutilizada como instância global mutável — potencial corrupção em requisições concorrentes [backend/app/api/routes/auth.py:13]
+- [x] [Review][Patch] CORS com origens hardcoded e `allow_methods=["*"]` — mover para `settings` [backend/app/main.py:13]
+- [x] [Review][Patch] `fetchMe` duplicada em `ProtectedRoute` e `useAuth` — extrair para módulo compartilhado [frontend/src/components/ProtectedRoute.tsx:6, frontend/src/features/auth/useAuth.ts:8]
+- [x] [Review][Patch] `require_role` sem cobertura de testes [backend/tests/api/test_auth.py]
+- [x] [Review][Patch] `test_refresh_success` não verifica rotação do cookie de refresh [backend/tests/api/test_auth.py:43]
+- [x] [Review][Patch] Ausência de teste para usuário inativo (`is_active=False`) [backend/tests/api/test_auth.py]
+- [x] [Review][Patch] `LoginRequest` sem `max_length` — senha muito longa alcança bcrypt (DoS potencial) [backend/app/schemas/auth.py]
+- [x] [Review][Patch] `LoginForm` importa `axios` diretamente para `isAxiosError` — quebra encapsulamento de `apiClient` [frontend/src/features/auth/LoginForm.tsx:7]
+- [x] [Review][Patch] Implementar inactivity timer — listener DOM (`mousemove`, `keydown`, `click`) + timeout de 30min + logout automático com MSG-002 [frontend/src/features/auth/useAuth.ts ou AuthContext]
+- [x] [Review][Patch] Criar `AuthProvider` e refatorar `LoginForm` e `ProtectedRoute` para consumir `useAuthContext()` [frontend/src/features/auth/AuthContext.tsx]
+
+#### Deferidos
+
+- [x] [Review][Defer] `engine` criado em tempo de importação de módulo [backend/app/database.py:3] — deferred, padrão pré-existente do projeto
+- [x] [Review][Defer] Refresh token drift em falha de entrega da resposta — deferred, limitação inerente de JWT stateless sem blacklist
+- [x] [Review][Defer] Erros de rede (5xx) não distinguíveis de erros de auth no interceptor — deferred, trade-off aceitável
+- [x] [Review][Defer] Flash redirect potencial em StrictMode/dev — deferred, quirk de desenvolvimento sub-ms
+- [x] [Review][Defer] `queryClient` instanciado fora do componente em `App.tsx` — deferred, impacta isolamento de testes
+- [x] [Review][Defer] `require_role` igualdade estrita sem suporte a hierarquia de roles — deferred, sem requisito de hierarquia na spec atual

@@ -2,15 +2,13 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import LoginForm from "./features/auth/LoginForm";
 import RegisterForm from "./features/auth/RegisterForm";
 import ChecklistForm from "./features/checklist/ChecklistForm";
+import ChecklistList from "./features/checklist/ChecklistList";
+import ChecklistView from "./features/checklist/ChecklistView";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RequireRole from "./components/RequireRole";
 
 function Dashboard() {
   return <div>Dashboard — em desenvolvimento</div>;
-}
-
-function ChecklistView() {
-  return <div>Checklist — em desenvolvimento</div>;
 }
 
 export default function AppRoutes() {
@@ -32,6 +30,14 @@ export default function AppRoutes() {
             <RequireRole role="responsavel">
               <RegisterForm />
             </RequireRole>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/checklists"
+        element={
+          <ProtectedRoute>
+            <ChecklistList />
           </ProtectedRoute>
         }
       />

@@ -1,17 +1,17 @@
 from datetime import datetime, timedelta, timezone
 from typing import Any
+from uuid import uuid4
 
 import bcrypt
 from jose import JWTError, jwt
 
 from app.core.config import settings
 
-# Hash pré-gerado com rounds=4 para timing constante sem latência no startup
-DUMMY_HASH = b"$2b$04$UrM7t0nvUeDOWWoRrVKTpOQXMx.0k1H6Ro0JO3LI9xrfMutjKT2WC"
+DUMMY_HASH = b"$2b$12$6H4E8g1vgO2.RkUNG4tWaugsWfmosg4cmBFQ5.6Njku1GFRGj47hK"
 
 
 def hash_password(password: str) -> str:
-    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+    return bcrypt.hashpw(password.encode(), bcrypt.gensalt(rounds=12)).decode()
 
 
 def verify_password_safe(plain: str, hashed: str | None) -> bool:
@@ -39,6 +39,7 @@ def create_refresh_token(data: dict[str, Any]) -> str:
     )
     payload["exp"] = expire
     payload["type"] = "refresh"
+    payload["jti"] = str(uuid4())
     return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
 

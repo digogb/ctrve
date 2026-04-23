@@ -17,17 +17,21 @@ from app.schemas.auth import LoginRequest, TokenResponse
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
-INVALID_CREDENTIALS = HTTPException(
-    status_code=status.HTTP_401_UNAUTHORIZED,
-    detail="MSG-001",
-    headers={"WWW-Authenticate": "Bearer"},
-)
 
-SESSION_EXPIRED = HTTPException(
-    status_code=status.HTTP_401_UNAUTHORIZED,
-    detail="MSG-002",
-    headers={"WWW-Authenticate": "Bearer"},
-)
+def _invalid_credentials() -> HTTPException:
+    return HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="MSG-001",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+
+def _session_expired() -> HTTPException:
+    return HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="MSG-002",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
 
 
 @router.post("/login", response_model=TokenResponse)
@@ -37,12 +41,10 @@ def login(
     session: Annotated[Session, Depends(get_session)],
 ):
     user = session.exec(select(User).where(User.username == body.username)).first()
+    hashed = user.hashed_password if user else None
 
-    # verify_password_safe always runs bcrypt to prevent timing attacks
-    if not verify_password_safe(body.password, user.hashed_password if user else None):
-        raise INVALID_CREDENTIALS
-    if not user.is_active:
-        raise INVALID_CREDENTIALS
+    if not verify_password_safe(body.password, hashed) or user is None or not user.is_active:
+        raise _invalid_credentials()
 
     access_token = create_access_token({"sub": user.username, "role": user.role})
     refresh_token = create_refresh_token({"sub": user.username})
@@ -65,19 +67,19 @@ def refresh(
     refresh_token: Annotated[str | None, Cookie()] = None,
 ):
     if not refresh_token:
-        raise SESSION_EXPIRED
+        raise _session_expired()
 
     try:
         payload = decode_token(refresh_token, token_type="refresh")
         username: str | None = payload.get("sub")
         if not username:
-            raise SESSION_EXPIRED
+            raise _session_expired()
     except JWTError:
-        raise SESSION_EXPIRED
+        raise _session_expired()
 
     user = session.exec(select(User).where(User.username == username)).first()
     if not user or not user.is_active:
-        raise SESSION_EXPIRED
+        raise _session_expired()
 
     access_token = create_access_token({"sub": user.username, "role": user.role})
     new_refresh = create_refresh_token({"sub": user.username})
@@ -87,6 +89,7 @@ def refresh(
         value=new_refresh,
         httponly=True,
         samesite="lax",
+        secure=not settings.DEBUG,
         max_age=60 * 60 * 24 * 7,
     )
     return TokenResponse(access_token=access_token)

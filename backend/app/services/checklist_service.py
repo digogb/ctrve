@@ -1,9 +1,10 @@
 import re
 
+from sqlalchemy import desc
 from sqlmodel import Session, select
 
 from app.models.checklist import Checklist, ChecklistStatus
-from app.schemas.checklist import ChecklistCreate
+from app.schemas.checklist import ChecklistCreate, ChecklistEntregaUpdate
 
 PLACA_REGEX = re.compile(r"^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$|^[A-Z]{3}-[0-9]{4}$")
 
@@ -20,6 +21,60 @@ class ChecklistError(Exception):
         self.detail = detail
         self.message = message
         self.fields = fields or []
+
+
+def get_checklist_by_id(session: Session, checklist_id: int) -> Checklist:
+    checklist = session.get(Checklist, checklist_id)
+    if not checklist:
+        raise ChecklistError(
+            status_code=404,
+            detail="NOT_FOUND",
+            message="Checklist não encontrado.",
+            fields=[],
+        )
+    return checklist
+
+
+def search_checklists(session: Session, placa: str | None = None) -> list[Checklist]:
+    query = select(Checklist)
+    if placa:
+        query = query.where(Checklist.placa.contains(placa.upper(), autoescape=True))
+    query = query.order_by(desc(Checklist.created_at))
+    return list(session.exec(query).all())
+
+
+def update_entrega(session: Session, checklist_id: int, data: ChecklistEntregaUpdate) -> Checklist:
+    checklist = session.get(Checklist, checklist_id)
+    if not checklist:
+        raise ChecklistError(
+            status_code=404,
+            detail="NOT_FOUND",
+            message="Checklist não encontrado.",
+            fields=[],
+        )
+    if checklist.status != ChecklistStatus.entregue:
+        raise ChecklistError(
+            status_code=400,
+            detail="INVALID_STATUS",
+            message="Apenas checklists com status 'entregue' podem ser atualizados.",
+            fields=["status"],
+        )
+    if checklist.is_locked:
+        raise ChecklistError(
+            status_code=400,
+            detail="MSG-026",
+            message="Checklist bloqueado e não pode ser alterado.",
+            fields=[],
+        )
+    checklist.itens = [{"nome": item.nome, "status": item.status} for item in data.itens]
+    checklist.nivel_combustivel = data.nivel_combustivel
+    checklist.data_entrega = data.data_entrega
+    if data.avarias is not None:
+        checklist.avarias = [p.model_dump() for p in data.avarias]
+    session.add(checklist)
+    session.commit()
+    session.refresh(checklist)
+    return checklist
 
 
 def create_checklist(session: Session, data: ChecklistCreate) -> Checklist:

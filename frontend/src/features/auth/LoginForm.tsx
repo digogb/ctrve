@@ -1,11 +1,9 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
-import axios from "axios";
-import apiClient, { setAccessToken } from "../../lib/apiClient";
-import { useQueryClient } from "@tanstack/react-query";
+import { useAuthContext } from "./AuthContext";
 
 const loginSchema = z.object({
   username: z.string().min(1, "Informe o usuário"),
@@ -16,8 +14,11 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginForm() {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const [serverError, setServerError] = useState<string | null>(null);
+  const location = useLocation();
+  const { login, loginError } = useAuthContext();
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+  const sessionMsg = (location.state as { msg?: string } | null)?.msg ?? null;
 
   const {
     register,
@@ -28,25 +29,10 @@ export default function LoginForm() {
   });
 
   const onSubmit = async (data: LoginFormData) => {
-    setServerError(null);
-    try {
-      const response = await apiClient.post<{ access_token: string }>(
-        "/v1/auth/login",
-        data
-      );
-      setAccessToken(response.data.access_token);
-      await queryClient.invalidateQueries({ queryKey: ["me"] });
-      navigate("/");
-    } catch (err) {
-      if (axios.isAxiosError(err) && err.response?.status === 401) {
-        setServerError(
-          "Usuário ou senha inválidos. Verifique suas credenciais e tente novamente."
-        );
-      } else {
-        setServerError(
-          "Erro de comunicação com o servidor. Tente novamente em instantes."
-        );
-      }
+    const ok = await login(data.username, data.password);
+    if (ok) {
+      setSuccessMsg("Login realizado com sucesso.");
+      setTimeout(() => navigate("/"), 1000);
     }
   };
 
@@ -56,9 +42,21 @@ export default function LoginForm() {
         <h1>CTRVE</h1>
         <h2>Checklist de Transporte de Veículos</h2>
 
-        {serverError && (
+        {sessionMsg && (
           <div role="alert" className="error-alert">
-            {serverError}
+            {sessionMsg}
+          </div>
+        )}
+
+        {successMsg && (
+          <div role="status" className="success-alert">
+            {successMsg}
+          </div>
+        )}
+
+        {loginError && !successMsg && (
+          <div role="alert" className="error-alert">
+            {loginError}
           </div>
         )}
 

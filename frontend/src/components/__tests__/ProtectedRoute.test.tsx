@@ -1,63 +1,60 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import ProtectedRoute from "../ProtectedRoute";
+import { AuthContext } from "../../features/auth/AuthContext";
+import type { AuthContextValue } from "../../features/auth/AuthContext";
+import type { User } from "../../types/user";
 
-vi.mock("../../lib/apiClient", () => ({
-  default: {
-    get: vi.fn(),
-    interceptors: {
-      request: { use: vi.fn() },
-      response: { use: vi.fn() },
-    },
-  },
-  setAccessToken: vi.fn(),
-  clearAccessToken: vi.fn(),
-  getAccessToken: vi.fn(),
-}));
+const mockUser: User = {
+  id: 1,
+  username: "user",
+  full_name: "User",
+  matricula: "123456",
+  role: "responsavel",
+  is_active: true,
+};
 
-import apiClient from "../../lib/apiClient";
+function makeCtx(overrides: Partial<AuthContextValue> = {}): AuthContextValue {
+  return {
+    user: null,
+    isAuthenticated: false,
+    isLoading: false,
+    login: vi.fn(),
+    logout: vi.fn(),
+    loginError: null,
+    setLoginError: vi.fn(),
+    ...overrides,
+  };
+}
 
-function wrap(children: React.ReactNode, initialPath = "/") {
-  const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+function wrap(children: React.ReactNode, ctx: Partial<AuthContextValue> = {}) {
   return render(
-    <QueryClientProvider client={qc}>
-      <MemoryRouter initialEntries={[initialPath]}>
-        {children}
-      </MemoryRouter>
-    </QueryClientProvider>
+    <AuthContext.Provider value={makeCtx(ctx)}>
+      <MemoryRouter>{children}</MemoryRouter>
+    </AuthContext.Provider>
   );
 }
 
 describe("ProtectedRoute", () => {
-  it("redireciona para /login quando não autenticado", async () => {
-    vi.mocked(apiClient.get).mockRejectedValueOnce(new Error("401"));
-    wrap(
-      <ProtectedRoute>
-        <div>Conteúdo protegido</div>
-      </ProtectedRoute>
-    );
-    // Loading state primeiro
+  it("exibe spinner enquanto carregando", () => {
+    wrap(<ProtectedRoute><div>Conteúdo</div></ProtectedRoute>, { isLoading: true });
     expect(screen.getByLabelText(/carregando/i)).toBeInTheDocument();
   });
 
-  it("exibe conteúdo quando autenticado", async () => {
-    vi.mocked(apiClient.get).mockResolvedValueOnce({
-      data: {
-        id: 1,
-        username: "user",
-        full_name: "User",
-        matricula: "123",
-        role: "responsavel",
-        is_active: true,
-      },
-    });
-    const { findByText } = wrap(
-      <ProtectedRoute>
-        <div>Área restrita</div>
-      </ProtectedRoute>
+  it("redireciona para /login quando não autenticado", () => {
+    wrap(
+      <ProtectedRoute><div>Conteúdo protegido</div></ProtectedRoute>,
+      { user: null, isLoading: false }
     );
-    expect(await findByText("Área restrita")).toBeInTheDocument();
+    expect(screen.queryByText("Conteúdo protegido")).not.toBeInTheDocument();
+  });
+
+  it("exibe conteúdo quando autenticado", () => {
+    wrap(
+      <ProtectedRoute><div>Área restrita</div></ProtectedRoute>,
+      { user: mockUser, isAuthenticated: true }
+    );
+    expect(screen.getByText("Área restrita")).toBeInTheDocument();
   });
 });

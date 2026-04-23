@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-04-22T18:00:00
-last_updated: 2026-04-22T20:00:00
+last_updated: 2026-04-23T18:00:00
 project: ctrve
 project_key: NOKEY
 tracking_system: file-system
@@ -44,20 +44,20 @@ story_location: _bmad-output/implementation-artifacts
 development_status:
   # ── Epic 1: Autenticação e Gestão de Usuários ──────────────────────────────
   epic-1: in-progress
-  1-1-login-no-sistema: review
+  1-1-login-no-sistema: done
   1-2-cadastro-de-usuario: done
   epic-1-retrospective: optional
 
   # ── Epic 2: Informações Gerais e Busca ─────────────────────────────────────
   epic-2: in-progress
   2-1-criar-novo-checklist: done
-  2-2-buscar-checklist-por-placa: backlog
+  2-2-buscar-checklist-por-placa: done
   epic-2-retrospective: optional
 
   # ── Epic 3: Checklist de Entrega ───────────────────────────────────────────
-  epic-3: backlog
-  3-1-preencher-checklist-de-entrega: backlog
-  3-2-registrar-avarias-no-mapa-do-veiculo: backlog
+  epic-3: in-progress
+  3-1-preencher-checklist-de-entrega: done
+  3-2-registrar-avarias-no-mapa-do-veiculo: done
   3-3-coletar-assinaturas-na-entrega: backlog
   epic-3-retrospective: optional
 

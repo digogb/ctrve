@@ -2,29 +2,9 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import axios from "axios";
 import LoginForm from "../LoginForm";
-
-function makeAxiosError(status: number) {
-  return Object.assign(new axios.AxiosError("Request failed"), {
-    response: { status, data: { detail: `MSG-00${status === 401 ? 1 : 0}` } },
-  });
-}
-
-vi.mock("../../../lib/apiClient", () => ({
-  default: {
-    post: vi.fn(),
-    get: vi.fn(),
-    interceptors: {
-      request: { use: vi.fn() },
-      response: { use: vi.fn() },
-    },
-  },
-  setAccessToken: vi.fn(),
-  clearAccessToken: vi.fn(),
-  getAccessToken: vi.fn(),
-}));
+import { AuthContext } from "../AuthContext";
+import type { AuthContextValue } from "../AuthContext";
 
 const mockNavigate = vi.fn();
 vi.mock("react-router-dom", async () => {
@@ -32,21 +12,35 @@ vi.mock("react-router-dom", async () => {
   return { ...actual, useNavigate: () => mockNavigate };
 });
 
-import apiClient, { setAccessToken } from "../../../lib/apiClient";
+function makeCtx(overrides: Partial<AuthContextValue> = {}): AuthContextValue {
+  return {
+    user: null,
+    isAuthenticated: false,
+    isLoading: false,
+    login: vi.fn().mockResolvedValue(true),
+    logout: vi.fn(),
+    loginError: null,
+    setLoginError: vi.fn(),
+    ...overrides,
+  };
+}
 
-function renderLoginForm() {
-  const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+function renderLoginForm(
+  ctx: Partial<AuthContextValue> = {},
+  initialPath: { pathname: string; state?: unknown } = { pathname: "/login" }
+) {
   return render(
-    <QueryClientProvider client={qc}>
-      <MemoryRouter>
+    <AuthContext.Provider value={makeCtx(ctx)}>
+      <MemoryRouter initialEntries={[initialPath]}>
         <LoginForm />
       </MemoryRouter>
-    </QueryClientProvider>
+    </AuthContext.Provider>
   );
 }
 
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.useRealTimers();
 });
 
 describe("LoginForm", () => {
@@ -57,62 +51,47 @@ describe("LoginForm", () => {
     expect(screen.getByRole("button", { name: /entrar/i })).toBeInTheDocument();
   });
 
-  it("login bem-sucedido redireciona para /", async () => {
-    vi.mocked(apiClient.post).mockResolvedValueOnce({
-      data: { access_token: "fake-token" },
-    });
+  it("login bem-sucedido exibe MSG-024 e redireciona para /", async () => {
+    const loginMock = vi.fn().mockResolvedValue(true);
+    renderLoginForm({ login: loginMock });
 
-    renderLoginForm();
     await userEvent.type(screen.getByLabelText(/usuário/i), "testuser");
     await userEvent.type(screen.getByLabelText(/senha/i), "Senha123");
     await userEvent.click(screen.getByRole("button", { name: /entrar/i }));
 
-    await waitFor(() => {
-      expect(setAccessToken).toHaveBeenCalledWith("fake-token");
-      expect(mockNavigate).toHaveBeenCalledWith("/");
+    await waitFor(() =>
+      expect(screen.getByRole("status")).toHaveTextContent(/login realizado com sucesso/i)
+    );
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith("/"), { timeout: 2000 });
+  }, 3000);
+
+  it("exibe loginError do contexto como MSG-001", () => {
+    renderLoginForm({
+      loginError:
+        "Usuário ou senha inválidos. Verifique suas credenciais e tente novamente.",
     });
+    expect(screen.getByRole("alert")).toHaveTextContent(/usuário ou senha inválidos/i);
   });
 
-  it("credenciais inválidas exibe MSG-001 sem indicar campo específico", async () => {
-    vi.mocked(apiClient.post).mockRejectedValueOnce(makeAxiosError(401));
-
-    renderLoginForm();
-    await userEvent.type(screen.getByLabelText(/usuário/i), "errado");
-    await userEvent.type(screen.getByLabelText(/senha/i), "errada");
-    await userEvent.click(screen.getByRole("button", { name: /entrar/i }));
-
-    await waitFor(() => {
-      const alert = screen.getByRole("alert");
-      expect(alert).toHaveTextContent(/usuário ou senha inválidos/i);
-      expect(alert).not.toHaveTextContent(/usuário/i.source.includes("campo"));
-    });
-  });
-
-  it("erro de rede exibe mensagem de servidor indisponível", async () => {
-    vi.mocked(apiClient.post).mockRejectedValueOnce(new Error("Network Error"));
-
-    renderLoginForm();
-    await userEvent.type(screen.getByLabelText(/usuário/i), "u");
-    await userEvent.type(screen.getByLabelText(/senha/i), "p");
-    await userEvent.click(screen.getByRole("button", { name: /entrar/i }));
-
-    await waitFor(() => {
-      expect(screen.getByRole("alert")).toHaveTextContent(/erro de comunicação/i);
-    });
+  it("exibe mensagem de sessão expirada da location.state (MSG-002)", () => {
+    const MSG =
+      "Sua sessão expirou por inatividade. Realize o login novamente para continuar.";
+    renderLoginForm({}, { pathname: "/login", state: { msg: MSG } });
+    expect(screen.getByRole("alert")).toHaveTextContent(/sessão expirou/i);
   });
 
   it("botão fica desabilitado durante o submit", async () => {
-    let resolve: (v: unknown) => void;
-    vi.mocked(apiClient.post).mockReturnValueOnce(
-      new Promise((r) => { resolve = r; })
+    let resolveLogin!: (v: boolean) => void;
+    const loginMock = vi.fn().mockReturnValue(
+      new Promise<boolean>((r) => { resolveLogin = r; })
     );
 
-    renderLoginForm();
+    renderLoginForm({ login: loginMock });
     await userEvent.type(screen.getByLabelText(/usuário/i), "u");
     await userEvent.type(screen.getByLabelText(/senha/i), "p");
     await userEvent.click(screen.getByRole("button", { name: /entrar/i }));
 
     expect(screen.getByRole("button", { name: /entrando/i })).toBeDisabled();
-    resolve!({ data: { access_token: "t" } });
+    resolveLogin(false);
   });
 });
