@@ -30,14 +30,8 @@ export default function DamageMap({ value, onChange, readOnly }: DamageMapProps)
 
   return (
     <section aria-label="Mapa de Avarias" data-testid="damage-map">
-      <h2 style={{ fontSize: 16, marginBottom: 8 }}>Mapa de Avarias</h2>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: 12,
-        }}
-      >
+      <h2 className="mb-2 text-base font-semibold">Mapa de Avarias</h2>
+      <div className="grid grid-cols-2 gap-3">
         {VISTAS.map((vista) => (
           <VehicleView
             key={vista}

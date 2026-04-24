@@ -52,6 +52,27 @@ export const checklistEntregaSchema = z.object({
     .refine((v) => !isNaN(new Date(v).getTime()), "Data e horário inválidos.")
     .transform((v) => new Date(v).toISOString()),
   avarias: z.array(damagePointSchema).default([]),
+  assinatura_responsavel: z.string().nullable().default(null),
+  assinatura_motorista: z.string().nullable().default(null),
 });
 
 export type ChecklistEntregaData = z.infer<typeof checklistEntregaSchema>;
+
+export const checklistDevolucaoSchema = z.object({
+  itens: z.array(checklistItemSchema).length(20),
+  nivel_combustivel: z.enum(["1/4", "2/4", "3/4", "4/4"], {
+    message: "Selecione o nível de combustível do veículo (1/4, 2/4, 3/4 ou 4/4).",
+  }),
+  quilometragem_final: z.coerce
+    .number({ invalid_type_error: "Informe a quilometragem final" })
+    .min(0, "Quilometragem não pode ser negativa"),
+  data_devolucao: z
+    .string()
+    .min(1, "Informe a data e o horário da devolução.")
+    .refine((v) => !isNaN(new Date(v).getTime()), "Data e horário inválidos.")
+    .transform((v) => new Date(v).toISOString()),
+  assinatura_responsavel: z.string().nullable().default(null),
+  assinatura_motorista: z.string().nullable().default(null),
+});
+
+export type ChecklistDevolucaoData = z.infer<typeof checklistDevolucaoSchema>;

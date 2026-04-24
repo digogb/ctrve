@@ -5,11 +5,12 @@ from sqlmodel import Session
 
 from app.core.deps import get_current_user, get_session, require_role
 from app.models.user import User, UserRole
-from app.schemas.checklist import ChecklistCreate, ChecklistEntregaUpdate, ChecklistResponse
+from app.schemas.checklist import ChecklistCreate, ChecklistDevolucaoUpdate, ChecklistEntregaUpdate, ChecklistResponse
 from app.services.checklist_service import (
     create_checklist,
     get_checklist_by_id,
     search_checklists,
+    update_devolucao,
     update_entrega,
 )
 
@@ -42,6 +43,16 @@ def patch_entrega(
     _: Annotated[User, Depends(require_role(UserRole.responsavel))],
 ):
     return update_entrega(session, checklist_id, body)
+
+
+@router.patch("/{checklist_id}/devolucao", response_model=ChecklistResponse)
+def patch_devolucao(
+    checklist_id: int,
+    body: ChecklistDevolucaoUpdate,
+    session: Annotated[Session, Depends(get_session)],
+    _: Annotated[User, Depends(require_role(UserRole.responsavel))],
+):
+    return update_devolucao(session, checklist_id, body)
 
 
 @router.post("", response_model=ChecklistResponse, status_code=status.HTTP_201_CREATED)

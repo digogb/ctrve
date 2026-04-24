@@ -4,7 +4,7 @@ from sqlalchemy import desc
 from sqlmodel import Session, select
 
 from app.models.checklist import Checklist, ChecklistStatus
-from app.schemas.checklist import ChecklistCreate, ChecklistEntregaUpdate
+from app.schemas.checklist import ChecklistCreate, ChecklistDevolucaoUpdate, ChecklistEntregaUpdate
 
 PLACA_REGEX = re.compile(r"^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$|^[A-Z]{3}-[0-9]{4}$")
 
@@ -71,6 +71,61 @@ def update_entrega(session: Session, checklist_id: int, data: ChecklistEntregaUp
     checklist.data_entrega = data.data_entrega
     if data.avarias is not None:
         checklist.avarias = [p.model_dump() for p in data.avarias]
+    if data.assinatura_responsavel is not None:
+        checklist.assinatura_responsavel = data.assinatura_responsavel
+    if data.assinatura_motorista is not None:
+        checklist.assinatura_motorista = data.assinatura_motorista
+    session.add(checklist)
+    session.commit()
+    session.refresh(checklist)
+    return checklist
+
+
+def update_devolucao(session: Session, checklist_id: int, data: ChecklistDevolucaoUpdate) -> Checklist:
+    checklist = session.get(Checklist, checklist_id)
+    if not checklist:
+        raise ChecklistError(
+            status_code=404,
+            detail="NOT_FOUND",
+            message="Checklist não encontrado.",
+            fields=[],
+        )
+
+    if not checklist.is_locked or checklist.status != ChecklistStatus.entregue:
+        raise ChecklistError(
+            status_code=400,
+            detail="MSG-015",
+            message=f"Não é possível iniciar a devolução. Não foi encontrada entrega concluída para o Nº de Controle {checklist.id}.",
+            fields=[],
+        )
+
+    if data.quilometragem_final < checklist.quilometragem_inicial:
+        raise ChecklistError(
+            status_code=400,
+            detail="MSG-016",
+            message=f"A Quilometragem Final ({data.quilometragem_final}) não pode ser inferior à Quilometragem Inicial ({checklist.quilometragem_inicial}).",
+            fields=["quilometragem_final"],
+        )
+
+    if checklist.data_entrega and data.data_devolucao.replace(tzinfo=None) < checklist.data_entrega.replace(tzinfo=None):
+        raise ChecklistError(
+            status_code=400,
+            detail="MSG-017",
+            message=f"A Data de Devolução não pode ser anterior à Data de Entrega ({checklist.data_entrega}).",
+            fields=["data_devolucao"],
+        )
+
+    checklist.itens_devolucao = [{"nome": item.nome, "status": item.status} for item in data.itens]
+    checklist.nivel_combustivel_devolucao = data.nivel_combustivel
+    checklist.quilometragem_final = data.quilometragem_final
+    checklist.data_devolucao = data.data_devolucao
+    checklist.status = ChecklistStatus.devolvido
+
+    if data.assinatura_responsavel is not None:
+        checklist.assinatura_responsavel_devolucao = data.assinatura_responsavel
+    if data.assinatura_motorista is not None:
+        checklist.assinatura_motorista_devolucao = data.assinatura_motorista
+
     session.add(checklist)
     session.commit()
     session.refresh(checklist)

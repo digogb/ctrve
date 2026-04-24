@@ -4,6 +4,10 @@ import { z } from "zod";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
 import { useAuthContext } from "./AuthContext";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
 const loginSchema = z.object({
   username: z.string().min(1, "Informe o usuário"),
@@ -37,61 +41,64 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="login-container">
-      <div className="login-card">
-        <h1>CTRVE</h1>
-        <h2>Checklist de Transporte de Veículos</h2>
+    <div className="flex min-h-screen items-center justify-center bg-surface px-4">
+      <Card className="w-full max-w-sm">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl">CTRVE</CardTitle>
+          <CardDescription>Checklist de Transporte de Veículos</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {sessionMsg && (
+            <div role="alert" className="mb-4 rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">
+              {sessionMsg}
+            </div>
+          )}
 
-        {sessionMsg && (
-          <div role="alert" className="error-alert">
-            {sessionMsg}
-          </div>
-        )}
+          {successMsg && (
+            <div role="status" className="mb-4 rounded-md border border-success/30 bg-success/10 px-3 py-2 text-sm text-success">
+              {successMsg}
+            </div>
+          )}
 
-        {successMsg && (
-          <div role="status" className="success-alert">
-            {successMsg}
-          </div>
-        )}
+          {loginError && !successMsg && (
+            <div role="alert" className="mb-4 rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">
+              {loginError}
+            </div>
+          )}
 
-        {loginError && !successMsg && (
-          <div role="alert" className="error-alert">
-            {loginError}
-          </div>
-        )}
+          <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="username">Usuário</Label>
+              <Input
+                id="username"
+                type="text"
+                autoComplete="username"
+                {...register("username")}
+              />
+              {errors.username && (
+                <p className="text-sm text-danger">{errors.username.message}</p>
+              )}
+            </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} noValidate>
-          <div className="form-field">
-            <label htmlFor="username">Usuário</label>
-            <input
-              id="username"
-              type="text"
-              autoComplete="username"
-              {...register("username")}
-            />
-            {errors.username && (
-              <span className="field-error">{errors.username.message}</span>
-            )}
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Senha</Label>
+              <Input
+                id="password"
+                type="password"
+                autoComplete="current-password"
+                {...register("password")}
+              />
+              {errors.password && (
+                <p className="text-sm text-danger">{errors.password.message}</p>
+              )}
+            </div>
 
-          <div className="form-field">
-            <label htmlFor="password">Senha</label>
-            <input
-              id="password"
-              type="password"
-              autoComplete="current-password"
-              {...register("password")}
-            />
-            {errors.password && (
-              <span className="field-error">{errors.password.message}</span>
-            )}
-          </div>
-
-          <button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Entrando..." : "Entrar"}
-          </button>
-        </form>
-      </div>
+            <Button type="submit" disabled={isSubmitting} className="w-full">
+              {isSubmitting ? "Entrando..." : "Entrar"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }

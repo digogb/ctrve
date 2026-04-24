@@ -5,6 +5,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
 import apiClient from "../../lib/apiClient";
 import { registerSchema, type RegisterFormData } from "./registerSchema";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function RegisterForm() {
   const navigate = useNavigate();
@@ -57,86 +61,87 @@ export default function RegisterForm() {
   };
 
   return (
-    <div className="register-container">
-      <div className="register-card">
-        <h2>Cadastrar Usuário</h2>
+    <div className="flex min-h-screen items-center justify-center bg-surface px-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <CardTitle className="text-xl">Cadastrar Usuário</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {successMessage && (
+            <div role="status" className="mb-4 rounded-md border border-success/30 bg-success/10 px-3 py-2 text-sm text-success">
+              {successMessage}
+            </div>
+          )}
 
-        {successMessage && (
-          <div role="status" className="success-alert">
-            {successMessage}
-          </div>
-        )}
+          {serverError && (
+            <div role="alert" className="mb-4 rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">
+              {serverError}
+            </div>
+          )}
 
-        {serverError && (
-          <div role="alert" className="error-alert">
-            {serverError}
-          </div>
-        )}
+          <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="full_name">Nome Completo</Label>
+              <Input id="full_name" type="text" {...register("full_name")} />
+              {errors.full_name && (
+                <p className="text-sm text-danger">{errors.full_name.message}</p>
+              )}
+            </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} noValidate>
-          <div className="form-field">
-            <label htmlFor="full_name">Nome Completo</label>
-            <input id="full_name" type="text" {...register("full_name")} />
-            {errors.full_name && (
-              <span className="field-error">{errors.full_name.message}</span>
-            )}
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="matricula">Matrícula</Label>
+              <Input id="matricula" type="text" {...register("matricula")} />
+              {errors.matricula && (
+                <p className="text-sm text-danger">{errors.matricula.message}</p>
+              )}
+            </div>
 
-          <div className="form-field">
-            <label htmlFor="matricula">Matrícula</label>
-            <input id="matricula" type="text" {...register("matricula")} />
-            {errors.matricula && (
-              <span className="field-error">{errors.matricula.message}</span>
-            )}
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="username">Usuário</Label>
+              <Input id="username" type="text" {...register("username")} />
+              {errors.username && (
+                <p className="text-sm text-danger">{errors.username.message}</p>
+              )}
+            </div>
 
-          <div className="form-field">
-            <label htmlFor="username">Usuário</label>
-            <input id="username" type="text" {...register("username")} />
-            {errors.username && (
-              <span className="field-error">{errors.username.message}</span>
-            )}
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="role">Perfil</Label>
+              <select
+                id="role"
+                {...register("role")}
+                className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+              >
+                <option value="">Selecione...</option>
+                <option value="responsavel">Responsável</option>
+                <option value="motorista">Motorista</option>
+              </select>
+              {errors.role && (
+                <p className="text-sm text-danger">{errors.role.message}</p>
+              )}
+            </div>
 
-          <div className="form-field">
-            <label htmlFor="role">Perfil</label>
-            <select id="role" {...register("role")}>
-              <option value="">Selecione...</option>
-              <option value="responsavel">Responsável</option>
-              <option value="motorista">Motorista</option>
-            </select>
-            {errors.role && (
-              <span className="field-error">{errors.role.message}</span>
-            )}
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Senha</Label>
+              <Input id="password" type="password" {...register("password")} />
+              {errors.password && (
+                <p className="text-sm text-danger">{errors.password.message}</p>
+              )}
+            </div>
 
-          <div className="form-field">
-            <label htmlFor="password">Senha</label>
-            <input id="password" type="password" {...register("password")} />
-            {errors.password && (
-              <span className="field-error">{errors.password.message}</span>
-            )}
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirmar Senha</Label>
+              <Input id="confirmPassword" type="password" {...register("confirmPassword")} />
+              {errors.confirmPassword && (
+                <p className="text-sm text-danger">{errors.confirmPassword.message}</p>
+              )}
+            </div>
 
-          <div className="form-field">
-            <label htmlFor="confirmPassword">Confirmar Senha</label>
-            <input
-              id="confirmPassword"
-              type="password"
-              {...register("confirmPassword")}
-            />
-            {errors.confirmPassword && (
-              <span className="field-error">
-                {errors.confirmPassword.message}
-              </span>
-            )}
-          </div>
-
-          <button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Cadastrando..." : "Cadastrar"}
-          </button>
-        </form>
-      </div>
+            <Button type="submit" disabled={isSubmitting} className="w-full">
+              {isSubmitting ? "Cadastrando..." : "Cadastrar"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }

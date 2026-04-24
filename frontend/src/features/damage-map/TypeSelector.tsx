@@ -9,9 +9,9 @@ interface TypeSelectorProps {
 }
 
 const TIPOS: { value: TipoAvaria; label: string; color: string }[] = [
-  { value: "risco", label: "Risco", color: "#EF4444" },
-  { value: "amassado", label: "Amassado", color: "#F97316" },
-  { value: "trincado", label: "Trincado", color: "#3B82F6" },
+  { value: "risco", label: "Risco", color: "bg-risco" },
+  { value: "amassado", label: "Amassado", color: "bg-amassado" },
+  { value: "trincado", label: "Trincado", color: "bg-trincado" },
 ];
 
 export default function TypeSelector({ x, y, onSelect, onCancel }: TypeSelectorProps) {
@@ -32,19 +32,11 @@ export default function TypeSelector({ x, y, onSelect, onCancel }: TypeSelectorP
       ref={ref}
       role="group"
       aria-label="Selecione o tipo de avaria"
+      className="absolute z-10 flex gap-1 rounded-md border border-border bg-white p-1 shadow-lg"
       style={{
-        position: "absolute",
         left: `${x}%`,
         top: `${y}%`,
         transform: "translate(-50%, -100%)",
-        background: "white",
-        border: "1px solid #ccc",
-        borderRadius: 6,
-        padding: 4,
-        display: "flex",
-        gap: 4,
-        zIndex: 10,
-        boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
       }}
     >
       {TIPOS.map((t) => (
@@ -53,15 +45,7 @@ export default function TypeSelector({ x, y, onSelect, onCancel }: TypeSelectorP
           type="button"
           name="tipo-avaria"
           onClick={() => onSelect(t.value)}
-          style={{
-            background: t.color,
-            color: "white",
-            border: "none",
-            borderRadius: 4,
-            padding: "4px 8px",
-            cursor: "pointer",
-            fontSize: 12,
-          }}
+          className={`${t.color} rounded px-2 py-1 text-xs text-white hover:opacity-80`}
         >
           {t.label}
         </button>
@@ -69,15 +53,7 @@ export default function TypeSelector({ x, y, onSelect, onCancel }: TypeSelectorP
       <button
         type="button"
         onClick={onCancel}
-        style={{
-          background: "#6B7280",
-          color: "white",
-          border: "none",
-          borderRadius: 4,
-          padding: "4px 8px",
-          cursor: "pointer",
-          fontSize: 12,
-        }}
+        className="rounded bg-muted px-2 py-1 text-xs text-white hover:opacity-80"
       >
         Cancelar
       </button>

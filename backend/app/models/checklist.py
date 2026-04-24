@@ -27,6 +27,14 @@ class Checklist(SQLModel, table=True):
     avarias: list[Any] | None = Field(default=None, sa_column=Column(JSON))
     nivel_combustivel: str | None = None
     data_entrega: datetime | None = None
+    assinatura_responsavel: str | None = None
+    assinatura_motorista: str | None = None
+    quilometragem_final: float | None = None
+    data_devolucao: datetime | None = None
+    itens_devolucao: list[Any] | None = Field(default=None, sa_column=Column(JSON))
+    nivel_combustivel_devolucao: str | None = None
+    assinatura_responsavel_devolucao: str | None = None
+    assinatura_motorista_devolucao: str | None = None
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc)
     )

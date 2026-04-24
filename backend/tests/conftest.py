@@ -110,6 +110,57 @@ def checklist_entrega_payload_fixture():
     }
 
 
+@pytest.fixture(name="locked_checklist")
+def locked_checklist_fixture(session):
+    from datetime import datetime, timezone
+    from app.models.checklist import Checklist, ChecklistStatus
+
+    nomes = [
+        "Documento Veicular", "Chave de Roda", "Macaco", "Triângulo de Sinalização",
+        "Estepe", "Extintor de Incêndio", "Cintos de Segurança", "Luzes de Freios",
+        "Nível de água (aditivo)", "Óleo de motor",
+        "Luzes de Posição (faroletes)", "Faróis (alto e baixo)", "Luzes de Seta (pisca-alerta)",
+        "Luz de Placa", "Luz de Ré", "Ar Condicionado", "Buzina",
+        "Rádio/Multimídia", "Fluidos de Freios", "Limpadores de Para-brisa",
+    ]
+    c = Checklist(
+        placa="ABC1D23",
+        unidade="SECLOG",
+        motorista="João Silva",
+        matricula_motorista="123456",
+        quilometragem_inicial=50000.0,
+        status=ChecklistStatus.entregue,
+        is_locked=True,
+        itens=[{"nome": nome, "status": "ok"} for nome in nomes],
+        nivel_combustivel="3/4",
+        data_entrega=datetime(2026, 4, 20, 10, 0, tzinfo=timezone.utc),
+    )
+    session.add(c)
+    session.commit()
+    session.refresh(c)
+    return c
+
+
+@pytest.fixture(name="checklist_devolucao_payload")
+def checklist_devolucao_payload_fixture():
+    from datetime import datetime, timezone
+
+    nomes = [
+        "Documento Veicular", "Chave de Roda", "Macaco", "Triângulo de Sinalização",
+        "Estepe", "Extintor de Incêndio", "Cintos de Segurança", "Luzes de Freios",
+        "Nível de água (aditivo)", "Óleo de motor",
+        "Luzes de Posição (faroletes)", "Faróis (alto e baixo)", "Luzes de Seta (pisca-alerta)",
+        "Luz de Placa", "Luz de Ré", "Ar Condicionado", "Buzina",
+        "Rádio/Multimídia", "Fluidos de Freios", "Limpadores de Para-brisa",
+    ]
+    return {
+        "itens": [{"nome": nome, "status": "ok"} for nome in nomes],
+        "nivel_combustivel": "2/4",
+        "quilometragem_final": 51000.0,
+        "data_devolucao": datetime(2026, 4, 23, 14, 0, tzinfo=timezone.utc).isoformat(),
+    }
+
+
 @pytest.fixture(name="motorista_headers")
 def motorista_headers_fixture(client, session):
     motorista = User(

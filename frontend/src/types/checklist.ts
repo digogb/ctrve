@@ -23,5 +23,13 @@ export interface ChecklistResponse {
   nivel_combustivel: NivelCombustivel | null;
   data_entrega: string | null;
   avarias: DamagePoint[] | null;
+  assinatura_responsavel: string | null;
+  assinatura_motorista: string | null;
+  quilometragem_final: number | null;
+  data_devolucao: string | null;
+  itens_devolucao: ChecklistItemData[] | null;
+  nivel_combustivel_devolucao: NivelCombustivel | null;
+  assinatura_responsavel_devolucao: string | null;
+  assinatura_motorista_devolucao: string | null;
   created_at: string;
 }

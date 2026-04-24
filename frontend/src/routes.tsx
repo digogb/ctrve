@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, Link } from "react-router-dom";
 import LoginForm from "./features/auth/LoginForm";
 import RegisterForm from "./features/auth/RegisterForm";
 import ChecklistForm from "./features/checklist/ChecklistForm";
@@ -8,7 +8,20 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import RequireRole from "./components/RequireRole";
 
 function Dashboard() {
-  return <div>Dashboard — em desenvolvimento</div>;
+  return (
+    <div className="mx-auto max-w-3xl p-6">
+      <h1 className="mb-4 text-2xl font-bold">CTRVE</h1>
+      <p className="mb-6 text-muted">Checklist de Transporte de Veículos</p>
+      <div className="flex gap-3">
+        <Link to="/checklists/new" className="inline-flex h-9 items-center rounded-md bg-primary px-4 text-sm font-medium text-white hover:bg-primary-dark">
+          Novo Checklist
+        </Link>
+        <Link to="/checklists" className="inline-flex h-9 items-center rounded-md border border-border px-4 text-sm font-medium hover:bg-surface">
+          Buscar por Placa
+        </Link>
+      </div>
+    </div>
+  );
 }
 
 export default function AppRoutes() {

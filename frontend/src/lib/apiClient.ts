@@ -77,9 +77,12 @@ apiClient.interceptors.response.use(
       return apiClient(original);
     } catch (refreshError) {
       flushQueue(null, refreshError);
+      const hadSession = !!accessToken;
       clearAccessToken();
       isRefreshing = false;
-      window.dispatchEvent(new Event("session-expired"));
+      if (hadSession) {
+        window.dispatchEvent(new Event("session-expired"));
+      }
       return Promise.reject(error);
     }
   }

@@ -135,12 +135,12 @@ export default function VehicleView({
 
   return (
     <div data-testid={`vehicle-view-${vista}`}>
-      <h3 style={{ fontSize: 14, textAlign: "center", margin: "0 0 4px" }}>{label}</h3>
-      <div style={{ position: "relative" }}>
+      <h3 className="mb-1 text-center text-sm font-medium">{label}</h3>
+      <div className="relative">
         <svg
           viewBox="0 0 300 300"
           width="100%"
-          style={{ border: "1px solid #D1D5DB", borderRadius: 8, cursor: readOnly ? "default" : "crosshair", display: "block" }}
+          className={`block rounded-lg border border-border ${readOnly ? "cursor-default" : "cursor-crosshair"}`}
           onClick={handleSvgClick}
           aria-label={label}
           role="img"
@@ -173,31 +173,17 @@ export default function VehicleView({
 
         {!readOnly && selectedIndex !== null && points[selectedIndex] && (
           <div
+            className="absolute z-10 rounded-md border border-border bg-white p-1 shadow-lg"
             style={{
-              position: "absolute",
               left: `${points[selectedIndex].x}%`,
               top: `${points[selectedIndex].y}%`,
               transform: "translate(-50%, -100%)",
-              background: "white",
-              border: "1px solid #ccc",
-              borderRadius: 6,
-              padding: 4,
-              zIndex: 10,
-              boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
             }}
           >
             <button
               type="button"
               onClick={() => handleRemove(selectedIndex)}
-              style={{
-                background: "#EF4444",
-                color: "white",
-                border: "none",
-                borderRadius: 4,
-                padding: "4px 8px",
-                cursor: "pointer",
-                fontSize: 12,
-              }}
+              className="rounded bg-danger px-2 py-1 text-xs text-white hover:bg-danger-dark"
             >
               Remover
             </button>

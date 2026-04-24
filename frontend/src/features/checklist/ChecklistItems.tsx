@@ -54,30 +54,40 @@ export default function ChecklistItems(props: ChecklistItemsProps) {
   if (props.readOnly) {
     const { savedItems } = props;
     return (
-      <section className="checklist-items">
-        <h3>Verificar Itens do Veículo</h3>
-        <div className="checklist-columns">
-          <div className="checklist-column">
-            <h4>Documentação/Equipamentos</h4>
-            {esquerda.map((item) => {
-              const saved = savedItems.find((s) => s.nome === item.nome);
-              return (
-                <p key={item.nome} className="checklist-item-readonly">
-                  {item.nome}: <strong>{statusText(saved?.status)}</strong>
-                </p>
-              );
-            })}
+      <section className="mt-6">
+        <h3 className="mb-3 text-lg font-semibold">Verificar Itens do Veículo</h3>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <div>
+            <h4 className="mb-2 text-sm font-medium text-muted">Documentação/Equipamentos</h4>
+            <ul className="space-y-1">
+              {esquerda.map((item) => {
+                const saved = savedItems.find((s) => s.nome === item.nome);
+                return (
+                  <li key={item.nome} className="flex items-center justify-between rounded px-2 py-1 text-sm odd:bg-surface">
+                    <span>{item.nome}</span>
+                    <span className={`font-medium ${saved?.status === "ok" ? "text-success" : saved?.status === "nao_ok" ? "text-danger" : "text-muted"}`}>
+                      {statusText(saved?.status)}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
           </div>
-          <div className="checklist-column">
-            <h4>Condições do Veículo</h4>
-            {direita.map((item) => {
-              const saved = savedItems.find((s) => s.nome === item.nome);
-              return (
-                <p key={item.nome} className="checklist-item-readonly">
-                  {item.nome}: <strong>{statusText(saved?.status)}</strong>
-                </p>
-              );
-            })}
+          <div>
+            <h4 className="mb-2 text-sm font-medium text-muted">Condições do Veículo</h4>
+            <ul className="space-y-1">
+              {direita.map((item) => {
+                const saved = savedItems.find((s) => s.nome === item.nome);
+                return (
+                  <li key={item.nome} className="flex items-center justify-between rounded px-2 py-1 text-sm odd:bg-surface">
+                    <span>{item.nome}</span>
+                    <span className={`font-medium ${saved?.status === "ok" ? "text-success" : saved?.status === "nao_ok" ? "text-danger" : "text-muted"}`}>
+                      {statusText(saved?.status)}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
           </div>
         </div>
       </section>
@@ -86,24 +96,23 @@ export default function ChecklistItems(props: ChecklistItemsProps) {
 
   const { control, errors } = props;
 
-  return (
-    <section className="checklist-items">
-      <h3>Verificar Itens do Veículo</h3>
-      <div className="checklist-columns">
-        <div className="checklist-column">
-          <h4>Documentação/Equipamentos</h4>
-          {esquerda.map((item) => {
-            const index = CHECKLIST_ITEMS.indexOf(item);
-            const fieldError = errors.itens?.[index]?.status;
-            return (
-              <Controller
-                key={item.nome}
-                name={`itens.${index}.status`}
-                control={control}
-                render={({ field }) => (
-                  <fieldset className="checklist-item">
-                    <legend>{item.nome}</legend>
-                    <label>
+  const renderColumn = (items: typeof CHECKLIST_ITEMS, title: string) => (
+    <div>
+      <h4 className="mb-2 text-sm font-medium text-muted">{title}</h4>
+      <div className="space-y-2">
+        {items.map((item) => {
+          const index = CHECKLIST_ITEMS.indexOf(item);
+          const fieldError = errors.itens?.[index]?.status;
+          return (
+            <Controller
+              key={item.nome}
+              name={`itens.${index}.status`}
+              control={control}
+              render={({ field }) => (
+                <fieldset className="rounded-md border px-3 py-2">
+                  <legend className="text-sm font-medium">{item.nome}</legend>
+                  <div className="mt-1 flex gap-4">
+                    <label className="flex items-center gap-1.5 text-sm">
                       <input
                         type="radio"
                         id={`item-${index}-ok`}
@@ -111,10 +120,11 @@ export default function ChecklistItems(props: ChecklistItemsProps) {
                         value="ok"
                         checked={field.value === "ok"}
                         onChange={() => field.onChange("ok")}
+                        className="accent-success"
                       />
                       OK
                     </label>
-                    <label>
+                    <label className="flex items-center gap-1.5 text-sm">
                       <input
                         type="radio"
                         id={`item-${index}-nao_ok`}
@@ -122,67 +132,29 @@ export default function ChecklistItems(props: ChecklistItemsProps) {
                         value="nao_ok"
                         checked={field.value === "nao_ok"}
                         onChange={() => field.onChange("nao_ok")}
+                        className="accent-danger"
                       />
                       Não OK
                     </label>
-                    {fieldError && (
-                      <span className="field-error" role="alert">
-                        {fieldError.message}
-                      </span>
-                    )}
-                  </fieldset>
-                )}
-              />
-            );
-          })}
-        </div>
+                  </div>
+                  {fieldError && (
+                    <p className="mt-1 text-xs text-danger" role="alert">{fieldError.message}</p>
+                  )}
+                </fieldset>
+              )}
+            />
+          );
+        })}
+      </div>
+    </div>
+  );
 
-        <div className="checklist-column">
-          <h4>Condições do Veículo</h4>
-          {direita.map((item) => {
-            const index = CHECKLIST_ITEMS.indexOf(item);
-            const fieldError = errors.itens?.[index]?.status;
-            return (
-              <Controller
-                key={item.nome}
-                name={`itens.${index}.status`}
-                control={control}
-                render={({ field }) => (
-                  <fieldset className="checklist-item">
-                    <legend>{item.nome}</legend>
-                    <label>
-                      <input
-                        type="radio"
-                        id={`item-${index}-ok`}
-                        name={field.name}
-                        value="ok"
-                        checked={field.value === "ok"}
-                        onChange={() => field.onChange("ok")}
-                      />
-                      OK
-                    </label>
-                    <label>
-                      <input
-                        type="radio"
-                        id={`item-${index}-nao_ok`}
-                        name={field.name}
-                        value="nao_ok"
-                        checked={field.value === "nao_ok"}
-                        onChange={() => field.onChange("nao_ok")}
-                      />
-                      Não OK
-                    </label>
-                    {fieldError && (
-                      <span className="field-error" role="alert">
-                        {fieldError.message}
-                      </span>
-                    )}
-                  </fieldset>
-                )}
-              />
-            );
-          })}
-        </div>
+  return (
+    <section className="mt-6">
+      <h3 className="mb-3 text-lg font-semibold">Verificar Itens do Veículo</h3>
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        {renderColumn(esquerda, "Documentação/Equipamentos")}
+        {renderColumn(direita, "Condições do Veículo")}
       </div>
     </section>
   );

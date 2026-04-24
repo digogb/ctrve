@@ -39,3 +39,25 @@
 - Flash redirect potencial em React StrictMode/dev — `ProtectedRoute` pode renderizar `<Navigate to="/login">` por sub-ms antes do cache hidratar; quirk de dev, não afeta produção.
 - `queryClient` instanciado fora do componente `App` — estado persiste entre renders em testes; extrair para dentro do componente ou limpar no teardown de testes.
 - `require_role` igualdade estrita sem suporte a hierarquia de roles — com 2 roles atuais não é problema; refatorar para `role: UserRole | set[UserRole]` quando o modelo de roles crescer.
+
+## Deferred from: code review of 3-3-coletar-assinaturas-na-entrega (2026-04-23)
+
+- Migração de banco para colunas `assinatura_responsavel` e `assinatura_motorista` — em dev, deletar `ctrve.db`; gerar Alembic migration antes de deploy.
+- Validação base64 verifica apenas prefixo `data:image/png;base64,`, não valida conteúdo real — defense-in-depth; implementar `base64.b64decode(payload, validate=True)` em refactor de segurança.
+- `fetchMe` em `useAuth.ts` retorna `null` para 401 — mudança de tipo pode causar inconsistência `null` vs `undefined` em consumers; auditar quando refatorar auth.
+- `queryClient.cancelQueries` não awaited em `logout()` — race condition teórica onde resposta stale pode sobrescrever `null`; resolver em refactor de auth.
+- `session-expired` condicionado a `hadSession` — comportamento once-only via variável module-level; documentar intenção.
+- Componentes shadcn `select.tsx`, `radio-group.tsx` instalados mas não importados — manter para stories futuras (RegisterForm, etc.).
+- `react-signature-canvas@1.1.0-alpha.2` em versão alpha — fixar versão exata ou avaliar estável `1.0.6` quando necessário.
+- `legacy-peer-deps=true` no `.npmrc` — workaround para React 19 peer deps; resolver quando ecossistema atualizar.
+- ReadOnly mostra seção "Assinaturas" sem feedback quando apenas uma assinatura existe — adicionar placeholder "Não assinado" em melhoria UX futura.
+- Canvas `react-signature-canvas` com resolução fixa 300x150 pixels — distorção em containers maiores; implementar ResizeObserver ou dimensões explícitas em story de responsividade mobile.
+
+## Deferred from: code review of 4-1-preencher-checklist-de-devolucao (2026-04-23)
+
+- Frontend string date comparison no submit handler de devolução — compara ISO strings em vez de `new Date()` objects; código morto enquanto botão Salvar estiver disabled; corrigir em Story 5.1.
+- Sem success handler / query refresh no submit de devolução — `.catch()` existe mas não há `.then()` para invalidar query cache ou dar feedback; código morto enquanto botão Salvar estiver disabled; implementar em Story 5.1.
+- Sem verificação de ownership (IDOR) no endpoint PATCH devolucao — qualquer `responsavel` pode alterar qualquer checklist; pre-existing desde Epic 2; avaliar como requisito de segurança quando multi-tenant for necessário.
+- Sem idempotência / proteção contra double-submit e race condition — last-write-wins silencioso no PATCH devolucao; pre-existing (já listado em review de 3-1); implementar versioning/409 em story dedicada.
+- Erros do backend (422/400) não exibidos no frontend DevolucaoForm — apenas erro genérico no catch; código morto; implementar em Story 5.1.
+- Sem testes de validação do formulário frontend de devolução — form não é submittable (botão disabled); adicionar quando Story 5.1 habilitar o Save.

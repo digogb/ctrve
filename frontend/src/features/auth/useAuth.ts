@@ -8,9 +8,16 @@ const ME_QUERY_KEY = ["me"] as const;
 const INACTIVITY_MS = 30 * 60 * 1000;
 const ACTIVITY_EVENTS = ["mousemove", "keydown", "click", "scroll", "touchstart"] as const;
 
-async function fetchMe(): Promise<User> {
-  const { data } = await apiClient.get<User>("/v1/users/me");
-  return data;
+async function fetchMe(): Promise<User | null> {
+  try {
+    const { data } = await apiClient.get<User>("/v1/users/me");
+    return data;
+  } catch (err) {
+    if (isAxiosError(err) && err.response?.status === 401) {
+      return null;
+    }
+    throw err;
+  }
 }
 
 export function useAuth() {
@@ -28,7 +35,8 @@ export function useAuth() {
   const logout = useCallback(
     (message?: string) => {
       clearAccessToken();
-      queryClient.clear();
+      queryClient.cancelQueries({ queryKey: ME_QUERY_KEY });
+      queryClient.setQueryData(ME_QUERY_KEY, null);
       navigate("/login", message ? { state: { msg: message } } : undefined);
     },
     [queryClient, navigate]
