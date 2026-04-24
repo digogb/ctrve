@@ -1,6 +1,6 @@
 # Story 4.2: Coletar Assinaturas na Devolução
 
-Status: review
+Status: done
 
 ## Story
 
@@ -43,7 +43,11 @@ para que ambas as partes confirmem as condições do veículo no momento da devo
 
 ### Review Findings
 
-- [ ] [Review][Patch] Adicionar teste backend: PATCH devolução sem assinaturas não altera assinaturas existentes [backend/tests/api/test_checklists.py]
+- [x] [Review][Patch] Adicionar teste backend: PATCH devolução sem assinaturas não altera assinaturas existentes [backend/tests/api/test_checklists.py]
+- [x] [Review][Patch] Verificar sucesso do PATCH antes do GET em `test_get_checklist_retorna_assinaturas_devolucao` [backend/tests/api/test_checklists.py]
+- [x] [Review][Defer] Impossível limpar assinatura já salva — backend trata `null` como "não enviado" [backend/app/services/checklist_service.py:124-127] — deferred, pre-existing
+- [x] [Review][Defer] Zod schema não valida formato base64 das assinaturas (backend valida) [frontend/src/features/checklist/checklistSchema.ts:74-75] — deferred, pre-existing
+- [x] [Review][Defer] Backend aceita devolução sem `data_entrega` preenchida — validação de data pulada [backend/app/services/checklist_service.py:110] — deferred, pre-existing
 
 ## Dev Notes
 

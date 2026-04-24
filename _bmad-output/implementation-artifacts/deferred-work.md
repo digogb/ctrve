@@ -61,3 +61,9 @@
 - Sem idempotência / proteção contra double-submit e race condition — last-write-wins silencioso no PATCH devolucao; pre-existing (já listado em review de 3-1); implementar versioning/409 em story dedicada.
 - Erros do backend (422/400) não exibidos no frontend DevolucaoForm — apenas erro genérico no catch; código morto; implementar em Story 5.1.
 - Sem testes de validação do formulário frontend de devolução — form não é submittable (botão disabled); adicionar quando Story 5.1 habilitar o Save.
+
+## Deferred from: code review of 4-2-coletar-assinaturas-na-devolucao (2026-04-24)
+
+- Impossível limpar assinatura já salva — `checklist_service.py:124-127` usa `if data.assinatura_responsavel is not None` para decidir se persiste; `None` (campo não enviado) e `null` (limpar) são indistinguíveis; implementar distinção via `model_fields_set` ou sentinel quando necessário.
+- Zod schema não valida formato base64 das assinaturas — `checklistSchema.ts:74-75` aceita qualquer string; backend valida no Pydantic; adicionar `.regex()` ou `.refine()` no frontend para mensagens de erro amigáveis.
+- Backend aceita devolução sem `data_entrega` preenchida — `checklist_service.py:110` pula validação de data se `data_entrega` é None; depende do fluxo de lock garantir que data_entrega está preenchida; considerar constraint no banco.

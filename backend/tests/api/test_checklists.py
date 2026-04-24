@@ -810,13 +810,32 @@ def test_get_checklist_retorna_assinaturas_devolucao(client, test_user, locked_c
         "assinatura_responsavel": VALID_SIGNATURE,
         "assinatura_motorista": VALID_SIGNATURE,
     }
-    client.patch(
+    patch_resp = client.patch(
         f"/api/v1/checklists/{locked_checklist.id}/devolucao",
         json=payload,
         headers=_headers(test_user),
     )
+    assert patch_resp.status_code == 200
     response = client.get(
         f"/api/v1/checklists/{locked_checklist.id}",
+        headers=_headers(test_user),
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["assinatura_responsavel_devolucao"] == VALID_SIGNATURE
+    assert data["assinatura_motorista_devolucao"] == VALID_SIGNATURE
+
+
+def test_update_devolucao_sem_assinaturas(client, test_user, locked_checklist, checklist_devolucao_payload, session):
+    """PATCH devolução sem campos de assinatura não altera assinaturas existentes."""
+    locked_checklist.assinatura_responsavel_devolucao = VALID_SIGNATURE
+    locked_checklist.assinatura_motorista_devolucao = VALID_SIGNATURE
+    session.add(locked_checklist)
+    session.commit()
+
+    response = client.patch(
+        f"/api/v1/checklists/{locked_checklist.id}/devolucao",
+        json=checklist_devolucao_payload,
         headers=_headers(test_user),
     )
     assert response.status_code == 200
