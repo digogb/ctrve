@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useUnsavedChanges } from "../../hooks/useUnsavedChanges";
 
 function EntregaReadOnly({ checklist }: { checklist: ChecklistResponse }) {
   return (
@@ -144,11 +145,17 @@ function DevolucaoReadOnly({ checklist }: { checklist: ChecklistResponse }) {
   );
 }
 
-function DevolucaoForm({ checklist }: { checklist: ChecklistResponse }) {
+function DevolucaoForm({
+  checklist,
+  onDirtyChange,
+}: {
+  checklist: ChecklistResponse;
+  onDirtyChange?: (dirty: boolean) => void;
+}) {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
-  const { control, register, reset, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm<ChecklistDevolucaoData>({
+  const { control, register, reset, handleSubmit, setError, formState: { errors, isSubmitting, isDirty } } = useForm<ChecklistDevolucaoData>({
     resolver: zodResolver(checklistDevolucaoSchema),
     defaultValues: {
       itens: CHECKLIST_ITEMS.map((item) => ({ nome: item.nome, status: undefined })),
@@ -180,6 +187,10 @@ function DevolucaoForm({ checklist }: { checklist: ChecklistResponse }) {
       });
     }
   }, [checklist, reset]);
+
+  useEffect(() => {
+    onDirtyChange?.(isDirty);
+  }, [isDirty, onDirtyChange]);
 
   const onSubmit = async (data: ChecklistDevolucaoData) => {
     setSubmitError(null);
@@ -313,6 +324,7 @@ export default function ChecklistView() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [devolucaoDirty, setDevolucaoDirty] = useState(false);
 
   const { data: checklist, isLoading, isError } = useQuery<ChecklistResponse>({
     queryKey: ["checklists", id ?? ""],
@@ -432,6 +444,15 @@ export default function ChecklistView() {
     }
   };
 
+  const isFormDirtyEntrega =
+    checklist !== undefined && !checklist.is_locked && entregaForm.formState.isDirty;
+  const isFormDirtyDevolucao =
+    checklist !== undefined &&
+    checklist.is_locked === true &&
+    checklist.status === "entregue" &&
+    devolucaoDirty;
+  const { guardedNavigate } = useUnsavedChanges(isFormDirtyEntrega || isFormDirtyDevolucao);
+
   if (!id) return <p role="alert" className="p-4 text-danger">ID do checklist inválido.</p>;
   if (isLoading) return <p aria-live="polite" className="p-4 text-muted">Carregando...</p>;
   if (isError) return <p role="alert" className="p-4 text-danger">Erro ao carregar checklist. Tente novamente.</p>;
@@ -447,6 +468,14 @@ export default function ChecklistView() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 p-4">
+      <Button
+        type="button"
+        variant="ghost"
+        className="mb-2 px-0 text-sm"
+        onClick={() => guardedNavigate(-1)}
+      >
+        ← Voltar
+      </Button>
       <h1 className="text-2xl font-bold">{title}</h1>
 
       <Card>
@@ -591,7 +620,7 @@ export default function ChecklistView() {
         <EntregaReadOnly checklist={checklist} />
       )}
 
-      {isFillingDevolucao && <DevolucaoForm checklist={checklist} />}
+      {isFillingDevolucao && <DevolucaoForm checklist={checklist} onDirtyChange={setDevolucaoDirty} />}
 
       {isFullyCompleted && <DevolucaoReadOnly checklist={checklist} />}
     </div>

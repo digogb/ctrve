@@ -974,4 +974,152 @@ describe("ChecklistView", () => {
     expect(apiClient.delete).not.toHaveBeenCalled();
     expect(screen.getByRole("button", { name: /cancelar/i })).toBeInTheDocument();
   });
+
+  it("exibe botão Voltar quando checklist não está salvo", async () => {
+    vi.mocked(apiClient.get).mockResolvedValue({ data: BASE_CHECKLIST });
+    renderAt("1");
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /voltar/i })).toBeInTheDocument();
+    });
+  });
+
+  it("exibe botão Voltar quando checklist está em modo read-only", async () => {
+    const devolvido = { ...BASE_CHECKLIST, is_locked: true, status: "devolvido" as const };
+    vi.mocked(apiClient.get).mockResolvedValue({ data: devolvido });
+    renderAt("1");
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /voltar/i })).toBeInTheDocument();
+    });
+  });
+
+  it("exibe botão Voltar quando checklist está preenchendo devolução (AC-1)", async () => {
+    const fillingDevolucao = { ...BASE_CHECKLIST, is_locked: true, status: "entregue" as const };
+    vi.mocked(apiClient.get).mockResolvedValue({ data: fillingDevolucao });
+    renderAt("1");
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /voltar/i })).toBeInTheDocument();
+    });
+  });
+
+  it("Voltar sem alterações no form navega sem confirm", async () => {
+    vi.mocked(apiClient.get).mockResolvedValue({ data: BASE_CHECKLIST });
+    const confirmSpy = vi.spyOn(window, "confirm");
+
+    const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(
+      <QueryClientProvider client={qc}>
+        <MemoryRouter initialEntries={["/", "/checklists/1"]} initialIndex={1}>
+          <Routes>
+            <Route path="/" element={<div data-testid="home">Home</div>} />
+            <Route path="/checklists/:id" element={<ChecklistView />} />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>
+    );
+
+    await waitFor(() => screen.getByRole("button", { name: /voltar/i }));
+    fireEvent.click(screen.getByRole("button", { name: /voltar/i }));
+
+    expect(confirmSpy).not.toHaveBeenCalled();
+    await waitFor(() => {
+      expect(screen.getByTestId("home")).toBeInTheDocument();
+    });
+  });
+
+  it("Voltar com form sujo exibe MSG-021", async () => {
+    vi.mocked(apiClient.get).mockResolvedValue({ data: BASE_CHECKLIST });
+    vi.spyOn(window, "confirm").mockReturnValueOnce(false);
+    renderAt("1");
+
+    await waitFor(() => screen.getByLabelText(/data e horário/i));
+    fireEvent.change(screen.getByLabelText(/data e horário/i), {
+      target: { value: "2026-04-27T10:00" },
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /voltar/i }));
+
+    expect(window.confirm).toHaveBeenCalledWith(
+      "Existem dados não salvos neste formulário. Deseja sair sem salvar?"
+    );
+  });
+
+  it("Voltar com negação não navega e permanece na tela", async () => {
+    vi.mocked(apiClient.get).mockResolvedValue({ data: BASE_CHECKLIST });
+    vi.spyOn(window, "confirm").mockReturnValueOnce(false);
+
+    const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(
+      <QueryClientProvider client={qc}>
+        <MemoryRouter initialEntries={["/", "/checklists/1"]} initialIndex={1}>
+          <Routes>
+            <Route path="/" element={<div data-testid="home">Home</div>} />
+            <Route path="/checklists/:id" element={<ChecklistView />} />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>
+    );
+
+    await waitFor(() => screen.getByLabelText(/data e horário da entrega/i));
+    fireEvent.change(screen.getByLabelText(/data e horário da entrega/i), {
+      target: { value: "2026-04-27T10:00" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /voltar/i }));
+
+    expect(screen.getByRole("button", { name: /voltar/i })).toBeInTheDocument();
+    expect(screen.queryByTestId("home")).not.toBeInTheDocument();
+  });
+
+  it("Voltar com form devolução sujo exibe MSG-021 (AC-6)", async () => {
+    const fillingDevolucao = {
+      ...BASE_CHECKLIST,
+      is_locked: true,
+      status: "entregue" as const,
+      nivel_combustivel: "3/4",
+      data_entrega: "2026-04-23T14:00:00Z",
+      itens: ALL_ITEM_NAMES.map((nome) => ({ nome, status: "ok" as const })),
+    };
+    vi.mocked(apiClient.get).mockResolvedValue({ data: fillingDevolucao });
+    vi.spyOn(window, "confirm").mockReturnValueOnce(false);
+    renderAt("1");
+
+    await waitFor(() => screen.getByLabelText(/quilometragem final/i));
+    fireEvent.change(screen.getByLabelText(/quilometragem final/i), {
+      target: { value: "11000" },
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /voltar/i }));
+
+    await waitFor(() => {
+      expect(window.confirm).toHaveBeenCalledWith(
+        "Existem dados não salvos neste formulário. Deseja sair sem salvar?"
+      );
+    });
+  });
+
+  it("Voltar com confirmação navega para tela anterior", async () => {
+    vi.mocked(apiClient.get).mockResolvedValue({ data: BASE_CHECKLIST });
+    vi.spyOn(window, "confirm").mockReturnValueOnce(true);
+
+    const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(
+      <QueryClientProvider client={qc}>
+        <MemoryRouter initialEntries={["/", "/checklists/1"]} initialIndex={1}>
+          <Routes>
+            <Route path="/" element={<div data-testid="home">Home</div>} />
+            <Route path="/checklists/:id" element={<ChecklistView />} />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>
+    );
+
+    await waitFor(() => screen.getByLabelText(/data e horário/i));
+    fireEvent.change(screen.getByLabelText(/data e horário/i), {
+      target: { value: "2026-04-27T10:00" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /voltar/i }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("home")).toBeInTheDocument();
+    });
+  });
 });

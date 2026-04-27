@@ -88,6 +88,16 @@
 - `window.alert` para MSG-025 (sucesso) e mensagens de erro — padrão pré-existente estabelecido pela spec de story 5.1; substituir por componente de toast/notificação em story de UI polish.
 ## Deferred from: code review of 5-3-cancelar-checklist (2026-04-27)
 
+## Deferred from: code review of 5-4-navegar-entre-telas (2026-04-27)
+
+- `guardedNavigate` type narrowing dead code — `if (typeof to === 'number') navigate(to); else navigate(to)` é idêntico; simplificar para `navigate(to)` em refactor. [frontend/src/hooks/useUnsavedChanges.ts]
+- `devolucaoDirty` pode ficar stale após unmount de `DevolucaoForm` — self-correcting via guards de status no fluxo normal; adicionar cleanup se cenário de remount aparecer. [frontend/src/features/checklist/ChecklistView.tsx]
+- `navigate(-1)` no-op quando histórico está vazio (usuário abriu a página diretamente) — comportamento padrão React Router; adicionar feedback visual se UX exigir. [frontend/src/hooks/useUnsavedChanges.ts]
+- `isFormDirtyDevolucao` recalcula `is_locked === true && status === "entregue"` redundantemente — refatorar junto com simplificação das condições de render. [frontend/src/features/checklist/ChecklistView.tsx]
+- `useUnsavedChanges` acoplado ao React Router — `navigate` poderia ser injetado como parâmetro para melhor testabilidade em isolamento. [frontend/src/hooks/useUnsavedChanges.ts]
+- `MSG_021` constante não exportada — string duplicada entre hook e testes; exportar quando manutenção da string for necessária. [frontend/src/hooks/useUnsavedChanges.ts]
+- `beforeunload` listener ativo durante `onCancel` (DELETE em flight) — após confirmar cancelamento, o listener permanece ativo enquanto o DELETE é processado; fechar a aba durante esse período exibe o prompt de beforeunload mesmo com intenção de sair já confirmada; acceptable para MVP. [frontend/src/features/checklist/ChecklistView.tsx]
+
 - Hard delete sem audit trail — sem campos `cancelled_at`/`cancelled_by` no model `Checklist`; adequado para MVP, mas pode ter implicações regulatórias; adicionar quando rastreabilidade for necessária. [backend/app/services/checklist_service.py]
 - `session.commit()` dentro da camada de serviço em `cancel_checklist` — padrão pré-existente; tratar em refactor de unit-of-work cross-service. [backend/app/services/checklist_service.py]
 - `checklist_abc1d23` nome opaco de fixture — renomear para `unlocked_checklist` em refactor de test-suite para melhorar legibilidade. [backend/tests/conftest.py]
