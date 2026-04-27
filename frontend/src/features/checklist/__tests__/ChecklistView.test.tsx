@@ -792,6 +792,109 @@ describe("ChecklistView", () => {
     });
   });
 
+  // ── Story 5.2: Gerar e Compartilhar PDF ──────────────────────────────────
+
+  it("T7.1 — botão Gerar PDF visível quando checklist está locked", async () => {
+    const locked: ChecklistResponse = {
+      ...BASE_CHECKLIST,
+      is_locked: true,
+      status: "entregue",
+      nivel_combustivel: "3/4",
+      data_entrega: "2026-04-23T14:00:00Z",
+      itens: [{ nome: "Documento Veicular", status: "ok" }],
+    };
+    vi.mocked(apiClient.get).mockResolvedValue({ data: locked });
+    renderAt("1");
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /gerar pdf/i })).toBeInTheDocument();
+    });
+  });
+
+  it("T7.2 — botão Gerar PDF não visível quando checklist não está locked", async () => {
+    vi.mocked(apiClient.get).mockResolvedValue({ data: BASE_CHECKLIST });
+    renderAt("1");
+
+    await waitFor(() => {
+      expect(screen.getByText("ABC1D23")).toBeInTheDocument();
+    });
+    expect(screen.queryByRole("button", { name: /gerar pdf/i })).not.toBeInTheDocument();
+  });
+
+  it("T7.3 — clique no botão Gerar PDF chama endpoint com responseType blob", async () => {
+    const devolvido: ChecklistResponse = {
+      ...BASE_CHECKLIST,
+      is_locked: true,
+      status: "devolvido",
+      nivel_combustivel: "3/4",
+      data_entrega: "2026-04-23T14:00:00Z",
+      itens: [{ nome: "Documento Veicular", status: "ok" }],
+      quilometragem_final: 12000,
+      data_devolucao: "2026-04-23T18:00:00Z",
+      itens_devolucao: [{ nome: "Estepe", status: "ok" }],
+      nivel_combustivel_devolucao: "2/4",
+    };
+    const pdfBlob = new Blob(["%PDF-1.4 mock"], { type: "application/pdf" });
+    vi.mocked(apiClient.get).mockImplementation((url: string, config?: Record<string, unknown>) => {
+      if (config?.responseType === "blob") {
+        return Promise.resolve({ data: pdfBlob });
+      }
+      return Promise.resolve({ data: devolvido });
+    });
+    vi.spyOn(window, "alert").mockImplementation(() => {});
+    const createObjectURL = vi.fn(() => "blob:mock-url");
+    const revokeObjectURL = vi.fn();
+    window.URL.createObjectURL = createObjectURL;
+    window.URL.revokeObjectURL = revokeObjectURL;
+    renderAt("1");
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /gerar pdf/i })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /gerar pdf/i }));
+
+    await waitFor(() => {
+      expect(apiClient.get).toHaveBeenCalledWith(
+        "/v1/checklists/1/pdf",
+        { responseType: "blob" },
+      );
+      expect(window.alert).toHaveBeenCalledWith("PDF gerado com sucesso.");
+      expect(revokeObjectURL).toHaveBeenCalledWith("blob:mock-url");
+    });
+  });
+
+  it("T7.4 — erro ao gerar PDF exibe alerta ao usuário", async () => {
+    const locked: ChecklistResponse = {
+      ...BASE_CHECKLIST,
+      is_locked: true,
+      status: "entregue",
+      nivel_combustivel: "3/4",
+      data_entrega: "2026-04-23T14:00:00Z",
+      itens: [{ nome: "Documento Veicular", status: "ok" }],
+    };
+    const errorBlob = new Blob([JSON.stringify({ detail: "MSG-019" })], { type: "application/json" });
+    vi.mocked(apiClient.get).mockImplementation((url: string, config?: Record<string, unknown>) => {
+      if (config?.responseType === "blob") {
+        return Promise.reject({ response: { data: errorBlob } });
+      }
+      return Promise.resolve({ data: locked });
+    });
+    vi.mocked(isAxiosError).mockReturnValue(true);
+    const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
+    renderAt("1");
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /gerar pdf/i })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /gerar pdf/i }));
+
+    await waitFor(() => {
+      expect(alertSpy).toHaveBeenCalledWith("MSG-019");
+    });
+  });
+
   it("T6.8 — erro do backend (400) exibe mensagem do detail na devolução", async () => {
     const devolucaoChecklist: ChecklistResponse = {
       ...BASE_CHECKLIST,

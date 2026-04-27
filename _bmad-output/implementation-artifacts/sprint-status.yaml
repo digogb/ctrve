@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-04-22T18:00:00
-last_updated: 2026-04-26T13:00:00
+last_updated: 2026-04-27T14:00:00
 project: ctrve
 project_key: NOKEY
 tracking_system: file-system
@@ -71,7 +71,7 @@ development_status:
   # ── Epic 5: Ações, PDF e Navegação ─────────────────────────────────────────
   epic-5: in-progress
   5-1-salvar-checklist: done
-  5-2-gerar-e-compartilhar-pdf: backlog
+  5-2-gerar-e-compartilhar-pdf: done
   5-3-cancelar-checklist: backlog
   5-4-navegar-entre-telas: backlog
   epic-5-retrospective: optional

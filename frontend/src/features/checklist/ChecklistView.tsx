@@ -310,6 +310,7 @@ export default function ChecklistView() {
   const { id } = useParams<{ id: string }>();
   const queryClient = useQueryClient();
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
 
   const { data: checklist, isLoading, isError } = useQuery<ChecklistResponse>({
     queryKey: ["checklists", id ?? ""],
@@ -375,6 +376,40 @@ export default function ChecklistView() {
   const entregaErrors = entregaForm.formState.errors;
   const isEntregaSubmitting = entregaForm.formState.isSubmitting;
 
+  const onDownloadPdf = async () => {
+    setIsDownloadingPdf(true);
+    let url: string | null = null;
+    let link: HTMLAnchorElement | null = null;
+    try {
+      const response = await apiClient.get(`/v1/checklists/${id}/pdf`, {
+        responseType: "blob",
+      });
+      url = window.URL.createObjectURL(new Blob([response.data]));
+      link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `checklist-${id}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      window.alert("PDF gerado com sucesso.");
+    } catch (error) {
+      if (isAxiosError(error) && error.response?.data) {
+        try {
+          const text = await (error.response.data as Blob).text();
+          const json = JSON.parse(text);
+          window.alert(json.message || json.detail || "Erro ao gerar PDF.");
+        } catch {
+          window.alert("Erro ao gerar PDF. Tente novamente.");
+        }
+      } else {
+        window.alert("Erro ao gerar PDF. Tente novamente.");
+      }
+    } finally {
+      link?.remove();
+      if (url) window.URL.revokeObjectURL(url);
+      setIsDownloadingPdf(false);
+    }
+  };
+
   if (!id) return <p role="alert" className="p-4 text-danger">ID do checklist inválido.</p>;
   if (isLoading) return <p aria-live="polite" className="p-4 text-muted">Carregando...</p>;
   if (isError) return <p role="alert" className="p-4 text-danger">Erro ao carregar checklist. Tente novamente.</p>;
@@ -427,6 +462,17 @@ export default function ChecklistView() {
           </dl>
         </CardContent>
       </Card>
+
+      {checklist.is_locked && (
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onDownloadPdf}
+          disabled={isDownloadingPdf}
+        >
+          {isDownloadingPdf ? "Gerando PDF..." : "Gerar PDF"}
+        </Button>
+      )}
 
       {isFillingEntrega && (
         <Card>

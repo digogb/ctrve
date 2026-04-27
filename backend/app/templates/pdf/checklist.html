@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <style>{{ css | safe }}</style>
+</head>
+<body>
+  <h1>Checklist de Transporte de Veículos</h1>
+  <p class="subtitle">Nº de Controle: {{ checklist.id }}</p>
+
+  <h2>Informações Gerais</h2>
+  <div class="info-grid">
+    <div class="info-item"><span class="info-label">Placa:</span> {{ checklist.placa }}</div>
+    <div class="info-item"><span class="info-label">Unidade:</span> {{ checklist.unidade }}</div>
+    {% if checklist.subunidade %}
+    <div class="info-item"><span class="info-label">Subunidade:</span> {{ checklist.subunidade }}</div>
+    {% endif %}
+    <div class="info-item"><span class="info-label">Motorista:</span> {{ checklist.motorista }}</div>
+    <div class="info-item"><span class="info-label">Matrícula:</span> {{ checklist.matricula_motorista }}</div>
+    <div class="info-item"><span class="info-label">Quilometragem Inicial:</span> {{ checklist.quilometragem_inicial }} km</div>
+    <div class="info-item"><span class="info-label">Status:</span> {{ "Devolvido" if is_devolvido else "Entregue" }}</div>
+  </div>
+
+  {# ── ENTREGA ────────────────────────────────────────────── #}
+  <h2>Checklist de Entrega</h2>
+
+  {% if checklist.data_entrega %}
+  <p><span class="info-label">Data da Entrega:</span> {{ checklist.data_entrega.strftime('%d/%m/%Y %H:%M') }}</p>
+  {% endif %}
+
+  {% if itens %}
+  <table>
+    <thead>
+      <tr><th>Item</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      {% for item in itens %}
+      <tr>
+        <td>{{ item.nome if item is mapping else item['nome'] }}</td>
+        <td class="{{ 'status-ok' if (item.status if item is mapping else item['status']) == 'ok' else 'status-nao-ok' }}">
+          {{ 'OK' if (item.status if item is mapping else item['status']) == 'ok' else 'Não OK' }}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+
+  {% if checklist.nivel_combustivel %}
+  <p class="fuel-level"><span class="info-label">Nível de Combustível:</span> {{ checklist.nivel_combustivel }}</p>
+  {% endif %}
+
+  {% if avarias %}
+  <h3>Avarias Registradas</h3>
+  <table class="damage-table">
+    <thead>
+      <tr><th>Vista</th><th>Tipo</th><th>Posição</th></tr>
+    </thead>
+    <tbody>
+      {% for a in avarias %}
+      <tr>
+        <td>{{ vista_labels.get(a.vista if a is mapping else a['vista'], a.vista if a is mapping else a['vista']) }}</td>
+        <td>{{ (a.tipo if a is mapping else a['tipo']) | capitalize }}</td>
+        <td>{{ '%.0f' | format(a.x if a is mapping else a['x']) }}%, {{ '%.0f' | format(a.y if a is mapping else a['y']) }}%</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+
+  {% if checklist.assinatura_responsavel or checklist.assinatura_motorista %}
+  <h3>Assinaturas da Entrega</h3>
+  <div class="signatures">
+    {% if checklist.assinatura_responsavel %}
+    <div class="signature-box">
+      <img src="{{ checklist.assinatura_responsavel }}" alt="Assinatura do Responsável">
+      <p class="signature-label">Responsável</p>
+    </div>
+    {% endif %}
+    {% if checklist.assinatura_motorista %}
+    <div class="signature-box">
+      <img src="{{ checklist.assinatura_motorista }}" alt="Assinatura do Motorista">
+      <p class="signature-label">Motorista</p>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {% if checklist.observacoes %}
+  <h3>Observações da Entrega</h3>
+  <div class="observations">{{ checklist.observacoes }}</div>
+  {% endif %}
+
+  {# ── DEVOLUÇÃO ──────────────────────────────────────────── #}
+  {% if is_devolvido %}
+  <h2>Checklist de Devolução</h2>
+
+  {% if checklist.data_devolucao %}
+  <p><span class="info-label">Data da Devolução:</span> {{ checklist.data_devolucao.strftime('%d/%m/%Y %H:%M') }}</p>
+  {% endif %}
+
+  {% if checklist.quilometragem_final is not none %}
+  <p><span class="info-label">Quilometragem Final:</span> {{ checklist.quilometragem_final }} km</p>
+  {% endif %}
+
+  {% if itens_devolucao %}
+  <table>
+    <thead>
+      <tr><th>Item</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      {% for item in itens_devolucao %}
+      <tr>
+        <td>{{ item.nome if item is mapping else item['nome'] }}</td>
+        <td class="{{ 'status-ok' if (item.status if item is mapping else item['status']) == 'ok' else 'status-nao-ok' }}">
+          {{ 'OK' if (item.status if item is mapping else item['status']) == 'ok' else 'Não OK' }}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+
+  {% if checklist.nivel_combustivel_devolucao %}
+  <p class="fuel-level"><span class="info-label">Nível de Combustível:</span> {{ checklist.nivel_combustivel_devolucao }}</p>
+  {% endif %}
+
+  {% if checklist.assinatura_responsavel_devolucao or checklist.assinatura_motorista_devolucao %}
+  <h3>Assinaturas da Devolução</h3>
+  <div class="signatures">
+    {% if checklist.assinatura_responsavel_devolucao %}
+    <div class="signature-box">
+      <img src="{{ checklist.assinatura_responsavel_devolucao }}" alt="Assinatura do Responsável (Devolução)">
+      <p class="signature-label">Responsável</p>
+    </div>
+    {% endif %}
+    {% if checklist.assinatura_motorista_devolucao %}
+    <div class="signature-box">
+      <img src="{{ checklist.assinatura_motorista_devolucao }}" alt="Assinatura do Motorista (Devolução)">
+      <p class="signature-label">Motorista</p>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {% if checklist.observacoes_devolucao %}
+  <h3>Observações da Devolução</h3>
+  <div class="observations">{{ checklist.observacoes_devolucao }}</div>
+  {% endif %}
+  {% endif %}
+
+  <div class="footer">
+    CTRVE — Checklist de Transporte de Veículos — Gerado em {{ generated_at }}
+  </div>
+</body>
+</html>

@@ -80,3 +80,13 @@
 - `queryClient.invalidateQueries` key inconsistência — entrega usa `id ?? ""` (string do param), devolução usa `String(checklist.id)` (number coerced); normalizar para um único padrão ao refatorar o componente.
 - Assinatura vazia `""` retorna mensagem de erro genérica no backend ("deve ser imagem PNG") em vez de "é obrigatória" — `validate_base64_signature` captura antes de `validate_signatures`; adicionar `or not v` na guard do model_validator ou validar tamanho mínimo.
 - Sem teste frontend para exibição de erros do backend (400/422) — `submitError` display não coberto; adicionar após corrigir campo `.detail` vs `.message`.
+
+## Deferred from: code review of 5-2-gerar-e-compartilhar-pdf (2026-04-27)
+
+- Jinja2 3.1.2 CVE-2024-34064 (filtro `xmlattr`, não utilizado no template desta story) — atualizar para 3.1.4+ em janela de dependency maintenance cross-story.
+- WeasyPrint deps de sistema (libcairo, libpango, libgdk-pixbuf, libffi) não documentadas em Dockerfile ou script de setup — documentar antes de deploy em ambiente limpo.
+- `window.alert` para MSG-025 (sucesso) e mensagens de erro — padrão pré-existente estabelecido pela spec de story 5.1; substituir por componente de toast/notificação em story de UI polish.
+- `generate_checklist_pdf` executa `HTML(...).write_pdf()` de forma síncrona bloqueando thread do FastAPI — WeasyPrint é CPU/I/O intensivo; usar `run_in_executor` em story de performance quando concorrência for necessária. [backend/app/services/pdf_service.py]
+- Endpoint `GET /checklists/{id}/pdf` sem `response_model`/`responses` no decorador `@router.get` — OpenAPI infere resposta como JSON em vez de `application/pdf`; adicionar `responses={200: {"content": {"application/pdf": {}}}}` em refactor de schema. [backend/app/api/routes/pdf.py]
+- `data_entrega.strftime` e `data_devolucao.strftime` no template renderizam UTC sem indicação de fuso — usuário BR vê horário -3h do real; parametrizar timezone (America/Sao_Paulo) quando localização for necessária. [backend/app/templates/pdf/checklist.html]
+- Padrão `item is mapping` espalhado em 4+ blocos do template — normalizar `itens`, `itens_devolucao` e `avarias` para listas de dicts simples em `pdf_service.py` antes de passar ao Jinja2, eliminando a ambiguidade. [backend/app/services/pdf_service.py]

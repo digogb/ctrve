@@ -137,6 +137,33 @@ def locked_checklist_fixture(session):
     return c
 
 
+@pytest.fixture(name="devolvido_locked")
+def devolvido_locked_fixture(session):
+    from datetime import datetime, timezone
+    from app.models.checklist import Checklist, ChecklistStatus
+
+    c = Checklist(
+        placa="XYZ9W87",
+        unidade="SECLOG",
+        motorista="João Silva",
+        matricula_motorista="123456",
+        quilometragem_inicial=50000.0,
+        status=ChecklistStatus.devolvido,
+        is_locked=True,
+        itens=[{"nome": nome, "status": "ok"} for nome in _ITEM_NAMES],
+        nivel_combustivel="3/4",
+        data_entrega=datetime(2026, 4, 20, 10, 0, tzinfo=timezone.utc),
+        itens_devolucao=[{"nome": nome, "status": "ok"} for nome in _ITEM_NAMES],
+        nivel_combustivel_devolucao="2/4",
+        quilometragem_final=51000.0,
+        data_devolucao=datetime(2026, 4, 23, 14, 0, tzinfo=timezone.utc),
+    )
+    session.add(c)
+    session.commit()
+    session.refresh(c)
+    return c
+
+
 @pytest.fixture(name="checklist_devolucao_payload")
 def checklist_devolucao_payload_fixture():
     from datetime import datetime, timezone

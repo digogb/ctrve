@@ -5,7 +5,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.api.routes import auth, checklists, users
+from app.api.routes import auth, checklists, pdf, users
 from app.core.config import settings
 from app.database import create_db_and_tables
 from app.services.checklist_service import ChecklistError
@@ -76,3 +76,4 @@ async def checklist_error_handler(request: Request, exc: ChecklistError):
 app.include_router(auth.router, prefix="/api/v1")
 app.include_router(users.router, prefix="/api/v1")
 app.include_router(checklists.router, prefix="/api/v1")
+app.include_router(pdf.router, prefix="/api/v1")
