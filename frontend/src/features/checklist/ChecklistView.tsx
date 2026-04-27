@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import apiClient from "../../lib/apiClient";
+import apiClient, { isAxiosError } from "../../lib/apiClient";
 import type { ChecklistResponse } from "../../types/checklist";
 import {
   checklistEntregaSchema,
@@ -16,6 +16,7 @@ import ChecklistItems from "./ChecklistItems";
 import FuelLevel from "./FuelLevel";
 import DamageMap from "../damage-map/DamageMap";
 import SignaturePad from "../signature/SignaturePad";
+import ObservationsField from "./ObservationsField";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -68,6 +69,12 @@ function EntregaReadOnly({ checklist }: { checklist: ChecklistResponse }) {
               onChange={() => {}}
               label="Assinatura do Motorista"
             />
+          </div>
+        )}
+        {checklist.observacoes && (
+          <div className="mt-6">
+            <h3 className="text-lg font-semibold">Observações</h3>
+            <p className="mt-2 text-sm whitespace-pre-wrap">{checklist.observacoes}</p>
           </div>
         )}
       </CardContent>
@@ -126,6 +133,12 @@ function DevolucaoReadOnly({ checklist }: { checklist: ChecklistResponse }) {
             />
           </div>
         )}
+        {checklist.observacoes_devolucao && (
+          <div className="mt-6">
+            <h3 className="text-lg font-semibold">Observações da Devolução</h3>
+            <p className="mt-2 text-sm whitespace-pre-wrap">{checklist.observacoes_devolucao}</p>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
@@ -133,8 +146,9 @@ function DevolucaoReadOnly({ checklist }: { checklist: ChecklistResponse }) {
 
 function DevolucaoForm({ checklist }: { checklist: ChecklistResponse }) {
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  const { control, register, reset, handleSubmit, setError, formState: { errors } } = useForm<ChecklistDevolucaoData>({
+  const { control, register, reset, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm<ChecklistDevolucaoData>({
     resolver: zodResolver(checklistDevolucaoSchema),
     defaultValues: {
       itens: CHECKLIST_ITEMS.map((item) => ({ nome: item.nome, status: undefined })),
@@ -143,6 +157,7 @@ function DevolucaoForm({ checklist }: { checklist: ChecklistResponse }) {
       data_devolucao: "",
       assinatura_responsavel: null,
       assinatura_motorista: null,
+      observacoes: null,
     },
   });
 
@@ -161,11 +176,12 @@ function DevolucaoForm({ checklist }: { checklist: ChecklistResponse }) {
           : "",
         assinatura_responsavel: checklist.assinatura_responsavel_devolucao ?? null,
         assinatura_motorista: checklist.assinatura_motorista_devolucao ?? null,
+        observacoes: checklist.observacoes_devolucao ?? null,
       });
     }
   }, [checklist, reset]);
 
-  const onSubmit = (data: ChecklistDevolucaoData) => {
+  const onSubmit = async (data: ChecklistDevolucaoData) => {
     setSubmitError(null);
 
     if (data.quilometragem_final < checklist.quilometragem_inicial) {
@@ -175,16 +191,28 @@ function DevolucaoForm({ checklist }: { checklist: ChecklistResponse }) {
       return;
     }
 
-    if (checklist.data_entrega && data.data_devolucao < checklist.data_entrega) {
+    if (checklist.data_entrega && new Date(data.data_devolucao) < new Date(checklist.data_entrega)) {
       setError("data_devolucao", {
         message: "A Data de Devolução não pode ser anterior à Data de Entrega.",
       });
       return;
     }
 
-    void apiClient
-      .patch(`/v1/checklists/${checklist.id}/devolucao`, data)
-      .catch(() => setSubmitError("Erro ao salvar devolução. Tente novamente."));
+    if (!window.confirm("Deseja confirmar o salvamento deste checklist? Após a confirmação, os dados não poderão ser alterados.")) {
+      return;
+    }
+
+    try {
+      await apiClient.patch(`/v1/checklists/${checklist.id}/devolucao`, data);
+      window.alert("Checklist salvo com sucesso.");
+      queryClient.invalidateQueries({ queryKey: ["checklists", String(checklist.id)] });
+    } catch (error) {
+      if (isAxiosError(error) && error.response?.data?.detail && typeof error.response.data.detail === "string") {
+        setSubmitError(error.response.data.detail);
+      } else {
+        setSubmitError("Erro ao salvar devolução. Tente novamente.");
+      }
+    }
   };
 
   return (
@@ -229,34 +257,45 @@ function DevolucaoForm({ checklist }: { checklist: ChecklistResponse }) {
               name="assinatura_responsavel"
               control={control}
               render={({ field }) => (
-                <SignaturePad
-                  value={field.value}
-                  onChange={field.onChange}
-                  label="Assinatura do Responsável"
-                />
+                <>
+                  <SignaturePad
+                    value={field.value}
+                    onChange={field.onChange}
+                    label="Assinatura do Responsável"
+                  />
+                  {errors.assinatura_responsavel && (
+                    <p className="text-sm text-danger" role="alert">{errors.assinatura_responsavel.message}</p>
+                  )}
+                </>
               )}
             />
             <Controller
               name="assinatura_motorista"
               control={control}
               render={({ field }) => (
-                <SignaturePad
-                  value={field.value}
-                  onChange={field.onChange}
-                  label="Assinatura do Motorista"
-                />
+                <>
+                  <SignaturePad
+                    value={field.value}
+                    onChange={field.onChange}
+                    label="Assinatura do Motorista"
+                  />
+                  {errors.assinatura_motorista && (
+                    <p className="text-sm text-danger" role="alert">{errors.assinatura_motorista.message}</p>
+                  )}
+                </>
               )}
             />
           </div>
+
+          <ObservationsField register={register("observacoes")} label="Observações da Devolução" />
 
           {submitError && (
             <p className="mt-4 text-sm text-danger" role="alert">{submitError}</p>
           )}
 
           <Button
-            type="button"
-            disabled
-            title="Salvar será implementado na Story 5.1"
+            type="submit"
+            disabled={isSubmitting}
             className="mt-6 w-full"
           >
             Salvar
@@ -269,6 +308,8 @@ function DevolucaoForm({ checklist }: { checklist: ChecklistResponse }) {
 
 export default function ChecklistView() {
   const { id } = useParams<{ id: string }>();
+  const queryClient = useQueryClient();
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const { data: checklist, isLoading, isError } = useQuery<ChecklistResponse>({
     queryKey: ["checklists", id ?? ""],
@@ -289,6 +330,7 @@ export default function ChecklistView() {
       avarias: [],
       assinatura_responsavel: null,
       assinatura_motorista: null,
+      observacoes: null,
     },
   });
 
@@ -307,9 +349,31 @@ export default function ChecklistView() {
         avarias: checklist.avarias ?? [],
         assinatura_responsavel: checklist.assinatura_responsavel ?? null,
         assinatura_motorista: checklist.assinatura_motorista ?? null,
+        observacoes: checklist.observacoes ?? null,
       });
     }
   }, [checklist, entregaForm.reset]);
+
+  const onEntregaSubmit = async (data: ChecklistEntregaData) => {
+    setSubmitError(null);
+    if (!window.confirm("Deseja confirmar o salvamento deste checklist? Após a confirmação, os dados não poderão ser alterados.")) {
+      return;
+    }
+    try {
+      await apiClient.patch(`/v1/checklists/${id}/entrega`, data);
+      window.alert("Checklist salvo com sucesso.");
+      queryClient.invalidateQueries({ queryKey: ["checklists", id ?? ""] });
+    } catch (error) {
+      if (isAxiosError(error) && error.response?.data?.detail && typeof error.response.data.detail === "string") {
+        setSubmitError(error.response.data.detail);
+      } else {
+        setSubmitError("Erro ao salvar checklist. Tente novamente.");
+      }
+    }
+  };
+
+  const entregaErrors = entregaForm.formState.errors;
+  const isEntregaSubmitting = entregaForm.formState.isSubmitting;
 
   if (!id) return <p role="alert" className="p-4 text-danger">ID do checklist inválido.</p>;
   if (isLoading) return <p aria-live="polite" className="p-4 text-muted">Carregando...</p>;
@@ -370,7 +434,7 @@ export default function ChecklistView() {
             <CardTitle>Checklist de Entrega</CardTitle>
           </CardHeader>
           <CardContent>
-            <form noValidate>
+            <form onSubmit={entregaForm.handleSubmit(onEntregaSubmit)}>
               <div className="space-y-2">
                 <Label htmlFor="data_entrega">Data e Horário da Entrega</Label>
                 <Input
@@ -378,13 +442,13 @@ export default function ChecklistView() {
                   type="datetime-local"
                   {...entregaForm.register("data_entrega")}
                 />
-                {entregaForm.formState.errors.data_entrega && (
-                  <p className="text-sm text-danger" role="alert">{entregaForm.formState.errors.data_entrega.message}</p>
+                {entregaErrors.data_entrega && (
+                  <p className="text-sm text-danger" role="alert">{entregaErrors.data_entrega.message}</p>
                 )}
               </div>
 
-              <ChecklistItems control={entregaForm.control} errors={entregaForm.formState.errors} />
-              <FuelLevel control={entregaForm.control} error={entregaForm.formState.errors.nivel_combustivel} />
+              <ChecklistItems control={entregaForm.control} errors={entregaErrors} />
+              <FuelLevel control={entregaForm.control} error={entregaErrors.nivel_combustivel} />
 
               <div className="mt-6">
                 <Controller
@@ -402,30 +466,49 @@ export default function ChecklistView() {
                   name="assinatura_responsavel"
                   control={entregaForm.control}
                   render={({ field }) => (
-                    <SignaturePad
-                      value={field.value}
-                      onChange={field.onChange}
-                      label="Assinatura do Responsável"
-                    />
+                    <>
+                      <SignaturePad
+                        value={field.value}
+                        onChange={field.onChange}
+                        label="Assinatura do Responsável"
+                      />
+                      {entregaErrors.assinatura_responsavel && (
+                        <p className="text-sm text-danger" role="alert">
+                          {entregaErrors.assinatura_responsavel.message}
+                        </p>
+                      )}
+                    </>
                   )}
                 />
                 <Controller
                   name="assinatura_motorista"
                   control={entregaForm.control}
                   render={({ field }) => (
-                    <SignaturePad
-                      value={field.value}
-                      onChange={field.onChange}
-                      label="Assinatura do Motorista"
-                    />
+                    <>
+                      <SignaturePad
+                        value={field.value}
+                        onChange={field.onChange}
+                        label="Assinatura do Motorista"
+                      />
+                      {entregaErrors.assinatura_motorista && (
+                        <p className="text-sm text-danger" role="alert">
+                          {entregaErrors.assinatura_motorista.message}
+                        </p>
+                      )}
+                    </>
                   )}
                 />
               </div>
 
+              <ObservationsField register={entregaForm.register("observacoes")} />
+
+              {submitError && (
+                <p className="mt-4 text-sm text-danger" role="alert">{submitError}</p>
+              )}
+
               <Button
-                type="button"
-                disabled
-                title="Salvar será implementado na Story 5.1"
+                type="submit"
+                disabled={isEntregaSubmitting}
                 className="mt-6 w-full"
               >
                 Salvar

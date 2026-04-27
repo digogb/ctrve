@@ -31,5 +31,7 @@ export interface ChecklistResponse {
   nivel_combustivel_devolucao: NivelCombustivel | null;
   assinatura_responsavel_devolucao: string | null;
   assinatura_motorista_devolucao: string | null;
+  observacoes: string | null;
+  observacoes_devolucao: string | null;
   created_at: string;
 }

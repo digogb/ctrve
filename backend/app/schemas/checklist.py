@@ -28,6 +28,7 @@ class ChecklistEntregaUpdate(BaseModel):
     avarias: list[DamagePointData] | None = Field(default=None, max_length=50)
     assinatura_responsavel: str | None = None
     assinatura_motorista: str | None = None
+    observacoes: str | None = None
 
     @field_validator("assinatura_responsavel", "assinatura_motorista", mode="before")
     @classmethod
@@ -52,6 +53,19 @@ class ChecklistEntregaUpdate(BaseModel):
             )
         return self
 
+    @model_validator(mode="after")
+    def validate_signatures(self) -> "ChecklistEntregaUpdate":
+        missing = []
+        if self.assinatura_responsavel is None:
+            missing.append("Responsável")
+        if self.assinatura_motorista is None:
+            missing.append("Motorista")
+        if missing:
+            raise ValueError(
+                f"A assinatura do {' e do '.join(missing)} é obrigatória. Assine no campo correspondente para continuar."
+            )
+        return self
+
 
 class ChecklistDevolucaoUpdate(BaseModel):
     itens: list[ChecklistItemData]
@@ -60,6 +74,7 @@ class ChecklistDevolucaoUpdate(BaseModel):
     data_devolucao: datetime
     assinatura_responsavel: str | None = None
     assinatura_motorista: str | None = None
+    observacoes: str | None = None
 
     @field_validator("assinatura_responsavel", "assinatura_motorista", mode="before")
     @classmethod
@@ -81,6 +96,19 @@ class ChecklistDevolucaoUpdate(BaseModel):
         if null_items:
             raise ValueError(
                 f"Todos os itens devem ter status 'ok' ou 'nao_ok': {null_items}"
+            )
+        return self
+
+    @model_validator(mode="after")
+    def validate_signatures(self) -> "ChecklistDevolucaoUpdate":
+        missing = []
+        if self.assinatura_responsavel is None:
+            missing.append("Responsável")
+        if self.assinatura_motorista is None:
+            missing.append("Motorista")
+        if missing:
+            raise ValueError(
+                f"A assinatura do {' e do '.join(missing)} é obrigatória. Assine no campo correspondente para continuar."
             )
         return self
 
@@ -107,6 +135,8 @@ class ChecklistResponse(BaseModel):
     nivel_combustivel_devolucao: Literal["1/4", "2/4", "3/4", "4/4"] | None = None
     assinatura_responsavel_devolucao: str | None = None
     assinatura_motorista_devolucao: str | None = None
+    observacoes: str | None = None
+    observacoes_devolucao: str | None = None
     created_at: datetime
 
     model_config = {"from_attributes": True}

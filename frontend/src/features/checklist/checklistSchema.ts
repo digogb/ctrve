@@ -41,7 +41,7 @@ export const damagePointSchema = z.object({
   }),
 });
 
-export const checklistEntregaSchema = z.object({
+const checklistEntregaSchemaBase = z.object({
   itens: z.array(checklistItemSchema).length(20),
   nivel_combustivel: z.enum(["1/4", "2/4", "3/4", "4/4"], {
     message: "Selecione o nível de combustível do veículo (1/4, 2/4, 3/4 ou 4/4).",
@@ -54,11 +54,30 @@ export const checklistEntregaSchema = z.object({
   avarias: z.array(damagePointSchema).default([]),
   assinatura_responsavel: z.string().nullable().default(null),
   assinatura_motorista: z.string().nullable().default(null),
+  observacoes: z.string().nullable().default(null),
 });
 
-export type ChecklistEntregaData = z.infer<typeof checklistEntregaSchema>;
+export type ChecklistEntregaData = z.infer<typeof checklistEntregaSchemaBase>;
 
-export const checklistDevolucaoSchema = z.object({
+export const checklistEntregaSchema = checklistEntregaSchemaBase
+  .superRefine((d, ctx) => {
+    if (!d.assinatura_responsavel) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "A assinatura do Responsável é obrigatória. Assine no campo correspondente para continuar.",
+        path: ["assinatura_responsavel"],
+      });
+    }
+    if (!d.assinatura_motorista) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "A assinatura do Motorista é obrigatória. Assine no campo correspondente para continuar.",
+        path: ["assinatura_motorista"],
+      });
+    }
+  });
+
+const checklistDevolucaoSchemaBase = z.object({
   itens: z.array(checklistItemSchema).length(20),
   nivel_combustivel: z.enum(["1/4", "2/4", "3/4", "4/4"], {
     message: "Selecione o nível de combustível do veículo (1/4, 2/4, 3/4 ou 4/4).",
@@ -73,6 +92,25 @@ export const checklistDevolucaoSchema = z.object({
     .transform((v) => new Date(v).toISOString()),
   assinatura_responsavel: z.string().nullable().default(null),
   assinatura_motorista: z.string().nullable().default(null),
+  observacoes: z.string().nullable().default(null),
 });
 
-export type ChecklistDevolucaoData = z.infer<typeof checklistDevolucaoSchema>;
+export type ChecklistDevolucaoData = z.infer<typeof checklistDevolucaoSchemaBase>;
+
+export const checklistDevolucaoSchema = checklistDevolucaoSchemaBase
+  .superRefine((d, ctx) => {
+    if (!d.assinatura_responsavel) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "A assinatura do Responsável é obrigatória. Assine no campo correspondente para continuar.",
+        path: ["assinatura_responsavel"],
+      });
+    }
+    if (!d.assinatura_motorista) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "A assinatura do Motorista é obrigatória. Assine no campo correspondente para continuar.",
+        path: ["assinatura_motorista"],
+      });
+    }
+  });

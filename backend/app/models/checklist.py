@@ -35,6 +35,8 @@ class Checklist(SQLModel, table=True):
     nivel_combustivel_devolucao: str | None = None
     assinatura_responsavel_devolucao: str | None = None
     assinatura_motorista_devolucao: str | None = None
+    observacoes: str | None = None
+    observacoes_devolucao: str | None = None
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc)
     )

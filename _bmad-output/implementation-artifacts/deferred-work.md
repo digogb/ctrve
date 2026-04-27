@@ -67,3 +67,16 @@
 - Impossível limpar assinatura já salva — `checklist_service.py:124-127` usa `if data.assinatura_responsavel is not None` para decidir se persiste; `None` (campo não enviado) e `null` (limpar) são indistinguíveis; implementar distinção via `model_fields_set` ou sentinel quando necessário.
 - Zod schema não valida formato base64 das assinaturas — `checklistSchema.ts:74-75` aceita qualquer string; backend valida no Pydantic; adicionar `.regex()` ou `.refine()` no frontend para mensagens de erro amigáveis.
 - Backend aceita devolução sem `data_entrega` preenchida — `checklist_service.py:110` pula validação de data se `data_entrega` é None; depende do fluxo de lock garantir que data_entrega está preenchida; considerar constraint no banco.
+
+## Deferred from: code review of 4-3-registrar-observacoes (2026-04-24)
+
+- Sem limite de tamanho no campo `observacoes` — spec RN-020 diz "sem max_length" mas payload arbitrariamente grande pode causar DoS; considerar limit server-side de defesa (ex: 10KB) que não afeta uso normal.
+- String vazia `""` vs `null` em `observacoes` — banco persiste `""`, frontend read-only oculta como falsy; considerar normalizar `""` para `null` no backend ou Zod transform.
+- `ObservationsField` usa textarea com estilo manual (`bg-white`, sem `focus-visible:ring`) em vez de componente shadcn `Textarea` — inconsistência visual com outros campos; tratar em story de UI polish.
+
+## Deferred from: code review of 5-1-salvar-checklist (2026-04-26)
+
+- `update_devolucao` não seta `is_locked = True` após salvar devolução — protegido pelos guards existentes (`is_locked=True` na entrada + status transita para `devolvido`), mas há assimetria arquitetural com `update_entrega`; tornar explícito em refactor cross-service.
+- `queryClient.invalidateQueries` key inconsistência — entrega usa `id ?? ""` (string do param), devolução usa `String(checklist.id)` (number coerced); normalizar para um único padrão ao refatorar o componente.
+- Assinatura vazia `""` retorna mensagem de erro genérica no backend ("deve ser imagem PNG") em vez de "é obrigatória" — `validate_base64_signature` captura antes de `validate_signatures`; adicionar `or not v` na guard do model_validator ou validar tamanho mínimo.
+- Sem teste frontend para exibição de erros do backend (400/422) — `submitError` display não coberto; adicionar após corrigir campo `.detail` vs `.message`.

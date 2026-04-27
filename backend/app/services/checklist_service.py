@@ -75,6 +75,9 @@ def update_entrega(session: Session, checklist_id: int, data: ChecklistEntregaUp
         checklist.assinatura_responsavel = data.assinatura_responsavel
     if data.assinatura_motorista is not None:
         checklist.assinatura_motorista = data.assinatura_motorista
+    if data.observacoes is not None:
+        checklist.observacoes = data.observacoes
+    checklist.is_locked = True
     session.add(checklist)
     session.commit()
     session.refresh(checklist)
@@ -125,6 +128,8 @@ def update_devolucao(session: Session, checklist_id: int, data: ChecklistDevoluc
         checklist.assinatura_responsavel_devolucao = data.assinatura_responsavel
     if data.assinatura_motorista is not None:
         checklist.assinatura_motorista_devolucao = data.assinatura_motorista
+    if data.observacoes is not None:
+        checklist.observacoes_devolucao = data.observacoes
 
     session.add(checklist)
     session.commit()

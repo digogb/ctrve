@@ -533,12 +533,8 @@ def test_update_entrega_com_assinaturas(client, test_user, checklist_abc1d23, ch
     assert data["assinatura_motorista"] == VALID_SIGNATURE
 
 
-def test_update_entrega_sem_assinaturas(client, test_user, checklist_abc1d23, checklist_entrega_payload, session):
-    """AC-6: PATCH sem campos de assinatura não altera assinaturas existentes."""
-    checklist_abc1d23.assinatura_responsavel = VALID_SIGNATURE
-    session.add(checklist_abc1d23)
-    session.commit()
-
+def test_update_entrega_com_assinatura_atualiza_campo(client, test_user, checklist_abc1d23, checklist_entrega_payload, session):
+    """PATCH entrega com assinaturas → persiste ambas as assinaturas."""
     response = client.patch(
         f"/api/v1/checklists/{checklist_abc1d23.id}/entrega",
         json=checklist_entrega_payload,
@@ -547,6 +543,7 @@ def test_update_entrega_sem_assinaturas(client, test_user, checklist_abc1d23, ch
     assert response.status_code == 200
     data = response.json()
     assert data["assinatura_responsavel"] == VALID_SIGNATURE
+    assert data["assinatura_motorista"] == VALID_SIGNATURE
 
 
 def test_update_entrega_assinatura_formato_invalido(client, test_user, checklist_abc1d23, checklist_entrega_payload):
@@ -826,13 +823,8 @@ def test_get_checklist_retorna_assinaturas_devolucao(client, test_user, locked_c
     assert data["assinatura_motorista_devolucao"] == VALID_SIGNATURE
 
 
-def test_update_devolucao_sem_assinaturas(client, test_user, locked_checklist, checklist_devolucao_payload, session):
-    """PATCH devolução sem campos de assinatura não altera assinaturas existentes."""
-    locked_checklist.assinatura_responsavel_devolucao = VALID_SIGNATURE
-    locked_checklist.assinatura_motorista_devolucao = VALID_SIGNATURE
-    session.add(locked_checklist)
-    session.commit()
-
+def test_update_devolucao_com_assinatura_atualiza_campo(client, test_user, locked_checklist, checklist_devolucao_payload, session):
+    """PATCH devolução com assinaturas → persiste ambas as assinaturas."""
     response = client.patch(
         f"/api/v1/checklists/{locked_checklist.id}/devolucao",
         json=checklist_devolucao_payload,
@@ -842,3 +834,165 @@ def test_update_devolucao_sem_assinaturas(client, test_user, locked_checklist, c
     data = response.json()
     assert data["assinatura_responsavel_devolucao"] == VALID_SIGNATURE
     assert data["assinatura_motorista_devolucao"] == VALID_SIGNATURE
+
+
+# ── Story 4.3: Registrar Observações (RN-020) ────────────────────────────────
+
+
+def test_update_entrega_com_observacoes(client, test_user, checklist_abc1d23, checklist_entrega_payload):
+    """PATCH entrega com observacoes persiste o campo."""
+    payload = {**checklist_entrega_payload, "observacoes": "Veículo com arranhão na porta traseira"}
+    response = client.patch(
+        f"/api/v1/checklists/{checklist_abc1d23.id}/entrega",
+        json=payload,
+        headers=_headers(test_user),
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["observacoes"] == "Veículo com arranhão na porta traseira"
+
+
+def test_update_entrega_sem_observacoes_nao_altera(client, test_user, checklist_abc1d23, checklist_entrega_payload, session):
+    """PATCH entrega sem campo observacoes não altera observacoes existentes."""
+    checklist_abc1d23.observacoes = "Observação pré-existente"
+    session.add(checklist_abc1d23)
+    session.commit()
+
+    response = client.patch(
+        f"/api/v1/checklists/{checklist_abc1d23.id}/entrega",
+        json=checklist_entrega_payload,
+        headers=_headers(test_user),
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["observacoes"] == "Observação pré-existente"
+
+
+def test_update_devolucao_com_observacoes(client, test_user, locked_checklist, checklist_devolucao_payload):
+    """PATCH devolução com observacoes persiste em observacoes_devolucao."""
+    payload = {**checklist_devolucao_payload, "observacoes": "Pneu dianteiro desgastado"}
+    response = client.patch(
+        f"/api/v1/checklists/{locked_checklist.id}/devolucao",
+        json=payload,
+        headers=_headers(test_user),
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["observacoes_devolucao"] == "Pneu dianteiro desgastado"
+
+
+def test_get_checklist_retorna_observacoes(client, test_user, locked_checklist, checklist_devolucao_payload):
+    """GET /{id} retorna observacoes e observacoes_devolucao."""
+    payload = {**checklist_devolucao_payload, "observacoes": "Obs devolução"}
+    patch_resp = client.patch(
+        f"/api/v1/checklists/{locked_checklist.id}/devolucao",
+        json=payload,
+        headers=_headers(test_user),
+    )
+    assert patch_resp.status_code == 200
+
+    response = client.get(
+        f"/api/v1/checklists/{locked_checklist.id}",
+        headers=_headers(test_user),
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert "observacoes" in data
+    assert "observacoes_devolucao" in data
+    assert data["observacoes_devolucao"] == "Obs devolução"
+
+
+def test_observacoes_campo_vazio_aceito(client, test_user, checklist_abc1d23, checklist_entrega_payload):
+    """PATCH com observacoes vazio é aceito (campo opcional)."""
+    payload = {**checklist_entrega_payload, "observacoes": ""}
+    response = client.patch(
+        f"/api/v1/checklists/{checklist_abc1d23.id}/entrega",
+        json=payload,
+        headers=_headers(test_user),
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["observacoes"] == ""
+
+
+# ── Story 5.1: Salvar Checklist (RN-015, RN-016) ────────────────────────────
+
+
+def test_update_entrega_bloqueia_checklist(client, test_user, checklist_abc1d23, checklist_entrega_payload):
+    """T5.1 — PATCH entrega com payload completo (inclui assinaturas) → 200 + is_locked True."""
+    response = client.patch(
+        f"/api/v1/checklists/{checklist_abc1d23.id}/entrega",
+        json=checklist_entrega_payload,
+        headers=_headers(test_user),
+    )
+    assert response.status_code == 200
+    assert response.json()["is_locked"] is True
+
+
+def test_update_entrega_locked_rejeita_update(client, test_user, session, checklist_entrega_payload):
+    """T5.2 — PATCH entrega em checklist já locked → 400 MSG-026."""
+    from app.models.checklist import Checklist
+
+    locked = Checklist(
+        placa="LCK0A00",
+        unidade="A",
+        motorista="M",
+        matricula_motorista="1",
+        quilometragem_inicial=1.0,
+        is_locked=True,
+    )
+    session.add(locked)
+    session.commit()
+    session.refresh(locked)
+
+    response = client.patch(
+        f"/api/v1/checklists/{locked.id}/entrega",
+        json=checklist_entrega_payload,
+        headers=_headers(test_user),
+    )
+    assert response.status_code == 400
+    assert response.json()["detail"] == "MSG-026"
+
+
+def test_update_entrega_sem_assinatura_responsavel_422(client, test_user, checklist_abc1d23, checklist_entrega_payload):
+    """T5.3 — PATCH entrega sem assinatura_responsavel → 422 MSG-014."""
+    payload = {**checklist_entrega_payload, "assinatura_responsavel": None}
+    response = client.patch(
+        f"/api/v1/checklists/{checklist_abc1d23.id}/entrega",
+        json=payload,
+        headers=_headers(test_user),
+    )
+    assert response.status_code == 422
+
+
+def test_update_entrega_sem_assinatura_motorista_422(client, test_user, checklist_abc1d23, checklist_entrega_payload):
+    """T5.4 — PATCH entrega sem assinatura_motorista → 422 MSG-014."""
+    payload = {**checklist_entrega_payload, "assinatura_motorista": None}
+    response = client.patch(
+        f"/api/v1/checklists/{checklist_abc1d23.id}/entrega",
+        json=payload,
+        headers=_headers(test_user),
+    )
+    assert response.status_code == 422
+
+
+def test_update_devolucao_sem_assinatura_responsavel_422(client, test_user, locked_checklist, checklist_devolucao_payload):
+    """T5.5 — PATCH devolução sem assinatura_responsavel → 422 MSG-014."""
+    payload = {**checklist_devolucao_payload, "assinatura_responsavel": None}
+    response = client.patch(
+        f"/api/v1/checklists/{locked_checklist.id}/devolucao",
+        json=payload,
+        headers=_headers(test_user),
+    )
+    assert response.status_code == 422
+
+
+def test_update_devolucao_sem_assinatura_motorista_422(client, test_user, locked_checklist, checklist_devolucao_payload):
+    """T5.6 — PATCH devolução sem assinatura_motorista → 422 MSG-014."""
+    payload = {**checklist_devolucao_payload, "assinatura_motorista": None}
+    response = client.patch(
+        f"/api/v1/checklists/{locked_checklist.id}/devolucao",
+        json=payload,
+        headers=_headers(test_user),
+    )
+    assert response.status_code == 422
