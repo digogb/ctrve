@@ -127,6 +127,9 @@ export default function ChecklistForm() {
             <Button type="submit" disabled={isSubmitting} className="w-full">
               {isSubmitting ? "Criando..." : "Criar Checklist"}
             </Button>
+            <Button type="button" variant="outline" className="mt-2 w-full" onClick={() => navigate("/")} disabled={isSubmitting}>
+              Cancelar
+            </Button>
           </form>
         </CardContent>
       </Card>

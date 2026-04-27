@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -308,9 +308,11 @@ function DevolucaoForm({ checklist }: { checklist: ChecklistResponse }) {
 
 export default function ChecklistView() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   const { data: checklist, isLoading, isError } = useQuery<ChecklistResponse>({
     queryKey: ["checklists", id ?? ""],
@@ -407,6 +409,26 @@ export default function ChecklistView() {
       link?.remove();
       if (url) window.URL.revokeObjectURL(url);
       setIsDownloadingPdf(false);
+    }
+  };
+
+  const onCancel = async () => {
+    if (!window.confirm("Deseja cancelar o preenchimento? Todos os dados informados serão descartados.")) {
+      return;
+    }
+    setIsCancelling(true);
+    try {
+      await apiClient.delete(`/v1/checklists/${id}`);
+      navigate("/");
+    } catch (error) {
+      if (isAxiosError(error) && error.response) {
+        const data = error.response.data as { message?: string; detail?: string } | undefined;
+        window.alert(data?.message || data?.detail || "Erro ao cancelar checklist.");
+      } else {
+        navigate("/");
+      }
+    } finally {
+      setIsCancelling(false);
     }
   };
 
@@ -552,13 +574,14 @@ export default function ChecklistView() {
                 <p className="mt-4 text-sm text-danger" role="alert">{submitError}</p>
               )}
 
-              <Button
-                type="submit"
-                disabled={isEntregaSubmitting}
-                className="mt-6 w-full"
-              >
-                Salvar
-              </Button>
+              <div className="mt-6 flex gap-3">
+                <Button type="submit" disabled={isEntregaSubmitting} className="flex-1">
+                  Salvar
+                </Button>
+                <Button type="button" variant="outline" onClick={onCancel} disabled={isEntregaSubmitting || isCancelling}>
+                  {isCancelling ? "Cancelando..." : "Cancelar"}
+                </Button>
+              </div>
             </form>
           </CardContent>
         </Card>

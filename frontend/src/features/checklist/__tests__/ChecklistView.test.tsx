@@ -31,6 +31,7 @@ vi.mock("../../../lib/apiClient", () => ({
       request: { use: vi.fn() },
       response: { use: vi.fn() },
     },
+    delete: vi.fn(),
   },
   setAccessToken: vi.fn(),
   clearAccessToken: vi.fn(),
@@ -927,5 +928,50 @@ describe("ChecklistView", () => {
     await waitFor(() => {
       expect(screen.getByText("Erro de negócio específico.")).toBeInTheDocument();
     });
+  });
+
+  it("exibe botão Cancelar quando checklist não está salvo", async () => {
+    vi.mocked(apiClient.get).mockResolvedValue({ data: BASE_CHECKLIST });
+    renderAt("1");
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /cancelar/i })).toBeInTheDocument();
+    });
+  });
+
+  it("não exibe botão Cancelar quando checklist está salvo", async () => {
+    const locked = { ...BASE_CHECKLIST, is_locked: true };
+    vi.mocked(apiClient.get).mockResolvedValue({ data: locked });
+    renderAt("1");
+    await waitFor(() => {
+      expect(screen.getByText(/checklist de entrega/i)).toBeInTheDocument();
+    });
+    expect(screen.queryByRole("button", { name: /cancelar/i })).not.toBeInTheDocument();
+  });
+
+  it("clique em Cancelar com confirmação chama DELETE", async () => {
+    vi.mocked(apiClient.get).mockResolvedValue({ data: BASE_CHECKLIST });
+    vi.mocked(apiClient.delete).mockResolvedValue({});
+    vi.spyOn(window, "confirm").mockReturnValueOnce(true);
+
+    renderAt("1");
+    await waitFor(() => screen.getByRole("button", { name: /cancelar/i }));
+    fireEvent.click(screen.getByRole("button", { name: /cancelar/i }));
+
+    await waitFor(() => {
+      expect(apiClient.delete).toHaveBeenCalledWith("/v1/checklists/1");
+    });
+  });
+
+  it("clique em Cancelar com negação não chama DELETE", async () => {
+    vi.mocked(apiClient.get).mockResolvedValue({ data: BASE_CHECKLIST });
+    vi.mocked(apiClient.delete).mockResolvedValue({});
+    vi.spyOn(window, "confirm").mockReturnValueOnce(false);
+
+    renderAt("1");
+    await waitFor(() => screen.getByRole("button", { name: /cancelar/i }));
+    fireEvent.click(screen.getByRole("button", { name: /cancelar/i }));
+
+    expect(apiClient.delete).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: /cancelar/i })).toBeInTheDocument();
   });
 });

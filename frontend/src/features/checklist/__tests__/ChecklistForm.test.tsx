@@ -103,6 +103,19 @@ describe("ChecklistForm — Informações Gerais", () => {
     });
   });
 
+  it("exibe botão Cancelar no formulário de criação", () => {
+    renderForm();
+    expect(screen.getByRole("button", { name: /cancelar/i })).toBeInTheDocument();
+  });
+
+  it("clique em Cancelar navega para / sem window.confirm (AC-8)", async () => {
+    const confirmSpy = vi.spyOn(window, "confirm");
+    renderForm();
+    await userEvent.click(screen.getByRole("button", { name: /cancelar/i }));
+    expect(mockNavigate).toHaveBeenCalledWith("/");
+    expect(confirmSpy).not.toHaveBeenCalled();
+  });
+
   it("erro MSG-008 exibe alerta de entrega duplicada", async () => {
     const err = Object.assign(new axios.AxiosError(), {
       response: {

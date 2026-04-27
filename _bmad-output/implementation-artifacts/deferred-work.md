@@ -86,6 +86,14 @@
 - Jinja2 3.1.2 CVE-2024-34064 (filtro `xmlattr`, não utilizado no template desta story) — atualizar para 3.1.4+ em janela de dependency maintenance cross-story.
 - WeasyPrint deps de sistema (libcairo, libpango, libgdk-pixbuf, libffi) não documentadas em Dockerfile ou script de setup — documentar antes de deploy em ambiente limpo.
 - `window.alert` para MSG-025 (sucesso) e mensagens de erro — padrão pré-existente estabelecido pela spec de story 5.1; substituir por componente de toast/notificação em story de UI polish.
+## Deferred from: code review of 5-3-cancelar-checklist (2026-04-27)
+
+- Hard delete sem audit trail — sem campos `cancelled_at`/`cancelled_by` no model `Checklist`; adequado para MVP, mas pode ter implicações regulatórias; adicionar quando rastreabilidade for necessária. [backend/app/services/checklist_service.py]
+- `session.commit()` dentro da camada de serviço em `cancel_checklist` — padrão pré-existente; tratar em refactor de unit-of-work cross-service. [backend/app/services/checklist_service.py]
+- `checklist_abc1d23` nome opaco de fixture — renomear para `unlocked_checklist` em refactor de test-suite para melhorar legibilidade. [backend/tests/conftest.py]
+- Sem isolamento de ownership no endpoint DELETE — qualquer `responsavel` autenticado pode deletar qualquer checklist; avaliar quando multi-tenant for necessário. [backend/app/api/routes/checklists.py]
+- Sem unit test para `cancel_checklist` em isolamento da camada HTTP — padrão pré-existente de integration tests via TestClient; considerar quando testes de serviço forem introduzidos. [backend/tests/]
+
 - `generate_checklist_pdf` executa `HTML(...).write_pdf()` de forma síncrona bloqueando thread do FastAPI — WeasyPrint é CPU/I/O intensivo; usar `run_in_executor` em story de performance quando concorrência for necessária. [backend/app/services/pdf_service.py]
 - Endpoint `GET /checklists/{id}/pdf` sem `response_model`/`responses` no decorador `@router.get` — OpenAPI infere resposta como JSON em vez de `application/pdf`; adicionar `responses={200: {"content": {"application/pdf": {}}}}` em refactor de schema. [backend/app/api/routes/pdf.py]
 - `data_entrega.strftime` e `data_devolucao.strftime` no template renderizam UTC sem indicação de fuso — usuário BR vê horário -3h do real; parametrizar timezone (America/Sao_Paulo) quando localização for necessária. [backend/app/templates/pdf/checklist.html]

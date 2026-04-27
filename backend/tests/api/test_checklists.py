@@ -996,3 +996,44 @@ def test_update_devolucao_sem_assinatura_motorista_422(client, test_user, locked
         headers=_headers(test_user),
     )
     assert response.status_code == 422
+
+
+def test_cancelar_checklist_nao_salvo_204(client, auth_headers, checklist_abc1d23):
+    response = client.delete(
+        f"/api/v1/checklists/{checklist_abc1d23.id}",
+        headers=auth_headers,
+    )
+    assert response.status_code == 204
+    get_response = client.get(
+        f"/api/v1/checklists/{checklist_abc1d23.id}",
+        headers=auth_headers,
+    )
+    assert get_response.status_code == 404
+
+
+def test_cancelar_checklist_salvo_400(client, auth_headers, locked_checklist):
+    response = client.delete(
+        f"/api/v1/checklists/{locked_checklist.id}",
+        headers=auth_headers,
+    )
+    assert response.status_code == 400
+    data = response.json()
+    assert data["detail"] == "LOCKED"
+
+
+def test_cancelar_checklist_inexistente_404(client, auth_headers):
+    response = client.delete("/api/v1/checklists/99999", headers=auth_headers)
+    assert response.status_code == 404
+
+
+def test_cancelar_checklist_sem_auth_401(client, checklist_abc1d23):
+    response = client.delete(f"/api/v1/checklists/{checklist_abc1d23.id}")
+    assert response.status_code == 401
+
+
+def test_cancelar_checklist_motorista_403(client, motorista_headers, checklist_abc1d23):
+    response = client.delete(
+        f"/api/v1/checklists/{checklist_abc1d23.id}",
+        headers=motorista_headers,
+    )
+    assert response.status_code == 403

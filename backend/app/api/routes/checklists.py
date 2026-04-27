@@ -1,12 +1,13 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Response, status
 from sqlmodel import Session
 
 from app.core.deps import get_current_user, get_session, require_role
 from app.models.user import User, UserRole
 from app.schemas.checklist import ChecklistCreate, ChecklistDevolucaoUpdate, ChecklistEntregaUpdate, ChecklistResponse
 from app.services.checklist_service import (
+    cancel_checklist,
     create_checklist,
     get_checklist_by_id,
     search_checklists,
@@ -53,6 +54,16 @@ def patch_devolucao(
     _: Annotated[User, Depends(require_role(UserRole.responsavel))],
 ):
     return update_devolucao(session, checklist_id, body)
+
+
+@router.delete("/{checklist_id}", status_code=status.HTTP_204_NO_CONTENT)
+def cancel(
+    checklist_id: int,
+    session: Annotated[Session, Depends(get_session)],
+    _: Annotated[User, Depends(require_role(UserRole.responsavel))],
+):
+    cancel_checklist(session, checklist_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.post("", response_model=ChecklistResponse, status_code=status.HTTP_201_CREATED)

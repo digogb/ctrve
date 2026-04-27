@@ -35,6 +35,19 @@ def get_checklist_by_id(session: Session, checklist_id: int) -> Checklist:
     return checklist
 
 
+def cancel_checklist(session: Session, checklist_id: int) -> None:
+    checklist = get_checklist_by_id(session, checklist_id)
+    if checklist.is_locked:
+        raise ChecklistError(
+            status_code=400,
+            detail="LOCKED",
+            message="Checklist bloqueado não pode ser cancelado.",
+            fields=[],
+        )
+    session.delete(checklist)
+    session.commit()
+
+
 def search_checklists(session: Session, placa: str | None = None) -> list[Checklist]:
     query = select(Checklist)
     if placa:
