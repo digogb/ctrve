@@ -65,11 +65,11 @@ def update_entrega(session: Session, checklist_id: int, data: ChecklistEntregaUp
             message="Checklist não encontrado.",
             fields=[],
         )
-    if checklist.status != ChecklistStatus.entregue:
+    if checklist.status == ChecklistStatus.devolvido:
         raise ChecklistError(
             status_code=400,
             detail="INVALID_STATUS",
-            message="Apenas checklists com status 'entregue' podem ser atualizados.",
+            message="Checklist já devolvido não pode ter a entrega atualizada.",
             fields=["status"],
         )
     if checklist.is_locked:
@@ -90,6 +90,7 @@ def update_entrega(session: Session, checklist_id: int, data: ChecklistEntregaUp
         checklist.assinatura_motorista = data.assinatura_motorista
     if data.observacoes is not None:
         checklist.observacoes = data.observacoes
+    checklist.status = ChecklistStatus.entregue
     checklist.is_locked = True
     session.add(checklist)
     session.commit()

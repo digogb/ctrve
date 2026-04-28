@@ -7,6 +7,7 @@ from sqlmodel import Column, Field, SQLModel
 
 
 class ChecklistStatus(str, Enum):
+    em_preenchimento = "em_preenchimento"
     entregue = "entregue"
     devolvido = "devolvido"
 
@@ -21,7 +22,7 @@ class Checklist(SQLModel, table=True):
     motorista: str
     matricula_motorista: str
     quilometragem_inicial: float
-    status: ChecklistStatus = Field(default=ChecklistStatus.entregue)
+    status: ChecklistStatus = Field(default=ChecklistStatus.em_preenchimento)
     is_locked: bool = Field(default=False)
     itens: list[Any] | None = Field(default=None, sa_column=Column(JSON))
     avarias: list[Any] | None = Field(default=None, sa_column=Column(JSON))

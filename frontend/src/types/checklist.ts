@@ -1,6 +1,6 @@
 import type { DamagePoint } from "./damage";
 
-export type ChecklistStatus = "entregue" | "devolvido";
+export type ChecklistStatus = "em_preenchimento" | "entregue" | "devolvido";
 export type ChecklistItemStatus = "ok" | "nao_ok";
 export type NivelCombustivel = "1/4" | "2/4" | "3/4" | "4/4";
 

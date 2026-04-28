@@ -26,7 +26,7 @@ def test_create_checklist_success(client, test_user):
     assert response.status_code == 201
     data = response.json()
     assert data["placa"] == "ABC1D23"
-    assert data["status"] == "entregue"
+    assert data["status"] == "em_preenchimento"
     assert data["is_locked"] is False
     assert "id" in data
 
