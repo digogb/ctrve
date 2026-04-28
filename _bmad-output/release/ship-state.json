@@ -1,0 +1,20 @@
+{
+  "stage": 8,
+  "status": "awaiting_deployment",
+  "pending_gate": "deployment",
+  "timestamp": "2026-04-28T10:34:31.396235+00:00",
+  "task_type": "nova_funcionalidade",
+  "manual_necessario": true,
+  "feature": "CTRVE Epics 1-6 (Stories 1.1-6.3)",
+  "ajustar_count": 0,
+  "steps_completed": [
+    "step-1-precheck",
+    "step-2-release",
+    "step-3-pml",
+    "step-4-pml-gate",
+    "step-5-apf",
+    "step-6-manual",
+    "step-7-checklist"
+  ],
+  "pml_approved_at": "2026-04-28T10:35:44.377254+00:00"
+}

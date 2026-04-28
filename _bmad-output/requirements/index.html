@@ -1,0 +1,1598 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CTRVE — Documentação de Requisitos</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #22263a;
+      --border: #2e3250;
+      --accent: #4f6ef7;
+      --accent2: #7c3aed;
+      --green: #16a34a;
+      --orange: #c2410c;
+      --yellow: #b45309;
+      --red: #dc2626;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --tag-us: #1e3a5f;
+      --tag-us-text: #60a5fa;
+      --tag-rn: #3b1f00;
+      --tag-rn-text: #fb923c;
+      --tag-msg: #1e1b4b;
+      --tag-msg-text: #a78bfa;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    /* SIDEBAR */
+    nav {
+      width: 260px;
+      min-width: 260px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      position: sticky;
+      top: 0;
+      overflow-y: auto;
+    }
+
+    .nav-header {
+      padding: 20px 16px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-header .logo {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: -0.5px;
+    }
+
+    .nav-header .subtitle {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .nav-section {
+      padding: 12px 8px 4px;
+    }
+
+    .nav-section-title {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 0 8px;
+      margin-bottom: 4px;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 8px;
+      border-radius: 6px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 13px;
+      transition: all 0.15s;
+    }
+
+    .nav-link:hover {
+      background: var(--surface2);
+      color: var(--text);
+    }
+
+    .nav-link.active {
+      background: rgba(79, 110, 247, 0.15);
+      color: var(--accent);
+    }
+
+    .nav-badge {
+      margin-left: auto;
+      background: var(--surface2);
+      color: var(--muted);
+      font-size: 10px;
+      padding: 1px 6px;
+      border-radius: 10px;
+    }
+
+    /* MAIN */
+    main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 32px 40px;
+      max-width: 1000px;
+    }
+
+    section {
+      margin-bottom: 56px;
+      scroll-margin-top: 24px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    h1 { font-size: 24px; font-weight: 700; }
+    h2 { font-size: 18px; font-weight: 600; }
+    h3 { font-size: 14px; font-weight: 600; color: var(--text); }
+
+    /* VISION */
+    .vision-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .vision-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+    }
+
+    .vision-card h3 {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    .vision-card ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .vision-card ul li {
+      display: flex;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .vision-card ul li::before {
+      content: "→";
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .info-block {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 8px;
+      padding: 14px 16px;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    .info-block strong { color: var(--text); }
+
+    /* USER STORIES */
+    .story-group {
+      margin-bottom: 28px;
+    }
+
+    .story-group-title {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--muted);
+      margin-bottom: 10px;
+      padding: 0 0 6px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .story-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 10px;
+      transition: border-color 0.15s;
+    }
+
+    .story-card:target, .story-card.highlight {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent);
+    }
+
+    .story-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .story-quote {
+      font-size: 13px;
+      color: var(--muted);
+      border-left: 2px solid var(--border);
+      padding-left: 10px;
+      margin-bottom: 12px;
+      font-style: italic;
+    }
+
+    .criteria-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      margin-bottom: 12px;
+    }
+
+    .criteria-list li {
+      display: flex;
+      gap: 8px;
+      font-size: 12.5px;
+      color: var(--muted);
+    }
+
+    .criteria-list li::before {
+      content: "◦";
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .refs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+    }
+
+    .refs-label {
+      font-size: 11px;
+      color: var(--muted);
+      align-self: center;
+    }
+
+    /* TAGS / BADGES */
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: opacity 0.15s;
+      cursor: pointer;
+    }
+
+    .tag:hover { opacity: 0.8; }
+
+    .tag-us {
+      background: var(--tag-us);
+      color: var(--tag-us-text);
+      border: 1px solid rgba(96, 165, 250, 0.2);
+    }
+
+    .tag-rn {
+      background: var(--tag-rn);
+      color: var(--tag-rn-text);
+      border: 1px solid rgba(251, 146, 60, 0.2);
+    }
+
+    .tag-msg {
+      background: var(--tag-msg);
+      color: var(--tag-msg-text);
+      border: 1px solid rgba(167, 139, 250, 0.2);
+    }
+
+    .tag-id {
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+
+    /* BUSINESS RULES TABLE */
+    .rules-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .rules-table th {
+      text-align: left;
+      padding: 8px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .rules-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    .rules-table tr:last-child td { border-bottom: none; }
+
+    .rules-table tr:target td, .rules-table tr.highlight td {
+      background: rgba(79, 110, 247, 0.07);
+    }
+
+    .rule-desc { color: var(--text); }
+    .rule-condition { color: var(--muted); }
+    .rule-action { color: var(--muted); }
+    .rule-exception { color: var(--muted); font-style: italic; }
+
+    /* MESSAGES TABLE */
+    .msg-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .msg-table th {
+      text-align: left;
+      padding: 8px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .msg-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    .msg-table tr:last-child td { border-bottom: none; }
+
+    .msg-table tr:target td, .msg-table tr.highlight td {
+      background: rgba(79, 110, 247, 0.07);
+    }
+
+    .msg-type {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .msg-type-erro { background: rgba(220,38,38,0.15); color: #f87171; }
+    .msg-type-validacao { background: rgba(180,83,9,0.15); color: #fbbf24; }
+    .msg-type-confirmacao { background: rgba(79,110,247,0.15); color: #818cf8; }
+    .msg-type-sucesso { background: rgba(22,163,74,0.15); color: #4ade80; }
+
+    .msg-text {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 12px;
+      color: var(--text);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px 10px;
+      line-height: 1.5;
+    }
+
+    /* TRACEABILITY */
+    .matrix-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .matrix-table th {
+      text-align: left;
+      padding: 8px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .matrix-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    .matrix-table tr:last-child td { border-bottom: none; }
+
+    .coverage-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      background: rgba(22,163,74,0.15);
+      color: #4ade80;
+    }
+
+    .tags-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    /* TABLE WRAPPERS */
+    .table-wrapper {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    /* SCROLLABLE RULE ROW */
+    .rule-row { cursor: default; }
+    .rule-row:hover td { background: rgba(255,255,255,0.02); }
+
+    /* UTIL */
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 3px 8px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .chip strong { color: var(--text); }
+
+    @media (max-width: 900px) {
+      main { padding: 20px 16px; }
+      .vision-grid { grid-template-columns: 1fr; }
+      nav { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="nav-header">
+    <div class="logo">CTRVE</div>
+    <div class="subtitle">Documentação de Requisitos</div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-title">Produto</div>
+    <a href="#visao" class="nav-link">📋 Visão do Produto</a>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-title">Estórias</div>
+    <a href="#auth" class="nav-link">🔐 Autenticação e Acesso <span class="nav-badge">2</span></a>
+    <a href="#infos" class="nav-link">📝 Informações Gerais <span class="nav-badge">2</span></a>
+    <a href="#entrega" class="nav-link">🚗 Checklist de Entrega <span class="nav-badge">3</span></a>
+    <a href="#devolucao" class="nav-link">↩️ Checklist de Devolução <span class="nav-badge">2</span></a>
+    <a href="#obs" class="nav-link">💬 Observações <span class="nav-badge">1</span></a>
+    <a href="#acoes" class="nav-link">⚡ Ações e Saída <span class="nav-badge">4</span></a>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-title">Referências</div>
+    <a href="#regras" class="nav-link">📏 Regras de Negócio <span class="nav-badge">25</span></a>
+    <a href="#mensagens" class="nav-link">💬 Mensagens do Sistema <span class="nav-badge">26</span></a>
+    <a href="#rastreabilidade" class="nav-link">🔗 Matriz de Rastreabilidade <span class="nav-badge">14</span></a>
+  </div>
+</nav>
+
+<!-- MAIN CONTENT -->
+<main>
+
+  <!-- VISÃO DO PRODUTO -->
+  <section id="visao">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(79,110,247,0.15);">📋</div>
+      <div>
+        <h2>Visão do Produto</h2>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px;">CTRVE — Checklist de Transporte de Veículos</div>
+      </div>
+    </div>
+
+    <div class="info-block">
+      <strong>Escopo:</strong> Sistema digital para controle de entrega e devolução de veículos oficiais do Tribunal de Justiça do Estado do Ceará (TJCE). Substitui o processo manual em papel por um formulário digital com checklist padronizado de 20 itens de segurança e equipamentos, registro de avarias em mapa gráfico, coleta de assinaturas digitais e geração de PDF.<br><br>
+      <strong>Base Legal:</strong> Resolução nº 641/2025 — Documento SEI 8527796-55.2025.8.06.0000 (Requerimento Administrativo 0456448).
+    </div>
+
+    <div class="vision-grid">
+      <div class="vision-card">
+        <h3>Funcionalidades incluídas</h3>
+        <ul>
+          <li>Cadastro e autenticação com perfis Responsável e Motorista</li>
+          <li>Registro de informações gerais do veículo</li>
+          <li>Checklist de Entrega com 20 itens, combustível e assinaturas</li>
+          <li>Checklist de Devolução com 20 itens e assinaturas</li>
+          <li>Mapa de avarias interativo (4 vistas, 3 tipos)</li>
+          <li>Campo de observações em texto livre</li>
+          <li>Busca de checklists por placa</li>
+          <li>Geração e compartilhamento de PDF</li>
+          <li>Impressão do checklist</li>
+          <li>Validações completas de campos e fluxo</li>
+        </ul>
+      </div>
+      <div class="vision-card">
+        <h3>Fora de escopo</h3>
+        <ul>
+          <li>Módulo de fotos do veículo</li>
+          <li>Integração com SEI, sistema de frota ou DETRAN</li>
+          <li>Gestão de contratos de locação ou manutenção</li>
+          <li>Cadastro de frota</li>
+          <li>Cadastro de unidades/subunidades</li>
+          <li>Relatórios gerenciais e dashboards</li>
+          <li>Aplicativo mobile nativo</li>
+          <li>Mapa de avarias no checklist de devolução</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="vision-grid">
+      <div class="vision-card">
+        <h3>Premissas</h3>
+        <ul>
+          <li>Acesso via rede TJCE ou internet</li>
+          <li>Assinatura digital via canvas (não ICP-Brasil)</li>
+          <li>Nº de Controle informado manualmente</li>
+          <li>20 itens do checklist fixos (entrega e devolução)</li>
+          <li>Acesso via navegador web (desktop e mobile)</li>
+        </ul>
+      </div>
+      <div class="vision-card">
+        <h3>Restrições</h3>
+        <ul>
+          <li>Stack: React + FastAPI + PostgreSQL</li>
+          <li>Autenticação própria (sem LDAP/AD)</li>
+          <li>Devolução exige entrega concluída</li>
+          <li>Todos os 20 itens obrigatórios antes de salvar</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== ESTÓRIAS ==================== -->
+
+  <!-- AUTH -->
+  <section id="auth">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(124,58,237,0.15);">🔐</div>
+      <div><h2>Autenticação e Acesso</h2></div>
+    </div>
+
+    <!-- US-001 -->
+    <div class="story-card" id="US-001">
+      <div class="story-header">
+        <span class="tag tag-id">US-001</span>
+        <h3>Login no sistema</h3>
+      </div>
+      <p class="story-quote">Como Responsável ou Motorista, quero realizar login com minhas credenciais, para que eu possa acessar as funcionalidades de acordo com meu perfil.</p>
+      <ul class="criteria-list">
+        <li>Sistema exibe tela de login com campos de usuário e senha</li>
+        <li>Login bem-sucedido redireciona para a tela principal</li>
+        <li>Login com credenciais inválidas exibe mensagem genérica sem revelar qual campo está incorreto</li>
+        <li>Sessão expira após período de inatividade</li>
+      </ul>
+      <div class="refs">
+        <span class="refs-label">Regras:</span>
+        <a href="#RN-001" class="tag tag-rn" onclick="highlight('RN-001')">RN-001</a>
+        <a href="#RN-002" class="tag tag-rn" onclick="highlight('RN-002')">RN-002</a>
+        <span class="refs-label" style="margin-left:8px">Mensagens:</span>
+        <a href="#MSG-001" class="tag tag-msg" onclick="highlight('MSG-001')">MSG-001</a>
+        <a href="#MSG-002" class="tag tag-msg" onclick="highlight('MSG-002')">MSG-002</a>
+        <a href="#MSG-024" class="tag tag-msg" onclick="highlight('MSG-024')">MSG-024</a>
+      </div>
+    </div>
+
+    <!-- US-002 -->
+    <div class="story-card" id="US-002">
+      <div class="story-header">
+        <span class="tag tag-id">US-002</span>
+        <h3>Cadastro de usuário</h3>
+      </div>
+      <p class="story-quote">Como Responsável, quero cadastrar novos usuários no sistema, para que motoristas e outros responsáveis possam acessar o sistema.</p>
+      <ul class="criteria-list">
+        <li>Formulário com nome, matrícula, perfil (Responsável ou Motorista), usuário e senha</li>
+        <li>Sistema impede cadastro com matrícula já existente</li>
+        <li>Senha deve atender requisitos mínimos de segurança</li>
+      </ul>
+      <div class="refs">
+        <span class="refs-label">Regras:</span>
+        <a href="#RN-003" class="tag tag-rn" onclick="highlight('RN-003')">RN-003</a>
+        <a href="#RN-004" class="tag tag-rn" onclick="highlight('RN-004')">RN-004</a>
+        <span class="refs-label" style="margin-left:8px">Mensagens:</span>
+        <a href="#MSG-003" class="tag tag-msg" onclick="highlight('MSG-003')">MSG-003</a>
+        <a href="#MSG-004" class="tag tag-msg" onclick="highlight('MSG-004')">MSG-004</a>
+        <a href="#MSG-023" class="tag tag-msg" onclick="highlight('MSG-023')">MSG-023</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- INFORMAÇÕES GERAIS -->
+  <section id="infos">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(22,163,74,0.15);">📝</div>
+      <div><h2>Informações Gerais do Checklist</h2></div>
+    </div>
+
+    <!-- US-003 -->
+    <div class="story-card" id="US-003">
+      <div class="story-header">
+        <span class="tag tag-id">US-003</span>
+        <h3>Criar novo checklist</h3>
+      </div>
+      <p class="story-quote">Como Responsável, quero criar um novo checklist informando os dados gerais do veículo, para que o processo de entrega seja iniciado com todas as informações de identificação registradas.</p>
+      <ul class="criteria-list">
+        <li>Formulário com: Nº de Controle, Placa, Unidade, Subunidade, Motorista, Matrícula, Quilometragem Inicial</li>
+        <li>Campos obrigatórios: Placa, Unidade, Motorista, Matrícula, Quilometragem Inicial</li>
+        <li>Placa validada no formato Mercosul (ABC1D23) ou antigo (ABC-1234)</li>
+        <li>Matrícula aceita apenas valor numérico</li>
+        <li>Não permite criar entrega se já existe entrega aberta para o mesmo veículo</li>
+      </ul>
+      <div class="refs">
+        <span class="refs-label">Regras:</span>
+        <a href="#RN-005" class="tag tag-rn" onclick="highlight('RN-005')">RN-005</a>
+        <a href="#RN-006" class="tag tag-rn" onclick="highlight('RN-006')">RN-006</a>
+        <a href="#RN-007" class="tag tag-rn" onclick="highlight('RN-007')">RN-007</a>
+        <a href="#RN-008" class="tag tag-rn" onclick="highlight('RN-008')">RN-008</a>
+        <span class="refs-label" style="margin-left:8px">Mensagens:</span>
+        <a href="#MSG-005" class="tag tag-msg" onclick="highlight('MSG-005')">MSG-005</a>
+        <a href="#MSG-006" class="tag tag-msg" onclick="highlight('MSG-006')">MSG-006</a>
+        <a href="#MSG-007" class="tag tag-msg" onclick="highlight('MSG-007')">MSG-007</a>
+        <a href="#MSG-008" class="tag tag-msg" onclick="highlight('MSG-008')">MSG-008</a>
+      </div>
+    </div>
+
+    <!-- US-004 -->
+    <div class="story-card" id="US-004">
+      <div class="story-header">
+        <span class="tag tag-id">US-004</span>
+        <h3>Buscar checklist por placa</h3>
+      </div>
+      <p class="story-quote">Como Responsável ou Motorista, quero buscar checklists existentes pela placa do veículo, para que eu possa consultar o histórico ou continuar um checklist em andamento.</p>
+      <ul class="criteria-list">
+        <li>Campo de busca aceita placa parcial ou completa</li>
+        <li>Resultados exibem lista ordenada por data (mais recente primeiro)</li>
+        <li>Cada resultado exibe: Nº de Controle, Placa, Data de Entrega, Status (Entregue/Devolvido)</li>
+        <li>Busca sem resultados exibe mensagem informativa</li>
+      </ul>
+      <div class="refs">
+        <span class="refs-label">Regras:</span>
+        <a href="#RN-009" class="tag tag-rn" onclick="highlight('RN-009')">RN-009</a>
+        <span class="refs-label" style="margin-left:8px">Mensagens:</span>
+        <a href="#MSG-009" class="tag tag-msg" onclick="highlight('MSG-009')">MSG-009</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ENTREGA -->
+  <section id="entrega">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(202,138,4,0.15);">🚗</div>
+      <div><h2>Checklist de Entrega</h2></div>
+    </div>
+
+    <!-- US-005 -->
+    <div class="story-card" id="US-005">
+      <div class="story-header">
+        <span class="tag tag-id">US-005</span>
+        <h3>Preencher checklist de entrega</h3>
+      </div>
+      <p class="story-quote">Como Responsável, quero verificar os 20 itens do checklist de entrega, registrar o nível de combustível e informar a data/horário, para que as condições do veículo no momento da entrega fiquem documentadas.</p>
+      <ul class="criteria-list">
+        <li>Exibe 20 itens organizados em duas colunas (Documentação/Equipamentos e Condições do Veículo)</li>
+        <li>Cada item marcado como OK ou Não OK — nenhum pode ficar sem resposta</li>
+        <li>Nível de combustível com seleção exclusiva: 1/4, 2/4, 3/4 ou 4/4</li>
+        <li>Data e horário da entrega registrados</li>
+        <li>Não é possível salvar com itens pendentes</li>
+      </ul>
+      <div class="refs">
+        <span class="refs-label">Regras:</span>
+        <a href="#RN-010" class="tag tag-rn" onclick="highlight('RN-010')">RN-010</a>
+        <a href="#RN-011" class="tag tag-rn" onclick="highlight('RN-011')">RN-011</a>
+        <a href="#RN-012" class="tag tag-rn" onclick="highlight('RN-012')">RN-012</a>
+        <span class="refs-label" style="margin-left:8px">Mensagens:</span>
+        <a href="#MSG-010" class="tag tag-msg" onclick="highlight('MSG-010')">MSG-010</a>
+        <a href="#MSG-011" class="tag tag-msg" onclick="highlight('MSG-011')">MSG-011</a>
+        <a href="#MSG-012" class="tag tag-msg" onclick="highlight('MSG-012')">MSG-012</a>
+      </div>
+    </div>
+
+    <!-- US-006 -->
+    <div class="story-card" id="US-006">
+      <div class="story-header">
+        <span class="tag tag-id">US-006</span>
+        <h3>Registrar avarias no mapa do veículo</h3>
+      </div>
+      <p class="story-quote">Como Responsável, quero marcar no mapa gráfico do veículo os locais onde existem avarias e classificá-las por tipo, para que o estado físico do veículo na entrega fique documentado visualmente.</p>
+      <ul class="criteria-list">
+        <li>Mapa exibe 4 vistas do veículo (topo, lateral esquerda, lateral direita, frontal/traseira)</li>
+        <li>Permite marcar múltiplos pontos de avaria</li>
+        <li>Cada ponto exige seleção do tipo: Risco, Amassado ou Trincado</li>
+        <li>Permite remover ponto marcado por engano</li>
+        <li>Mapa de avarias é opcional (veículo pode não ter avarias)</li>
+      </ul>
+      <div class="refs">
+        <span class="refs-label">Regras:</span>
+        <a href="#RN-013" class="tag tag-rn" onclick="highlight('RN-013')">RN-013</a>
+        <a href="#RN-014" class="tag tag-rn" onclick="highlight('RN-014')">RN-014</a>
+        <span class="refs-label" style="margin-left:8px">Mensagens:</span>
+        <a href="#MSG-013" class="tag tag-msg" onclick="highlight('MSG-013')">MSG-013</a>
+      </div>
+    </div>
+
+    <!-- US-007 -->
+    <div class="story-card" id="US-007">
+      <div class="story-header">
+        <span class="tag tag-id">US-007</span>
+        <h3>Coletar assinaturas na entrega</h3>
+      </div>
+      <p class="story-quote">Como Responsável, quero coletar a assinatura digital do Responsável e do Motorista no checklist de entrega, para que ambas as partes confirmem as condições registradas.</p>
+      <ul class="criteria-list">
+        <li>Dois campos de assinatura: Responsável e Motorista</li>
+        <li>Assinatura coletada via canvas (desenho na tela)</li>
+        <li>Botão "Limpar" permite refazer a assinatura</li>
+        <li>Ambas as assinaturas são obrigatórias para salvar</li>
+        <li>Assinaturas não podem ser editadas após salvar</li>
+      </ul>
+      <div class="refs">
+        <span class="refs-label">Regras:</span>
+        <a href="#RN-015" class="tag tag-rn" onclick="highlight('RN-015')">RN-015</a>
+        <a href="#RN-016" class="tag tag-rn" onclick="highlight('RN-016')">RN-016</a>
+        <span class="refs-label" style="margin-left:8px">Mensagens:</span>
+        <a href="#MSG-014" class="tag tag-msg" onclick="highlight('MSG-014')">MSG-014</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- DEVOLUÇÃO -->
+  <section id="devolucao">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(234,88,12,0.15);">↩️</div>
+      <div><h2>Checklist de Devolução</h2></div>
+    </div>
+
+    <!-- US-008 -->
+    <div class="story-card" id="US-008">
+      <div class="story-header">
+        <span class="tag tag-id">US-008</span>
+        <h3>Preencher checklist de devolução</h3>
+      </div>
+      <p class="story-quote">Como Responsável, quero verificar os 20 itens do checklist de devolução, registrar o nível de combustível, quilometragem final e data/horário, para que as condições do veículo na devolução fiquem documentadas e comparáveis com a entrega.</p>
+      <ul class="criteria-list">
+        <li>Devolução só pode ser iniciada se existe entrega concluída para o mesmo Nº de Controle</li>
+        <li>Dados de Informações Gerais herdados da entrega (não editáveis)</li>
+        <li>Quilometragem Final obrigatória e >= Quilometragem Inicial</li>
+        <li>Data de Devolução >= Data de Entrega</li>
+        <li>Mesmos 20 itens e regra de combustível da entrega</li>
+      </ul>
+      <div class="refs">
+        <span class="refs-label">Regras:</span>
+        <a href="#RN-010" class="tag tag-rn" onclick="highlight('RN-010')">RN-010</a>
+        <a href="#RN-011" class="tag tag-rn" onclick="highlight('RN-011')">RN-011</a>
+        <a href="#RN-012" class="tag tag-rn" onclick="highlight('RN-012')">RN-012</a>
+        <a href="#RN-017" class="tag tag-rn" onclick="highlight('RN-017')">RN-017</a>
+        <a href="#RN-018" class="tag tag-rn" onclick="highlight('RN-018')">RN-018</a>
+        <a href="#RN-019" class="tag tag-rn" onclick="highlight('RN-019')">RN-019</a>
+        <span class="refs-label" style="margin-left:8px">Mensagens:</span>
+        <a href="#MSG-010" class="tag tag-msg" onclick="highlight('MSG-010')">MSG-010</a>
+        <a href="#MSG-011" class="tag tag-msg" onclick="highlight('MSG-011')">MSG-011</a>
+        <a href="#MSG-012" class="tag tag-msg" onclick="highlight('MSG-012')">MSG-012</a>
+        <a href="#MSG-015" class="tag tag-msg" onclick="highlight('MSG-015')">MSG-015</a>
+        <a href="#MSG-016" class="tag tag-msg" onclick="highlight('MSG-016')">MSG-016</a>
+        <a href="#MSG-017" class="tag tag-msg" onclick="highlight('MSG-017')">MSG-017</a>
+      </div>
+    </div>
+
+    <!-- US-009 -->
+    <div class="story-card" id="US-009">
+      <div class="story-header">
+        <span class="tag tag-id">US-009</span>
+        <h3>Coletar assinaturas na devolução</h3>
+      </div>
+      <p class="story-quote">Como Responsável, quero coletar a assinatura digital do Responsável e do Motorista no checklist de devolução, para que ambas as partes confirmem as condições do veículo no momento da devolução.</p>
+      <ul class="criteria-list">
+        <li>Mesma mecânica de assinatura da entrega (canvas + limpar)</li>
+        <li>Ambas as assinaturas obrigatórias para salvar</li>
+        <li>Não editáveis após salvar</li>
+      </ul>
+      <div class="refs">
+        <span class="refs-label">Regras:</span>
+        <a href="#RN-015" class="tag tag-rn" onclick="highlight('RN-015')">RN-015</a>
+        <a href="#RN-016" class="tag tag-rn" onclick="highlight('RN-016')">RN-016</a>
+        <span class="refs-label" style="margin-left:8px">Mensagens:</span>
+        <a href="#MSG-014" class="tag tag-msg" onclick="highlight('MSG-014')">MSG-014</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- OBSERVAÇÕES -->
+  <section id="obs">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(20,184,166,0.15);">💬</div>
+      <div><h2>Observações</h2></div>
+    </div>
+
+    <!-- US-010 -->
+    <div class="story-card" id="US-010">
+      <div class="story-header">
+        <span class="tag tag-id">US-010</span>
+        <h3>Registrar observações</h3>
+      </div>
+      <p class="story-quote">Como Responsável, quero registrar observações em texto livre sobre avarias ou situações relevantes, para que informações complementares que não cabem nos itens do checklist fiquem documentadas.</p>
+      <ul class="criteria-list">
+        <li>Campo de texto livre disponível tanto na entrega quanto na devolução</li>
+        <li>Campo opcional (pode ser salvo vazio)</li>
+        <li>Sem limite rígido de caracteres visível ao usuário</li>
+      </ul>
+      <div class="refs">
+        <span class="refs-label">Regras:</span>
+        <a href="#RN-020" class="tag tag-rn" onclick="highlight('RN-020')">RN-020</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- AÇÕES -->
+  <section id="acoes">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(244,63,94,0.15);">⚡</div>
+      <div><h2>Ações e Saída</h2></div>
+    </div>
+
+    <!-- US-011 -->
+    <div class="story-card" id="US-011">
+      <div class="story-header">
+        <span class="tag tag-id">US-011</span>
+        <h3>Salvar checklist</h3>
+      </div>
+      <p class="story-quote">Como Responsável, quero salvar o checklist preenchido, para que os dados sejam persistidos e possam ser consultados posteriormente.</p>
+      <ul class="criteria-list">
+        <li>Botão "Salvar" executa todas as validações antes de persistir</li>
+        <li>Se validação falha, exibe mensagens específicas dos campos com problema</li>
+        <li>Após salvar com sucesso, checklist não pode ser editado</li>
+        <li>Exibe confirmação antes de salvar definitivamente</li>
+      </ul>
+      <div class="refs">
+        <span class="refs-label">Regras:</span>
+        <a href="#RN-021" class="tag tag-rn" onclick="highlight('RN-021')">RN-021</a>
+        <a href="#RN-022" class="tag tag-rn" onclick="highlight('RN-022')">RN-022</a>
+        <span class="refs-label" style="margin-left:8px">Mensagens:</span>
+        <a href="#MSG-018" class="tag tag-msg" onclick="highlight('MSG-018')">MSG-018</a>
+        <a href="#MSG-022" class="tag tag-msg" onclick="highlight('MSG-022')">MSG-022</a>
+      </div>
+    </div>
+
+    <!-- US-012 -->
+    <div class="story-card" id="US-012">
+      <div class="story-header">
+        <span class="tag tag-id">US-012</span>
+        <h3>Gerar e compartilhar PDF</h3>
+      </div>
+      <p class="story-quote">Como Responsável ou Motorista, quero gerar um PDF do checklist completo e compartilhá-lo, para que o documento possa ser enviado ou arquivado fora do sistema.</p>
+      <ul class="criteria-list">
+        <li>PDF contém: dados gerais, itens verificados, combustível, mapa de avarias (se entrega), assinaturas, observações</li>
+        <li>PDF disponível para download</li>
+        <li>Botão "Compartilhar" abre diálogo de compartilhamento do navegador</li>
+        <li>Botão "Imprimir" abre diálogo de impressão do navegador</li>
+      </ul>
+      <div class="refs">
+        <span class="refs-label">Regras:</span>
+        <a href="#RN-023" class="tag tag-rn" onclick="highlight('RN-023')">RN-023</a>
+        <span class="refs-label" style="margin-left:8px">Mensagens:</span>
+        <a href="#MSG-019" class="tag tag-msg" onclick="highlight('MSG-019')">MSG-019</a>
+        <a href="#MSG-025" class="tag tag-msg" onclick="highlight('MSG-025')">MSG-025</a>
+      </div>
+    </div>
+
+    <!-- US-013 -->
+    <div class="story-card" id="US-013">
+      <div class="story-header">
+        <span class="tag tag-id">US-013</span>
+        <h3>Cancelar checklist</h3>
+      </div>
+      <p class="story-quote">Como Responsável, quero cancelar o preenchimento de um checklist antes de salvá-lo, para que eu possa descartar um checklist iniciado por engano sem que dados incorretos sejam persistidos.</p>
+      <ul class="criteria-list">
+        <li>Botão "Cancelar" disponível enquanto o checklist não foi salvo</li>
+        <li>Sistema solicita confirmação antes de descartar</li>
+        <li>Após confirmação, dados são descartados e usuário retorna à tela principal</li>
+      </ul>
+      <div class="refs">
+        <span class="refs-label">Regras:</span>
+        <a href="#RN-024" class="tag tag-rn" onclick="highlight('RN-024')">RN-024</a>
+        <span class="refs-label" style="margin-left:8px">Mensagens:</span>
+        <a href="#MSG-020" class="tag tag-msg" onclick="highlight('MSG-020')">MSG-020</a>
+      </div>
+    </div>
+
+    <!-- US-014 -->
+    <div class="story-card" id="US-014">
+      <div class="story-header">
+        <span class="tag tag-id">US-014</span>
+        <h3>Navegar entre telas</h3>
+      </div>
+      <p class="story-quote">Como Responsável ou Motorista, quero voltar à tela anterior sem perder o contexto, para que eu possa navegar pelo sistema de forma fluida.</p>
+      <ul class="criteria-list">
+        <li>Botão "Voltar" retorna à tela anterior</li>
+        <li>Se houver dados não salvos, sistema alerta antes de sair</li>
+      </ul>
+      <div class="refs">
+        <span class="refs-label">Regras:</span>
+        <a href="#RN-025" class="tag tag-rn" onclick="highlight('RN-025')">RN-025</a>
+        <span class="refs-label" style="margin-left:8px">Mensagens:</span>
+        <a href="#MSG-021" class="tag tag-msg" onclick="highlight('MSG-021')">MSG-021</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== REGRAS DE NEGÓCIO ==================== -->
+  <section id="regras">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(251,146,60,0.15);">📏</div>
+      <div><h2>Regras de Negócio</h2></div>
+    </div>
+
+    <div class="table-wrapper">
+      <table class="rules-table">
+        <thead>
+          <tr>
+            <th style="width:80px">ID</th>
+            <th style="width:180px">Descrição</th>
+            <th>Condição / Ação / Exceção</th>
+            <th style="width:120px">Estória</th>
+          </tr>
+        </thead>
+        <tbody>
+
+          <tr class="rule-row" id="RN-001">
+            <td><span class="tag tag-rn">RN-001</span></td>
+            <td class="rule-desc">Autenticação de usuário</td>
+            <td>
+              <div class="rule-condition"><strong>Condição:</strong> Usuário informa credenciais na tela de login</div>
+              <div class="rule-action" style="margin-top:4px"><strong>Ação:</strong> Sistema valida credenciais e, se válidas, cria sessão e redireciona à tela principal <a href="#MSG-024" class="tag tag-msg" style="font-size:10px;padding:1px 5px" onclick="highlight('MSG-024')">MSG-024</a></div>
+              <div class="rule-exception" style="margin-top:4px"><strong>Exceção:</strong> Credenciais inválidas → mensagem genérica <a href="#MSG-001" class="tag tag-msg" style="font-size:10px;padding:1px 5px" onclick="highlight('MSG-001')">MSG-001</a></div>
+            </td>
+            <td><a href="#US-001" class="tag tag-us" onclick="highlight('US-001')">US-001</a></td>
+          </tr>
+
+          <tr class="rule-row" id="RN-002">
+            <td><span class="tag tag-rn">RN-002</span></td>
+            <td class="rule-desc">Expiração de sessão por inatividade</td>
+            <td>
+              <div class="rule-condition"><strong>Condição:</strong> Sessão sem interação por período configurável (padrão: 30 min)</div>
+              <div class="rule-action" style="margin-top:4px"><strong>Ação:</strong> Sistema encerra sessão e redireciona ao login <a href="#MSG-002" class="tag tag-msg" style="font-size:10px;padding:1px 5px" onclick="highlight('MSG-002')">MSG-002</a></div>
+            </td>
+            <td><a href="#US-001" class="tag tag-us" onclick="highlight('US-001')">US-001</a></td>
+          </tr>
+
+          <tr class="rule-row" id="RN-003">
+            <td><span class="tag tag-rn">RN-003</span></td>
+            <td class="rule-desc">Unicidade de matrícula no cadastro</td>
+            <td>
+              <div class="rule-condition"><strong>Condição:</strong> Cadastro de usuário com matrícula já existente</div>
+              <div class="rule-action" style="margin-top:4px"><strong>Ação (sucesso):</strong> <a href="#MSG-023" class="tag tag-msg" style="font-size:10px;padding:1px 5px" onclick="highlight('MSG-023')">MSG-023</a></div>
+              <div class="rule-exception" style="margin-top:4px"><strong>Exceção:</strong> Matrícula duplicada → <a href="#MSG-003" class="tag tag-msg" style="font-size:10px;padding:1px 5px" onclick="highlight('MSG-003')">MSG-003</a></div>
+            </td>
+            <td><a href="#US-002" class="tag tag-us" onclick="highlight('US-002')">US-002</a></td>
+          </tr>
+
+          <tr class="rule-row" id="RN-004">
+            <td><span class="tag tag-rn">RN-004</span></td>
+            <td class="rule-desc">Requisitos de senha</td>
+            <td>
+              <div class="rule-condition"><strong>Condição:</strong> Usuário define senha no cadastro ou alteração</div>
+              <div class="rule-action" style="margin-top:4px"><strong>Ação:</strong> Mínimo 8 caracteres, ao menos 1 maiúscula, 1 minúscula, 1 número</div>
+              <div class="rule-exception" style="margin-top:4px"><strong>Exceção:</strong> <a href="#MSG-004" class="tag tag-msg" style="font-size:10px;padding:1px 5px" onclick="highlight('MSG-004')">MSG-004</a></div>
+            </td>
+            <td><a href="#US-002" class="tag tag-us" onclick="highlight('US-002')">US-002</a></td>
+          </tr>
+
+          <tr class="rule-row" id="RN-005">
+            <td><span class="tag tag-rn">RN-005</span></td>
+            <td class="rule-desc">Campos obrigatórios das Informações Gerais</td>
+            <td>
+              <div class="rule-condition"><strong>Condição:</strong> Responsável tenta salvar checklist de entrega</div>
+              <div class="rule-action" style="margin-top:4px"><strong>Ação:</strong> Exige: Placa, Unidade, Motorista, Matrícula, Quilometragem Inicial</div>
+              <div class="rule-exception" style="margin-top:4px"><strong>Exceção:</strong> <a href="#MSG-005" class="tag tag-msg" style="font-size:10px;padding:1px 5px" onclick="highlight('MSG-005')">MSG-005</a></div>
+            </td>
+            <td><a href="#US-003" class="tag tag-us" onclick="highlight('US-003')">US-003</a></td>
+          </tr>
+
+          <tr class="rule-row" id="RN-006">
+            <td><span class="tag tag-rn">RN-006</span></td>
+            <td class="rule-desc">Formato de placa do veículo</td>
+            <td>
+              <div class="rule-condition"><strong>Condição:</strong> Responsável informa a placa</div>
+              <div class="rule-action" style="margin-top:4px"><strong>Ação:</strong> Aceita Mercosul (ABC1D23) ou antigo (ABC-1234)</div>
+              <div class="rule-exception" style="margin-top:4px"><strong>Exceção:</strong> <a href="#MSG-006" class="tag tag-msg" style="font-size:10px;padding:1px 5px" onclick="highlight('MSG-006')">MSG-006</a></div>
+            </td>
+            <td><a href="#US-003" class="tag tag-us" onclick="highlight('US-003')">US-003</a></td>
+          </tr>
+
+          <tr class="rule-row" id="RN-007">
+            <td><span class="tag tag-rn">RN-007</span></td>
+            <td class="rule-desc">Matrícula numérica</td>
+            <td>
+              <div class="rule-condition"><strong>Condição:</strong> Responsável informa a matrícula do motorista</div>
+              <div class="rule-action" style="margin-top:4px"><strong>Ação:</strong> Aceita apenas valores numéricos</div>
+              <div class="rule-exception" style="margin-top:4px"><strong>Exceção:</strong> <a href="#MSG-007" class="tag tag-msg" style="font-size:10px;padding:1px 5px" onclick="highlight('MSG-007')">MSG-007</a></div>
+            </td>
+            <td><a href="#US-003" class="tag tag-us" onclick="highlight('US-003')">US-003</a></td>
+          </tr>
+
+          <tr class="rule-row" id="RN-008">
+            <td><span class="tag tag-rn">RN-008</span></td>
+            <td class="rule-desc">Bloqueio de entrega duplicada</td>
+            <td>
+              <div class="rule-condition"><strong>Condição:</strong> Criação de entrega para veículo com entrega aberta</div>
+              <div class="rule-exception" style="margin-top:4px"><strong>Exceção:</strong> <a href="#MSG-008" class="tag tag-msg" style="font-size:10px;padding:1px 5px" onclick="highlight('MSG-008')">MSG-008</a></div>
+            </td>
+            <td><a href="#US-003" class="tag tag-us" onclick="highlight('US-003')">US-003</a></td>
+          </tr>
+
+          <tr class="rule-row" id="RN-009">
+            <td><span class="tag tag-rn">RN-009</span></td>
+            <td class="rule-desc">Busca por placa</td>
+            <td>
+              <div class="rule-condition"><strong>Condição:</strong> Usuário informa placa (parcial ou completa)</div>
+              <div class="rule-action" style="margin-top:4px"><strong>Ação:</strong> Retorna checklists contendo o texto, ordenados por data decrescente</div>
+              <div class="rule-exception" style="margin-top:4px"><strong>Exceção:</strong> <a href="#MSG-009" class="tag tag-msg" style="font-size:10px;padding:1px 5px" onclick="highlight('MSG-009')">MSG-009</a></div>
+            </td>
+            <td><a href="#US-004" class="tag tag-us" onclick="highlight('US-004')">US-004</a></td>
+          </tr>
+
+          <tr class="rule-row" id="RN-010">
+            <td><span class="tag tag-rn">RN-010</span></td>
+            <td class="rule-desc">Verificação completa dos 20 itens</td>
+            <td>
+              <div class="rule-condition"><strong>Condição:</strong> Salvar checklist (entrega ou devolução)</div>
+              <div class="rule-action" style="margin-top:4px"><strong>Ação:</strong> Todos os 20 itens devem ser respondidos (OK ou Não OK)</div>
+              <div class="rule-exception" style="margin-top:4px"><strong>Exceção:</strong> <a href="#MSG-010" class="tag tag-msg" style="font-size:10px;padding:1px 5px" onclick="highlight('MSG-010')">MSG-010</a></div>
+            </td>
+            <td>
+              <a href="#US-005" class="tag tag-us" onclick="highlight('US-005')">US-005</a>
+              <a href="#US-008" class="tag tag-us" onclick="highlight('US-008')">US-008</a>
+            </td>
+          </tr>
+
+          <tr class="rule-row" id="RN-011">
+            <td><span class="tag tag-rn">RN-011</span></td>
+            <td class="rule-desc">Seleção exclusiva de combustível</td>
+            <td>
+              <div class="rule-condition"><strong>Condição:</strong> Responsável seleciona nível de combustível</div>
+              <div class="rule-action" style="margin-top:4px"><strong>Ação:</strong> Exatamente uma opção entre 1/4, 2/4, 3/4 e 4/4</div>
+              <div class="rule-exception" style="margin-top:4px"><strong>Exceção:</strong> <a href="#MSG-011" class="tag tag-msg" style="font-size:10px;padding:1px 5px" onclick="highlight('MSG-011')">MSG-011</a></div>
+            </td>
+            <td>
+              <a href="#US-005" class="tag tag-us" onclick="highlight('US-005')">US-005</a>
+              <a href="#US-008" class="tag tag-us" onclick="highlight('US-008')">US-008</a>
+            </td>
+          </tr>
+
+          <tr class="rule-row" id="RN-012">
+            <td><span class="tag tag-rn">RN-012</span></td>
+            <td class="rule-desc">Registro de data e horário</td>
+            <td>
+              <div class="rule-condition"><strong>Condição:</strong> Responsável preenche checklist</div>
+              <div class="rule-action" style="margin-top:4px"><strong>Ação:</strong> Sistema registra data e horário informados</div>
+              <div class="rule-exception" style="margin-top:4px"><strong>Exceção:</strong> <a href="#MSG-012" class="tag tag-msg" style="font-size:10px;padding:1px 5px" onclick="highlight('MSG-012')">MSG-012</a></div>
+            </td>
+            <td>
+              <a href="#US-005" class="tag tag-us" onclick="highlight('US-005')">US-005</a>
+              <a href="#US-008" class="tag tag-us" onclick="highlight('US-008')">US-008</a>
+            </td>
+          </tr>
+
+          <tr class="rule-row" id="RN-013">
+            <td><span class="tag tag-rn">RN-013</span></td>
+            <td class="rule-desc">Tipo de avaria obrigatório</td>
+            <td>
+              <div class="rule-condition"><strong>Condição:</strong> Responsável marca ponto de avaria no mapa</div>
+              <div class="rule-action" style="margin-top:4px"><strong>Ação:</strong> Exige seleção do tipo: Risco, Amassado ou Trincado</div>
+              <div class="rule-exception" style="margin-top:4px"><strong>Exceção:</strong> <a href="#MSG-013" class="tag tag-msg" style="font-size:10px;padding:1px 5px" onclick="highlight('MSG-013')">MSG-013</a></div>
+            </td>
+            <td><a href="#US-006" class="tag tag-us" onclick="highlight('US-006')">US-006</a></td>
+          </tr>
+
+          <tr class="rule-row" id="RN-014">
+            <td><span class="tag tag-rn">RN-014</span></td>
+            <td class="rule-desc">Mapa de avarias exclusivo da entrega</td>
+            <td>
+              <div class="rule-condition"><strong>Condição:</strong> Responsável acessa checklist de devolução</div>
+              <div class="rule-action" style="margin-top:4px"><strong>Ação:</strong> Sistema não exibe a seção de mapa de avarias (comportamento fixo)</div>
+            </td>
+            <td><a href="#US-006" class="tag tag-us" onclick="highlight('US-006')">US-006</a></td>
+          </tr>
+
+          <tr class="rule-row" id="RN-015">
+            <td><span class="tag tag-rn">RN-015</span></td>
+            <td class="rule-desc">Obrigatoriedade de ambas as assinaturas</td>
+            <td>
+              <div class="rule-condition"><strong>Condição:</strong> Responsável tenta salvar checklist</div>
+              <div class="rule-action" style="margin-top:4px"><strong>Ação:</strong> Exige assinaturas de Responsável e Motorista</div>
+              <div class="rule-exception" style="margin-top:4px"><strong>Exceção:</strong> <a href="#MSG-014" class="tag tag-msg" style="font-size:10px;padding:1px 5px" onclick="highlight('MSG-014')">MSG-014</a></div>
+            </td>
+            <td>
+              <a href="#US-007" class="tag tag-us" onclick="highlight('US-007')">US-007</a>
+              <a href="#US-009" class="tag tag-us" onclick="highlight('US-009')">US-009</a>
+            </td>
+          </tr>
+
+          <tr class="rule-row" id="RN-016">
+            <td><span class="tag tag-rn">RN-016</span></td>
+            <td class="rule-desc">Imutabilidade de assinatura após salvar</td>
+            <td>
+              <div class="rule-condition"><strong>Condição:</strong> Checklist salvo com sucesso</div>
+              <div class="rule-action" style="margin-top:4px"><strong>Ação:</strong> Campos de assinatura bloqueados; armazenadas como imagem, sem alteração possível</div>
+            </td>
+            <td>
+              <a href="#US-007" class="tag tag-us" onclick="highlight('US-007')">US-007</a>
+              <a href="#US-009" class="tag tag-us" onclick="highlight('US-009')">US-009</a>
+            </td>
+          </tr>
+
+          <tr class="rule-row" id="RN-017">
+            <td><span class="tag tag-rn">RN-017</span></td>
+            <td class="rule-desc">Devolução exige entrega prévia</td>
+            <td>
+              <div class="rule-condition"><strong>Condição:</strong> Responsável tenta iniciar devolução</div>
+              <div class="rule-action" style="margin-top:4px"><strong>Ação:</strong> Verifica existência de entrega concluída para o Nº de Controle</div>
+              <div class="rule-exception" style="margin-top:4px"><strong>Exceção:</strong> <a href="#MSG-015" class="tag tag-msg" style="font-size:10px;padding:1px 5px" onclick="highlight('MSG-015')">MSG-015</a></div>
+            </td>
+            <td><a href="#US-008" class="tag tag-us" onclick="highlight('US-008')">US-008</a></td>
+          </tr>
+
+          <tr class="rule-row" id="RN-018">
+            <td><span class="tag tag-rn">RN-018</span></td>
+            <td class="rule-desc">Herança de dados na devolução</td>
+            <td>
+              <div class="rule-condition"><strong>Condição:</strong> Responsável inicia checklist de devolução</div>
+              <div class="rule-action" style="margin-top:4px"><strong>Ação:</strong> Preenche automaticamente Informações Gerais a partir da entrega; campos herdados não são editáveis</div>
+            </td>
+            <td><a href="#US-008" class="tag tag-us" onclick="highlight('US-008')">US-008</a></td>
+          </tr>
+
+          <tr class="rule-row" id="RN-019">
+            <td><span class="tag tag-rn">RN-019</span></td>
+            <td class="rule-desc">Consistência de quilometragem e data</td>
+            <td>
+              <div class="rule-condition"><strong>Condição:</strong> Responsável informa Quilometragem Final e Data de Devolução</div>
+              <div class="rule-action" style="margin-top:4px"><strong>Ação:</strong> Valida: Km Final ≥ Km Inicial; Data Devolução ≥ Data Entrega</div>
+              <div class="rule-exception" style="margin-top:4px"><strong>Exceção:</strong> <a href="#MSG-016" class="tag tag-msg" style="font-size:10px;padding:1px 5px" onclick="highlight('MSG-016')">MSG-016</a> (km) / <a href="#MSG-017" class="tag tag-msg" style="font-size:10px;padding:1px 5px" onclick="highlight('MSG-017')">MSG-017</a> (data)</div>
+            </td>
+            <td><a href="#US-008" class="tag tag-us" onclick="highlight('US-008')">US-008</a></td>
+          </tr>
+
+          <tr class="rule-row" id="RN-020">
+            <td><span class="tag tag-rn">RN-020</span></td>
+            <td class="rule-desc">Observações opcionais</td>
+            <td>
+              <div class="rule-condition"><strong>Condição:</strong> Responsável preenche ou deixa vazio o campo de observações</div>
+              <div class="rule-action" style="margin-top:4px"><strong>Ação:</strong> Aceita texto livre sem limite visível; opcional em entrega e devolução</div>
+            </td>
+            <td><a href="#US-010" class="tag tag-us" onclick="highlight('US-010')">US-010</a></td>
+          </tr>
+
+          <tr class="rule-row" id="RN-021">
+            <td><span class="tag tag-rn">RN-021</span></td>
+            <td class="rule-desc">Validação completa antes de salvar</td>
+            <td>
+              <div class="rule-condition"><strong>Condição:</strong> Responsável aciona "Salvar"</div>
+              <div class="rule-action" style="margin-top:4px"><strong>Ação:</strong> Executa todas as validações; se alguma falhar, exibe todas as mensagens de erro de uma vez. Sucesso → <a href="#MSG-022" class="tag tag-msg" style="font-size:10px;padding:1px 5px" onclick="highlight('MSG-022')">MSG-022</a></div>
+            </td>
+            <td><a href="#US-011" class="tag tag-us" onclick="highlight('US-011')">US-011</a></td>
+          </tr>
+
+          <tr class="rule-row" id="RN-022">
+            <td><span class="tag tag-rn">RN-022</span></td>
+            <td class="rule-desc">Confirmação antes de salvar</td>
+            <td>
+              <div class="rule-condition"><strong>Condição:</strong> Todas as validações passaram</div>
+              <div class="rule-action" style="margin-top:4px"><strong>Ação:</strong> Exibe <a href="#MSG-018" class="tag tag-msg" style="font-size:10px;padding:1px 5px" onclick="highlight('MSG-018')">MSG-018</a>; só salva após confirmação positiva</div>
+              <div class="rule-exception" style="margin-top:4px"><strong>Exceção:</strong> Usuário cancela → retorna ao formulário sem salvar</div>
+            </td>
+            <td><a href="#US-011" class="tag tag-us" onclick="highlight('US-011')">US-011</a></td>
+          </tr>
+
+          <tr class="rule-row" id="RN-023">
+            <td><span class="tag tag-rn">RN-023</span></td>
+            <td class="rule-desc">Geração de PDF</td>
+            <td>
+              <div class="rule-condition"><strong>Condição:</strong> Usuário aciona "Compartilhar" ou "Imprimir"</div>
+              <div class="rule-action" style="margin-top:4px"><strong>Ação:</strong> Gera PDF com todos os dados; disponível para download, compartilhamento e impressão. Sucesso → <a href="#MSG-025" class="tag tag-msg" style="font-size:10px;padding:1px 5px" onclick="highlight('MSG-025')">MSG-025</a></div>
+              <div class="rule-exception" style="margin-top:4px"><strong>Exceção:</strong> Checklist não salvo → botões desabilitados <a href="#MSG-019" class="tag tag-msg" style="font-size:10px;padding:1px 5px" onclick="highlight('MSG-019')">MSG-019</a></div>
+            </td>
+            <td><a href="#US-012" class="tag tag-us" onclick="highlight('US-012')">US-012</a></td>
+          </tr>
+
+          <tr class="rule-row" id="RN-024">
+            <td><span class="tag tag-rn">RN-024</span></td>
+            <td class="rule-desc">Cancelamento com descarte de dados</td>
+            <td>
+              <div class="rule-condition"><strong>Condição:</strong> Responsável aciona "Cancelar" antes de salvar</div>
+              <div class="rule-action" style="margin-top:4px"><strong>Ação:</strong> Exibe <a href="#MSG-020" class="tag tag-msg" style="font-size:10px;padding:1px 5px" onclick="highlight('MSG-020')">MSG-020</a>; se confirmado, descarta dados e retorna à tela principal</div>
+              <div class="rule-exception" style="margin-top:4px"><strong>Exceção:</strong> Usuário nega → retorna ao formulário mantendo dados</div>
+            </td>
+            <td><a href="#US-013" class="tag tag-us" onclick="highlight('US-013')">US-013</a></td>
+          </tr>
+
+          <tr class="rule-row" id="RN-025">
+            <td><span class="tag tag-rn">RN-025</span></td>
+            <td class="rule-desc">Alerta de dados não salvos ao navegar</td>
+            <td>
+              <div class="rule-condition"><strong>Condição:</strong> Usuário aciona "Voltar" com dados não salvos</div>
+              <div class="rule-action" style="margin-top:4px"><strong>Ação:</strong> Exibe <a href="#MSG-021" class="tag tag-msg" style="font-size:10px;padding:1px 5px" onclick="highlight('MSG-021')">MSG-021</a>; opções: continuar editando ou sair sem salvar</div>
+              <div class="rule-exception" style="margin-top:4px"><strong>Exceção:</strong> Sem dados alterados → navegação sem alerta</div>
+            </td>
+            <td><a href="#US-014" class="tag tag-us" onclick="highlight('US-014')">US-014</a></td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ==================== MENSAGENS ==================== -->
+  <section id="mensagens">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(167,139,250,0.15);">💬</div>
+      <div><h2>Mensagens do Sistema</h2></div>
+    </div>
+
+    <div class="table-wrapper">
+      <table class="msg-table">
+        <thead>
+          <tr>
+            <th style="width:90px">Código</th>
+            <th style="width:100px">Tipo</th>
+            <th>Texto</th>
+            <th style="width:100px">Regra</th>
+          </tr>
+        </thead>
+        <tbody id="msg-tbody">
+
+          <tr id="MSG-001"><td><span class="tag tag-msg">MSG-001</span></td><td><span class="msg-type msg-type-erro">erro</span></td><td><div class="msg-text">Usuário ou senha inválidos. Verifique suas credenciais e tente novamente.</div></td><td><a href="#RN-001" class="tag tag-rn" onclick="highlight('RN-001')">RN-001</a></td></tr>
+          <tr id="MSG-002"><td><span class="tag tag-msg">MSG-002</span></td><td><span class="msg-type msg-type-erro">erro</span></td><td><div class="msg-text">Sua sessão expirou por inatividade. Realize o login novamente para continuar.</div></td><td><a href="#RN-002" class="tag tag-rn" onclick="highlight('RN-002')">RN-002</a></td></tr>
+          <tr id="MSG-003"><td><span class="tag tag-msg">MSG-003</span></td><td><span class="msg-type msg-type-erro">erro</span></td><td><div class="msg-text">A matrícula informada já está cadastrada no sistema. Verifique o número e tente novamente.</div></td><td><a href="#RN-003" class="tag tag-rn" onclick="highlight('RN-003')">RN-003</a></td></tr>
+          <tr id="MSG-004"><td><span class="tag tag-msg">MSG-004</span></td><td><span class="msg-type msg-type-validacao">validação</span></td><td><div class="msg-text">A senha deve conter no mínimo 8 caracteres, incluindo ao menos uma letra maiúscula, uma letra minúscula e um número.</div></td><td><a href="#RN-004" class="tag tag-rn" onclick="highlight('RN-004')">RN-004</a></td></tr>
+          <tr id="MSG-005"><td><span class="tag tag-msg">MSG-005</span></td><td><span class="msg-type msg-type-validacao">validação</span></td><td><div class="msg-text">Os seguintes campos obrigatórios não foram preenchidos: {lista de campos}. Preencha-os para continuar.</div></td><td><a href="#RN-005" class="tag tag-rn" onclick="highlight('RN-005')">RN-005</a></td></tr>
+          <tr id="MSG-006"><td><span class="tag tag-msg">MSG-006</span></td><td><span class="msg-type msg-type-validacao">validação</span></td><td><div class="msg-text">Formato de placa inválido. Informe no formato Mercosul (ABC1D23) ou antigo (ABC-1234).</div></td><td><a href="#RN-006" class="tag tag-rn" onclick="highlight('RN-006')">RN-006</a></td></tr>
+          <tr id="MSG-007"><td><span class="tag tag-msg">MSG-007</span></td><td><span class="msg-type msg-type-validacao">validação</span></td><td><div class="msg-text">O campo Matrícula aceita apenas valores numéricos.</div></td><td><a href="#RN-007" class="tag tag-rn" onclick="highlight('RN-007')">RN-007</a></td></tr>
+          <tr id="MSG-008"><td><span class="tag tag-msg">MSG-008</span></td><td><span class="msg-type msg-type-erro">erro</span></td><td><div class="msg-text">Já existe um checklist de entrega aberto para o veículo de placa {placa}. Conclua a devolução antes de registrar nova entrega.</div></td><td><a href="#RN-008" class="tag tag-rn" onclick="highlight('RN-008')">RN-008</a></td></tr>
+          <tr id="MSG-009"><td><span class="tag tag-msg">MSG-009</span></td><td><span class="msg-type msg-type-validacao">validação</span></td><td><div class="msg-text">Nenhum checklist encontrado para a placa informada. Verifique o número da placa e tente novamente.</div></td><td><a href="#RN-009" class="tag tag-rn" onclick="highlight('RN-009')">RN-009</a></td></tr>
+          <tr id="MSG-010"><td><span class="tag tag-msg">MSG-010</span></td><td><span class="msg-type msg-type-validacao">validação</span></td><td><div class="msg-text">Os seguintes itens do checklist ainda não foram verificados: {lista de itens}. Todos os 20 itens devem ser respondidos.</div></td><td><a href="#RN-010" class="tag tag-rn" onclick="highlight('RN-010')">RN-010</a></td></tr>
+          <tr id="MSG-011"><td><span class="tag tag-msg">MSG-011</span></td><td><span class="msg-type msg-type-validacao">validação</span></td><td><div class="msg-text">Selecione o nível de combustível do veículo (1/4, 2/4, 3/4 ou 4/4).</div></td><td><a href="#RN-011" class="tag tag-rn" onclick="highlight('RN-011')">RN-011</a></td></tr>
+          <tr id="MSG-012"><td><span class="tag tag-msg">MSG-012</span></td><td><span class="msg-type msg-type-validacao">validação</span></td><td><div class="msg-text">Informe a data e o horário da {entrega/devolução}.</div></td><td><a href="#RN-012" class="tag tag-rn" onclick="highlight('RN-012')">RN-012</a></td></tr>
+          <tr id="MSG-013"><td><span class="tag tag-msg">MSG-013</span></td><td><span class="msg-type msg-type-validacao">validação</span></td><td><div class="msg-text">Selecione o tipo de avaria (Risco, Amassado ou Trincado) para cada ponto marcado no mapa do veículo.</div></td><td><a href="#RN-013" class="tag tag-rn" onclick="highlight('RN-013')">RN-013</a></td></tr>
+          <tr id="MSG-014"><td><span class="tag tag-msg">MSG-014</span></td><td><span class="msg-type msg-type-validacao">validação</span></td><td><div class="msg-text">A assinatura do {Responsável/Motorista} é obrigatória. Assine no campo correspondente para continuar.</div></td><td><a href="#RN-015" class="tag tag-rn" onclick="highlight('RN-015')">RN-015</a></td></tr>
+          <tr id="MSG-015"><td><span class="tag tag-msg">MSG-015</span></td><td><span class="msg-type msg-type-erro">erro</span></td><td><div class="msg-text">Não é possível iniciar a devolução. Não foi encontrada entrega concluída para o Nº de Controle {número}.</div></td><td><a href="#RN-017" class="tag tag-rn" onclick="highlight('RN-017')">RN-017</a></td></tr>
+          <tr id="MSG-016"><td><span class="tag tag-msg">MSG-016</span></td><td><span class="msg-type msg-type-erro">erro</span></td><td><div class="msg-text">A Quilometragem Final ({valor final}) não pode ser inferior à Quilometragem Inicial ({valor inicial}).</div></td><td><a href="#RN-019" class="tag tag-rn" onclick="highlight('RN-019')">RN-019</a></td></tr>
+          <tr id="MSG-017"><td><span class="tag tag-msg">MSG-017</span></td><td><span class="msg-type msg-type-erro">erro</span></td><td><div class="msg-text">A Data de Devolução não pode ser anterior à Data de Entrega ({data entrega}).</div></td><td><a href="#RN-019" class="tag tag-rn" onclick="highlight('RN-019')">RN-019</a></td></tr>
+          <tr id="MSG-018"><td><span class="tag tag-msg">MSG-018</span></td><td><span class="msg-type msg-type-confirmacao">confirmação</span></td><td><div class="msg-text">Deseja confirmar o salvamento deste checklist? Após a confirmação, os dados não poderão ser alterados.</div></td><td><a href="#RN-022" class="tag tag-rn" onclick="highlight('RN-022')">RN-022</a></td></tr>
+          <tr id="MSG-019"><td><span class="tag tag-msg">MSG-019</span></td><td><span class="msg-type msg-type-validacao">validação</span></td><td><div class="msg-text">As opções de compartilhamento e impressão estarão disponíveis após o salvamento do checklist.</div></td><td><a href="#RN-023" class="tag tag-rn" onclick="highlight('RN-023')">RN-023</a></td></tr>
+          <tr id="MSG-020"><td><span class="tag tag-msg">MSG-020</span></td><td><span class="msg-type msg-type-confirmacao">confirmação</span></td><td><div class="msg-text">Deseja cancelar o preenchimento? Todos os dados informados serão descartados.</div></td><td><a href="#RN-024" class="tag tag-rn" onclick="highlight('RN-024')">RN-024</a></td></tr>
+          <tr id="MSG-021"><td><span class="tag tag-msg">MSG-021</span></td><td><span class="msg-type msg-type-confirmacao">confirmação</span></td><td><div class="msg-text">Existem dados não salvos neste formulário. Deseja sair sem salvar?</div></td><td><a href="#RN-025" class="tag tag-rn" onclick="highlight('RN-025')">RN-025</a></td></tr>
+          <tr id="MSG-022"><td><span class="tag tag-msg">MSG-022</span></td><td><span class="msg-type msg-type-sucesso">sucesso</span></td><td><div class="msg-text">Checklist salvo com sucesso.</div></td><td><a href="#RN-021" class="tag tag-rn" onclick="highlight('RN-021')">RN-021</a></td></tr>
+          <tr id="MSG-023"><td><span class="tag tag-msg">MSG-023</span></td><td><span class="msg-type msg-type-sucesso">sucesso</span></td><td><div class="msg-text">Usuário cadastrado com sucesso.</div></td><td><a href="#RN-003" class="tag tag-rn" onclick="highlight('RN-003')">RN-003</a></td></tr>
+          <tr id="MSG-024"><td><span class="tag tag-msg">MSG-024</span></td><td><span class="msg-type msg-type-sucesso">sucesso</span></td><td><div class="msg-text">Login realizado com sucesso.</div></td><td><a href="#RN-001" class="tag tag-rn" onclick="highlight('RN-001')">RN-001</a></td></tr>
+          <tr id="MSG-025"><td><span class="tag tag-msg">MSG-025</span></td><td><span class="msg-type msg-type-sucesso">sucesso</span></td><td><div class="msg-text">PDF gerado com sucesso.</div></td><td><a href="#RN-023" class="tag tag-rn" onclick="highlight('RN-023')">RN-023</a></td></tr>
+          <tr id="MSG-026"><td><span class="tag tag-msg">MSG-026</span></td><td><span class="msg-type msg-type-erro">erro</span></td><td><div class="msg-text">Acesso negado. Seu perfil de usuário não tem permissão para esta operação.</div></td><td><span class="muted">—</span></td></tr>
+
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ==================== RASTREABILIDADE ==================== -->
+  <section id="rastreabilidade">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(20,184,166,0.15);">🔗</div>
+      <div><h2>Matriz de Rastreabilidade</h2></div>
+    </div>
+
+    <div class="table-wrapper">
+      <table class="matrix-table">
+        <thead>
+          <tr>
+            <th style="width:80px">US</th>
+            <th style="width:220px">Título</th>
+            <th>Regras</th>
+            <th>Mensagens</th>
+            <th style="width:90px">Cobertura</th>
+          </tr>
+        </thead>
+        <tbody>
+
+          <tr>
+            <td><a href="#US-001" class="tag tag-us" onclick="highlight('US-001')">US-001</a></td>
+            <td>Login no sistema</td>
+            <td class="tags-wrap">
+              <a href="#RN-001" class="tag tag-rn" onclick="highlight('RN-001')">RN-001</a>
+              <a href="#RN-002" class="tag tag-rn" onclick="highlight('RN-002')">RN-002</a>
+            </td>
+            <td class="tags-wrap">
+              <a href="#MSG-001" class="tag tag-msg" onclick="highlight('MSG-001')">MSG-001</a>
+              <a href="#MSG-002" class="tag tag-msg" onclick="highlight('MSG-002')">MSG-002</a>
+              <a href="#MSG-024" class="tag tag-msg" onclick="highlight('MSG-024')">MSG-024</a>
+            </td>
+            <td><span class="coverage-badge">Completa</span></td>
+          </tr>
+
+          <tr>
+            <td><a href="#US-002" class="tag tag-us" onclick="highlight('US-002')">US-002</a></td>
+            <td>Cadastro de usuário</td>
+            <td class="tags-wrap">
+              <a href="#RN-003" class="tag tag-rn" onclick="highlight('RN-003')">RN-003</a>
+              <a href="#RN-004" class="tag tag-rn" onclick="highlight('RN-004')">RN-004</a>
+            </td>
+            <td class="tags-wrap">
+              <a href="#MSG-003" class="tag tag-msg" onclick="highlight('MSG-003')">MSG-003</a>
+              <a href="#MSG-004" class="tag tag-msg" onclick="highlight('MSG-004')">MSG-004</a>
+              <a href="#MSG-023" class="tag tag-msg" onclick="highlight('MSG-023')">MSG-023</a>
+            </td>
+            <td><span class="coverage-badge">Completa</span></td>
+          </tr>
+
+          <tr>
+            <td><a href="#US-003" class="tag tag-us" onclick="highlight('US-003')">US-003</a></td>
+            <td>Criar novo checklist</td>
+            <td class="tags-wrap">
+              <a href="#RN-005" class="tag tag-rn" onclick="highlight('RN-005')">RN-005</a>
+              <a href="#RN-006" class="tag tag-rn" onclick="highlight('RN-006')">RN-006</a>
+              <a href="#RN-007" class="tag tag-rn" onclick="highlight('RN-007')">RN-007</a>
+              <a href="#RN-008" class="tag tag-rn" onclick="highlight('RN-008')">RN-008</a>
+            </td>
+            <td class="tags-wrap">
+              <a href="#MSG-005" class="tag tag-msg" onclick="highlight('MSG-005')">MSG-005</a>
+              <a href="#MSG-006" class="tag tag-msg" onclick="highlight('MSG-006')">MSG-006</a>
+              <a href="#MSG-007" class="tag tag-msg" onclick="highlight('MSG-007')">MSG-007</a>
+              <a href="#MSG-008" class="tag tag-msg" onclick="highlight('MSG-008')">MSG-008</a>
+            </td>
+            <td><span class="coverage-badge">Completa</span></td>
+          </tr>
+
+          <tr>
+            <td><a href="#US-004" class="tag tag-us" onclick="highlight('US-004')">US-004</a></td>
+            <td>Buscar checklist por placa</td>
+            <td class="tags-wrap">
+              <a href="#RN-009" class="tag tag-rn" onclick="highlight('RN-009')">RN-009</a>
+            </td>
+            <td class="tags-wrap">
+              <a href="#MSG-009" class="tag tag-msg" onclick="highlight('MSG-009')">MSG-009</a>
+            </td>
+            <td><span class="coverage-badge">Completa</span></td>
+          </tr>
+
+          <tr>
+            <td><a href="#US-005" class="tag tag-us" onclick="highlight('US-005')">US-005</a></td>
+            <td>Preencher checklist de entrega</td>
+            <td class="tags-wrap">
+              <a href="#RN-010" class="tag tag-rn" onclick="highlight('RN-010')">RN-010</a>
+              <a href="#RN-011" class="tag tag-rn" onclick="highlight('RN-011')">RN-011</a>
+              <a href="#RN-012" class="tag tag-rn" onclick="highlight('RN-012')">RN-012</a>
+            </td>
+            <td class="tags-wrap">
+              <a href="#MSG-010" class="tag tag-msg" onclick="highlight('MSG-010')">MSG-010</a>
+              <a href="#MSG-011" class="tag tag-msg" onclick="highlight('MSG-011')">MSG-011</a>
+              <a href="#MSG-012" class="tag tag-msg" onclick="highlight('MSG-012')">MSG-012</a>
+            </td>
+            <td><span class="coverage-badge">Completa</span></td>
+          </tr>
+
+          <tr>
+            <td><a href="#US-006" class="tag tag-us" onclick="highlight('US-006')">US-006</a></td>
+            <td>Registrar avarias no mapa</td>
+            <td class="tags-wrap">
+              <a href="#RN-013" class="tag tag-rn" onclick="highlight('RN-013')">RN-013</a>
+              <a href="#RN-014" class="tag tag-rn" onclick="highlight('RN-014')">RN-014</a>
+            </td>
+            <td class="tags-wrap">
+              <a href="#MSG-013" class="tag tag-msg" onclick="highlight('MSG-013')">MSG-013</a>
+            </td>
+            <td><span class="coverage-badge">Completa</span></td>
+          </tr>
+
+          <tr>
+            <td><a href="#US-007" class="tag tag-us" onclick="highlight('US-007')">US-007</a></td>
+            <td>Coletar assinaturas na entrega</td>
+            <td class="tags-wrap">
+              <a href="#RN-015" class="tag tag-rn" onclick="highlight('RN-015')">RN-015</a>
+              <a href="#RN-016" class="tag tag-rn" onclick="highlight('RN-016')">RN-016</a>
+            </td>
+            <td class="tags-wrap">
+              <a href="#MSG-014" class="tag tag-msg" onclick="highlight('MSG-014')">MSG-014</a>
+            </td>
+            <td><span class="coverage-badge">Completa</span></td>
+          </tr>
+
+          <tr>
+            <td><a href="#US-008" class="tag tag-us" onclick="highlight('US-008')">US-008</a></td>
+            <td>Preencher checklist de devolução</td>
+            <td class="tags-wrap">
+              <a href="#RN-010" class="tag tag-rn" onclick="highlight('RN-010')">RN-010</a>
+              <a href="#RN-011" class="tag tag-rn" onclick="highlight('RN-011')">RN-011</a>
+              <a href="#RN-012" class="tag tag-rn" onclick="highlight('RN-012')">RN-012</a>
+              <a href="#RN-017" class="tag tag-rn" onclick="highlight('RN-017')">RN-017</a>
+              <a href="#RN-018" class="tag tag-rn" onclick="highlight('RN-018')">RN-018</a>
+              <a href="#RN-019" class="tag tag-rn" onclick="highlight('RN-019')">RN-019</a>
+            </td>
+            <td class="tags-wrap">
+              <a href="#MSG-010" class="tag tag-msg" onclick="highlight('MSG-010')">MSG-010</a>
+              <a href="#MSG-011" class="tag tag-msg" onclick="highlight('MSG-011')">MSG-011</a>
+              <a href="#MSG-012" class="tag tag-msg" onclick="highlight('MSG-012')">MSG-012</a>
+              <a href="#MSG-015" class="tag tag-msg" onclick="highlight('MSG-015')">MSG-015</a>
+              <a href="#MSG-016" class="tag tag-msg" onclick="highlight('MSG-016')">MSG-016</a>
+              <a href="#MSG-017" class="tag tag-msg" onclick="highlight('MSG-017')">MSG-017</a>
+            </td>
+            <td><span class="coverage-badge">Completa</span></td>
+          </tr>
+
+          <tr>
+            <td><a href="#US-009" class="tag tag-us" onclick="highlight('US-009')">US-009</a></td>
+            <td>Coletar assinaturas na devolução</td>
+            <td class="tags-wrap">
+              <a href="#RN-015" class="tag tag-rn" onclick="highlight('RN-015')">RN-015</a>
+              <a href="#RN-016" class="tag tag-rn" onclick="highlight('RN-016')">RN-016</a>
+            </td>
+            <td class="tags-wrap">
+              <a href="#MSG-014" class="tag tag-msg" onclick="highlight('MSG-014')">MSG-014</a>
+            </td>
+            <td><span class="coverage-badge">Completa</span></td>
+          </tr>
+
+          <tr>
+            <td><a href="#US-010" class="tag tag-us" onclick="highlight('US-010')">US-010</a></td>
+            <td>Registrar observações</td>
+            <td class="tags-wrap">
+              <a href="#RN-020" class="tag tag-rn" onclick="highlight('RN-020')">RN-020</a>
+            </td>
+            <td class="tags-wrap"><span style="color:var(--muted)">—</span></td>
+            <td><span class="coverage-badge">Completa</span></td>
+          </tr>
+
+          <tr>
+            <td><a href="#US-011" class="tag tag-us" onclick="highlight('US-011')">US-011</a></td>
+            <td>Salvar checklist</td>
+            <td class="tags-wrap">
+              <a href="#RN-021" class="tag tag-rn" onclick="highlight('RN-021')">RN-021</a>
+              <a href="#RN-022" class="tag tag-rn" onclick="highlight('RN-022')">RN-022</a>
+            </td>
+            <td class="tags-wrap">
+              <a href="#MSG-018" class="tag tag-msg" onclick="highlight('MSG-018')">MSG-018</a>
+              <a href="#MSG-022" class="tag tag-msg" onclick="highlight('MSG-022')">MSG-022</a>
+            </td>
+            <td><span class="coverage-badge">Completa</span></td>
+          </tr>
+
+          <tr>
+            <td><a href="#US-012" class="tag tag-us" onclick="highlight('US-012')">US-012</a></td>
+            <td>Gerar e compartilhar PDF</td>
+            <td class="tags-wrap">
+              <a href="#RN-023" class="tag tag-rn" onclick="highlight('RN-023')">RN-023</a>
+            </td>
+            <td class="tags-wrap">
+              <a href="#MSG-019" class="tag tag-msg" onclick="highlight('MSG-019')">MSG-019</a>
+              <a href="#MSG-025" class="tag tag-msg" onclick="highlight('MSG-025')">MSG-025</a>
+            </td>
+            <td><span class="coverage-badge">Completa</span></td>
+          </tr>
+
+          <tr>
+            <td><a href="#US-013" class="tag tag-us" onclick="highlight('US-013')">US-013</a></td>
+            <td>Cancelar checklist</td>
+            <td class="tags-wrap">
+              <a href="#RN-024" class="tag tag-rn" onclick="highlight('RN-024')">RN-024</a>
+            </td>
+            <td class="tags-wrap">
+              <a href="#MSG-020" class="tag tag-msg" onclick="highlight('MSG-020')">MSG-020</a>
+            </td>
+            <td><span class="coverage-badge">Completa</span></td>
+          </tr>
+
+          <tr>
+            <td><a href="#US-014" class="tag tag-us" onclick="highlight('US-014')">US-014</a></td>
+            <td>Navegar entre telas</td>
+            <td class="tags-wrap">
+              <a href="#RN-025" class="tag tag-rn" onclick="highlight('RN-025')">RN-025</a>
+            </td>
+            <td class="tags-wrap">
+              <a href="#MSG-021" class="tag tag-msg" onclick="highlight('MSG-021')">MSG-021</a>
+            </td>
+            <td><span class="coverage-badge">Completa</span></td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+<script>
+  let lastHighlight = null;
+
+  function highlight(id) {
+    if (lastHighlight) {
+      const prev = document.getElementById(lastHighlight);
+      if (prev) prev.classList.remove('highlight');
+    }
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.classList.add('highlight');
+        lastHighlight = id;
+        setTimeout(() => el.classList.remove('highlight'), 2500);
+      }
+    }, 100);
+  }
+
+  // Active nav link on scroll
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav-link');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(l => l.classList.remove('active'));
+        const active = document.querySelector(`.nav-link[href="#${entry.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+
+  sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>
