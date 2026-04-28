@@ -5,16 +5,19 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from alembic import command
+from alembic.config import Config
+
 from app.api.routes import auth, checklists, pdf, users
 from app.core.config import settings
-from app.database import create_db_and_tables
 from app.services.checklist_service import ChecklistError
 from app.services.user_service import UserError
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    create_db_and_tables()
+    alembic_cfg = Config("alembic.ini")
+    command.upgrade(alembic_cfg, "head")
     yield
 
 
