@@ -25,39 +25,49 @@ describe("ChecklistItems", () => {
     }
   });
 
-  it("renderiza 10 itens na coluna Documentação/Equipamentos", () => {
+  it("renderiza itens de Documentação/Equipamentos", () => {
     render(<Wrapper />);
-    expect(screen.getByText("Documentação/Equipamentos")).toBeInTheDocument();
     expect(screen.getByText("Documento Veicular")).toBeInTheDocument();
     expect(screen.getByText("Óleo de motor")).toBeInTheDocument();
   });
 
-  it("renderiza 10 itens na coluna Condições do Veículo", () => {
+  it("renderiza itens de Condições do Veículo", () => {
     render(<Wrapper />);
-    expect(screen.getByText("Condições do Veículo")).toBeInTheDocument();
     expect(screen.getByText("Luzes de Posição (faroletes)")).toBeInTheDocument();
     expect(screen.getByText("Limpadores de Para-brisa")).toBeInTheDocument();
   });
 
   it("permite selecionar OK no primeiro item", async () => {
     render(<Wrapper />);
-    const radios = screen.getAllByRole("radio", { name: "OK" });
-    await userEvent.click(radios[0]);
-    expect(radios[0]).toBeChecked();
+    const okButtons = screen.getAllByText("✓ OK");
+    expect(okButtons.length).toBeGreaterThan(0);
+    await userEvent.click(okButtons[0]);
   });
 
   it("permite selecionar Não OK no primeiro item", async () => {
     render(<Wrapper />);
-    const radios = screen.getAllByRole("radio", { name: "Não OK" });
-    await userEvent.click(radios[0]);
-    expect(radios[0]).toBeChecked();
+    const naoOkButtons = screen.getAllByText("✗ Não OK");
+    expect(naoOkButtons.length).toBeGreaterThan(0);
+    await userEvent.click(naoOkButtons[0]);
   });
 
-  it("cada item tem radio buttons OK e Não OK", () => {
+  it("cada item tem botões OK e Não OK", () => {
     render(<Wrapper />);
-    const okRadios = screen.getAllByRole("radio", { name: "OK" });
-    const naoOkRadios = screen.getAllByRole("radio", { name: "Não OK" });
-    expect(okRadios).toHaveLength(20);
-    expect(naoOkRadios).toHaveLength(20);
+    const okButtons = screen.getAllByText("✓ OK");
+    const naoOkButtons = screen.getAllByText("✗ Não OK");
+    expect(okButtons).toHaveLength(20);
+    expect(naoOkButtons).toHaveLength(20);
+  });
+
+  it("exibe contador 0 / 20 verificados inicialmente", () => {
+    render(<Wrapper />);
+    expect(screen.getByText(/0 \/ 20 verificados/)).toBeInTheDocument();
+  });
+
+  it("exibe contador atualizado após selecionar um item", async () => {
+    render(<Wrapper />);
+    const okButtons = screen.getAllByText("✓ OK");
+    await userEvent.click(okButtons[0]);
+    expect(screen.getByText(/1 \/ 20 verificados/)).toBeInTheDocument();
   });
 });

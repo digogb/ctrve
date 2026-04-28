@@ -230,3 +230,56 @@ Como Responsável ou Motorista, quero voltar à tela anterior sem perder o conte
 - [ ] Sem dados alterados, navegação ocorre sem alerta
 
 **Regras de Negócio:** RN-025
+
+---
+
+## Epic 6: Melhorias de UX e Design Visual
+
+Evolução da interface do CTRVE da aparência padrão shadcn para o design institucional moderno definido na especificação UX: paleta azul marinho TJCE, header global, formulário de checklist em etapas, notificações integradas e componentes de domínio.
+
+### Story 6.1: Fundação Visual e Navegação Global
+
+Como usuário do CTRVE, quero uma interface com identidade visual institucional e header de navegação global, para que o sistema transmita profissionalismo e eu sempre saiba quem está logado e como sair.
+
+**Critérios de Aceitação:**
+
+- [ ] CSS custom properties atualizadas: `--primary: 210 100% 20%` (#003366), tipografia Inter
+- [ ] Componente `AppHeader` em todas as telas autenticadas: logo CTRVE + chip do usuário (iniciais + nome + role) + botão Sair
+- [ ] `Sonner` instalado e configurado: substituir todos os `window.alert` por `toast.success` / `toast.error`
+- [ ] `Dialog` shadcn instalado: substituir todos os `window.confirm` por Dialog com título + descrição + botões
+- [ ] Dashboard refatorado com `HeroStrip` (saudação + 3 stats) e ações em cards elevados
+
+**Referência:** `_bmad-output/planning-artifacts/ux-design-specification.md` — Design System Foundation, Component Strategy Fase 1
+
+---
+
+### Story 6.2: Componentes de Domínio
+
+Como usuário do CTRVE, quero componentes visuais específicos do domínio (badges de status, checklist em cards e mapa de progresso), para que o estado de cada checklist seja imediatamente compreensível e o preenchimento seja mais fluido.
+
+**Critérios de Aceitação:**
+
+- [ ] `StatusBadge` com variantes: "Em preenchimento" (âmbar), "Entregue" (azul), "Devolvido" (verde) — cor + ícone + label
+- [ ] `ChecklistStepper` no topo do formulário: pills numeradas (1 Itens / 2 Condições / 3 Assinaturas) + barra de progresso sob o header
+- [ ] `ChecklistItemCard` com estados visuais OK (verde) / Não OK (vermelho) / Pendente (neutro), `min-h-[44px]`, toque no card inteiro
+- [ ] `ChecklistList` atualizado para cards estilo Direção 2 (ícone de status + placa + metadados + badge)
+- [ ] Contador "X/20 itens verificados" em tempo real
+
+**Referência:** `_bmad-output/planning-artifacts/ux-design-specification.md` — Component Strategy Fase 2, 2.5 Experience Mechanics
+
+---
+
+### Story 6.3: Formulário em Etapas e Refinamento
+
+Como Responsável, quero preencher o checklist de entrega em 3 etapas guiadas (Itens → Condições → Assinaturas), para que o processo longo seja dividido em partes gerenciáveis e eu não perca o contexto no celular.
+
+**Critérios de Aceitação:**
+
+- [ ] `ChecklistView` formulário de entrega dividido em 3 etapas: Etapa 1 (20 itens), Etapa 2 (combustível + data + mapa + observações), Etapa 3 (assinaturas)
+- [ ] Botão "Próximo →" desabilitado até todos os campos obrigatórios da etapa atual estarem preenchidos
+- [ ] Botão "← Voltar" entre etapas navega para etapa anterior sem perder dados
+- [ ] Mesmo fluxo de 3 etapas aplicado ao formulário de devolução em `DevolucaoForm`
+- [ ] Estado de todos os `window.alert` / `window.confirm` restantes substituídos por Toast / Dialog (completando Story 6.1)
+- [ ] Layout responsivo: `grid-cols-1 sm:grid-cols-2` nos itens do checklist
+
+**Referência:** `_bmad-output/planning-artifacts/ux-design-specification.md` — 2.5 Experience Mechanics, Flow Optimization Principles

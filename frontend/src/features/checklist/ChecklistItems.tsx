@@ -1,4 +1,4 @@
-import { Controller, type Control, type FieldErrors } from "react-hook-form";
+import { Controller, useWatch, type Control, type FieldErrors } from "react-hook-form";
 import type { ChecklistEntregaData } from "./checklistSchema";
 import type { ChecklistItemData } from "../../types/checklist";
 
@@ -47,6 +47,92 @@ interface ChecklistItemsReadOnlyProps {
 
 type ChecklistItemsProps = ChecklistItemsEditProps | ChecklistItemsReadOnlyProps;
 
+function ChecklistItemsEdit({
+  control,
+  errors,
+}: {
+  control: Control<ChecklistEntregaData>;
+  errors: FieldErrors<ChecklistEntregaData>;
+}) {
+  const watchedItems = useWatch({ control, name: "itens" });
+  const total = CHECKLIST_ITEMS.length;
+  const verificados =
+    watchedItems?.filter((i) => i.status === "ok" || i.status === "nao_ok").length ?? 0;
+
+  return (
+    <section className="mt-6">
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-lg font-semibold">Itens de Verificação</span>
+        <span className="text-sm text-muted">
+          {verificados} / {total} verificados
+        </span>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+        {CHECKLIST_ITEMS.map((item, index) => {
+          return (
+            <Controller
+              key={item.nome}
+              name={`itens.${index}.status`}
+              control={control}
+              render={({ field }) => {
+                const isOk = field.value === "ok";
+                const isNaoOk = field.value === "nao_ok";
+                const cardClass = isOk
+                  ? "bg-green-50 border-green-400"
+                  : isNaoOk
+                  ? "bg-red-50 border-red-400"
+                  : "bg-white border-gray-200";
+                return (
+                  <div>
+                    <div
+                      className={`rounded-xl border px-4 py-3 flex items-center justify-between min-h-[52px] transition-colors ${cardClass}`}
+                    >
+                      <span className="text-sm font-medium mr-2">{item.nome}</span>
+                      <div className="flex gap-1.5 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => field.onChange("ok")}
+                          aria-label={`Marcar ${item.nome} como OK`}
+                          aria-pressed={isOk}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${
+                            isOk
+                              ? "bg-green-600 text-white"
+                              : "bg-white border border-gray-200 text-gray-500"
+                          }`}
+                        >
+                          ✓ OK
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => field.onChange("nao_ok")}
+                          aria-label={`Marcar ${item.nome} como Não OK`}
+                          aria-pressed={isNaoOk}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${
+                            isNaoOk
+                              ? "bg-red-600 text-white"
+                              : "bg-white border border-gray-200 text-gray-500"
+                          }`}
+                        >
+                          ✗ Não OK
+                        </button>
+                      </div>
+                    </div>
+                    {errors.itens?.[index]?.status && (
+                      <p className="mt-1 text-xs text-danger" role="alert">
+                        {errors.itens[index].status?.message}
+                      </p>
+                    )}
+                  </div>
+                );
+              }}
+            />
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 export default function ChecklistItems(props: ChecklistItemsProps) {
   const esquerda = CHECKLIST_ITEMS.filter((i) => i.coluna === "esquerda");
   const direita = CHECKLIST_ITEMS.filter((i) => i.coluna === "direita");
@@ -94,68 +180,5 @@ export default function ChecklistItems(props: ChecklistItemsProps) {
     );
   }
 
-  const { control, errors } = props;
-
-  const renderColumn = (items: typeof CHECKLIST_ITEMS, title: string) => (
-    <div>
-      <h4 className="mb-2 text-sm font-medium text-muted">{title}</h4>
-      <div className="space-y-2">
-        {items.map((item) => {
-          const index = CHECKLIST_ITEMS.indexOf(item);
-          const fieldError = errors.itens?.[index]?.status;
-          return (
-            <Controller
-              key={item.nome}
-              name={`itens.${index}.status`}
-              control={control}
-              render={({ field }) => (
-                <fieldset className="rounded-md border px-3 py-2">
-                  <legend className="text-sm font-medium">{item.nome}</legend>
-                  <div className="mt-1 flex gap-4">
-                    <label className="flex items-center gap-1.5 text-sm">
-                      <input
-                        type="radio"
-                        id={`item-${index}-ok`}
-                        name={field.name}
-                        value="ok"
-                        checked={field.value === "ok"}
-                        onChange={() => field.onChange("ok")}
-                        className="accent-success"
-                      />
-                      OK
-                    </label>
-                    <label className="flex items-center gap-1.5 text-sm">
-                      <input
-                        type="radio"
-                        id={`item-${index}-nao_ok`}
-                        name={field.name}
-                        value="nao_ok"
-                        checked={field.value === "nao_ok"}
-                        onChange={() => field.onChange("nao_ok")}
-                        className="accent-danger"
-                      />
-                      Não OK
-                    </label>
-                  </div>
-                  {fieldError && (
-                    <p className="mt-1 text-xs text-danger" role="alert">{fieldError.message}</p>
-                  )}
-                </fieldset>
-              )}
-            />
-          );
-        })}
-      </div>
-    </div>
-  );
-
-  return (
-    <section className="mt-6">
-      <h3 className="mb-3 text-lg font-semibold">Verificar Itens do Veículo</h3>
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        {renderColumn(esquerda, "Documentação/Equipamentos")}
-        {renderColumn(direita, "Condições do Veículo")}
-      </div>
-    </section>
-  );
+  return <ChecklistItemsEdit control={props.control} errors={props.errors} />;
 }

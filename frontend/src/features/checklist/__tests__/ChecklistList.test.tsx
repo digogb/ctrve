@@ -37,7 +37,7 @@ const MOCK_CHECKLIST: ChecklistResponse = {
   matricula_motorista: "123456",
   quilometragem_inicial: 10000,
   status: "entregue",
-  is_locked: false,
+  is_locked: true,
   created_at: "2026-04-23T10:00:00Z",
 };
 
@@ -128,6 +128,19 @@ describe("ChecklistList", () => {
     await waitFor(() =>
       expect(screen.queryByText(/buscando/i)).not.toBeInTheDocument()
     );
+  });
+
+  it("exibe 'Em preenchimento' para checklist não bloqueado", async () => {
+    const emPreenchimento: ChecklistResponse = { ...MOCK_CHECKLIST, is_locked: false };
+    vi.mocked(apiClient.get).mockResolvedValue({ data: [emPreenchimento] });
+
+    renderComponent();
+    await userEvent.type(screen.getByLabelText(/placa/i), "ABC1D23");
+    await userEvent.click(screen.getByRole("button", { name: /buscar/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText("Em preenchimento")).toBeInTheDocument();
+    });
   });
 
   it("exibe 'Devolvido' para status devolvido", async () => {

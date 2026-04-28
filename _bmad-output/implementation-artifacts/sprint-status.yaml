@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-04-22T18:00:00
-last_updated: 2026-04-27T15:00:00
+last_updated: 2026-04-27T21:12:00
 project: ctrve
 project_key: NOKEY
 tracking_system: file-system
@@ -75,3 +75,10 @@ development_status:
   5-3-cancelar-checklist: done
   5-4-navegar-entre-telas: done
   epic-5-retrospective: optional
+
+  # ── Epic 6: Melhorias de UX e Design Visual ────────────────────────────────
+  epic-6: in-progress
+  6-1-fundacao-visual-e-navegacao-global: done
+  6-2-componentes-de-dominio: done
+  6-3-formulario-em-etapas-e-refinamento: done
+  epic-6-retrospective: optional

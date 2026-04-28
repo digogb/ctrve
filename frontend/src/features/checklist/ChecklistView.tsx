@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
 import apiClient, { isAxiosError } from "../../lib/apiClient";
 import type { ChecklistResponse } from "../../types/checklist";
 import {
@@ -13,6 +14,7 @@ import {
 } from "./checklistSchema";
 import { CHECKLIST_ITEMS } from "./ChecklistItems";
 import ChecklistItems from "./ChecklistItems";
+import ChecklistStepper from "./ChecklistStepper";
 import FuelLevel from "./FuelLevel";
 import DamageMap from "../damage-map/DamageMap";
 import SignaturePad from "../signature/SignaturePad";
@@ -21,7 +23,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useUnsavedChanges } from "../../hooks/useUnsavedChanges";
+
+const CHECKLIST_STEPS = [{ label: "Itens" }, { label: "Condições" }, { label: "Assinaturas" }];
 
 function EntregaReadOnly({ checklist }: { checklist: ChecklistResponse }) {
   return (
@@ -153,9 +165,23 @@ function DevolucaoForm({
   onDirtyChange?: (dirty: boolean) => void;
 }) {
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [pendingData, setPendingData] = useState<ChecklistDevolucaoData | null>(null);
+  const [isConfirming, setIsConfirming] = useState(false);
+  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [devStep1Error, setDevStep1Error] = useState<string | null>(null);
+  const [devStep2Error, setDevStep2Error] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
-  const { control, register, reset, handleSubmit, setError, formState: { errors, isSubmitting, isDirty } } = useForm<ChecklistDevolucaoData>({
+  const {
+    control,
+    register,
+    reset,
+    handleSubmit,
+    setError,
+    getValues,
+    formState: { errors, isSubmitting, isDirty },
+  } = useForm<ChecklistDevolucaoData>({
     resolver: zodResolver(checklistDevolucaoSchema),
     defaultValues: {
       itens: CHECKLIST_ITEMS.map((item) => ({ nome: item.nome, status: undefined })),
@@ -192,6 +218,47 @@ function DevolucaoForm({
     onDirtyChange?.(isDirty);
   }, [isDirty, onDirtyChange]);
 
+  const handleNextFromStep1 = () => {
+    const itens = getValues("itens");
+    if (!itens.every((i) => i.status !== undefined)) {
+      setDevStep1Error("Todos os itens devem ser verificados antes de continuar.");
+      return;
+    }
+    setDevStep1Error(null);
+    setStep(2);
+  };
+
+  const handleNextFromStep2 = () => {
+    const kmRaw = getValues("quilometragem_final");
+    const km = typeof kmRaw === "number" ? kmRaw : parseFloat(String(kmRaw ?? ""));
+    const datadev = getValues("data_devolucao");
+    const nivelComb = getValues("nivel_combustivel");
+
+    if (isNaN(km) || km < checklist.quilometragem_inicial) {
+      setError("quilometragem_final", {
+        message: `A Quilometragem Final não pode ser inferior à Quilometragem Inicial (${checklist.quilometragem_inicial}).`,
+      });
+      setDevStep2Error("Verifique os campos obrigatórios.");
+      return;
+    }
+
+    if (checklist.data_entrega && datadev && new Date(datadev) < new Date(checklist.data_entrega)) {
+      setError("data_devolucao", {
+        message: "A Data de Devolução não pode ser anterior à Data de Entrega.",
+      });
+      setDevStep2Error("Verifique os campos obrigatórios.");
+      return;
+    }
+
+    if (!datadev || !nivelComb) {
+      setDevStep2Error("Preencha a data/horário e o nível de combustível.");
+      return;
+    }
+
+    setDevStep2Error(null);
+    setStep(3);
+  };
+
   const onSubmit = async (data: ChecklistDevolucaoData) => {
     setSubmitError(null);
 
@@ -199,6 +266,7 @@ function DevolucaoForm({
       setError("quilometragem_final", {
         message: `A Quilometragem Final (${data.quilometragem_final}) não pode ser inferior à Quilometragem Inicial (${checklist.quilometragem_inicial}).`,
       });
+      setStep(2);
       return;
     }
 
@@ -206,16 +274,22 @@ function DevolucaoForm({
       setError("data_devolucao", {
         message: "A Data de Devolução não pode ser anterior à Data de Entrega.",
       });
+      setStep(2);
       return;
     }
 
-    if (!window.confirm("Deseja confirmar o salvamento deste checklist? Após a confirmação, os dados não poderão ser alterados.")) {
-      return;
-    }
+    setPendingData(data);
+    setShowSaveDialog(true);
+  };
 
+  const handleConfirmSave = async () => {
+    if (!pendingData || isConfirming) return;
+    setIsConfirming(true);
+    setShowSaveDialog(false);
+    setSubmitError(null);
     try {
-      await apiClient.patch(`/v1/checklists/${checklist.id}/devolucao`, data);
-      window.alert("Checklist salvo com sucesso.");
+      await apiClient.patch(`/v1/checklists/${checklist.id}/devolucao`, pendingData);
+      toast.success("Checklist salvo com sucesso.");
       queryClient.invalidateQueries({ queryKey: ["checklists", String(checklist.id)] });
     } catch (error) {
       if (isAxiosError(error) && error.response?.data?.detail && typeof error.response.data.detail === "string") {
@@ -223,97 +297,141 @@ function DevolucaoForm({
       } else {
         setSubmitError("Erro ao salvar devolução. Tente novamente.");
       }
+    } finally {
+      setIsConfirming(false);
+      setPendingData(null);
     }
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Checklist de Devolução</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form noValidate onSubmit={handleSubmit(onSubmit)}>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="quilometragem_final">Quilometragem Final</Label>
-              <Input
-                id="quilometragem_final"
-                type="number"
-                step="0.1"
-                {...register("quilometragem_final")}
-              />
-              {errors.quilometragem_final && (
-                <p className="text-sm text-danger" role="alert">{errors.quilometragem_final.message}</p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="data_devolucao">Data e Horário da Devolução</Label>
-              <Input
-                id="data_devolucao"
-                type="datetime-local"
-                {...register("data_devolucao")}
-              />
-              {errors.data_devolucao && (
-                <p className="text-sm text-danger" role="alert">{errors.data_devolucao.message}</p>
-              )}
-            </div>
-          </div>
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle>Checklist de Devolução</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form noValidate onSubmit={handleSubmit(onSubmit)}>
+            <ChecklistStepper currentStep={step} steps={CHECKLIST_STEPS} />
 
-          <ChecklistItems control={control} errors={errors} />
-          <FuelLevel control={control} error={errors.nivel_combustivel} />
+            {step === 1 && (
+              <>
+                <ChecklistItems control={control} errors={errors} />
+                {devStep1Error && (
+                  <p role="alert" className="mt-2 text-sm text-danger">{devStep1Error}</p>
+                )}
+                <div className="mt-6 flex gap-3">
+                  <Button type="button" className="flex-1" onClick={handleNextFromStep1}>
+                    Próximo →
+                  </Button>
+                </div>
+              </>
+            )}
 
-          <div className="mt-6 space-y-4">
-            <h3 className="text-lg font-semibold">Assinaturas da Devolução</h3>
-            <Controller
-              name="assinatura_responsavel"
-              control={control}
-              render={({ field }) => (
-                <>
-                  <SignaturePad
-                    value={field.value}
-                    onChange={field.onChange}
-                    label="Assinatura do Responsável"
+            {step === 2 && (
+              <>
+                <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="quilometragem_final">Quilometragem Final</Label>
+                    <Input
+                      id="quilometragem_final"
+                      type="number"
+                      step="0.1"
+                      {...register("quilometragem_final")}
+                    />
+                    {errors.quilometragem_final && (
+                      <p className="text-sm text-danger" role="alert">{errors.quilometragem_final.message}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="data_devolucao">Data e Horário da Devolução</Label>
+                    <Input
+                      id="data_devolucao"
+                      type="datetime-local"
+                      {...register("data_devolucao")}
+                    />
+                    {errors.data_devolucao && (
+                      <p className="text-sm text-danger" role="alert">{errors.data_devolucao.message}</p>
+                    )}
+                  </div>
+                </div>
+                <FuelLevel control={control} error={errors.nivel_combustivel} />
+                <ObservationsField register={register("observacoes")} label="Observações da Devolução" />
+                {devStep2Error && (
+                  <p role="alert" className="mt-2 text-sm text-danger">{devStep2Error}</p>
+                )}
+                <div className="mt-6 flex gap-3">
+                  <Button type="button" variant="outline" onClick={() => { setStep(1); setDevStep1Error(null); }}>← Voltar</Button>
+                  <Button type="button" className="flex-1" onClick={handleNextFromStep2}>Próximo →</Button>
+                </div>
+              </>
+            )}
+
+            {step === 3 && (
+              <>
+                <div className="mt-6 space-y-4">
+                  <h3 className="text-lg font-semibold">Assinaturas da Devolução</h3>
+                  <Controller
+                    name="assinatura_responsavel"
+                    control={control}
+                    render={({ field }) => (
+                      <>
+                        <SignaturePad
+                          value={field.value}
+                          onChange={field.onChange}
+                          label="Assinatura do Responsável"
+                        />
+                        {errors.assinatura_responsavel && (
+                          <p className="text-sm text-danger" role="alert">{errors.assinatura_responsavel.message}</p>
+                        )}
+                      </>
+                    )}
                   />
-                  {errors.assinatura_responsavel && (
-                    <p className="text-sm text-danger" role="alert">{errors.assinatura_responsavel.message}</p>
-                  )}
-                </>
-              )}
-            />
-            <Controller
-              name="assinatura_motorista"
-              control={control}
-              render={({ field }) => (
-                <>
-                  <SignaturePad
-                    value={field.value}
-                    onChange={field.onChange}
-                    label="Assinatura do Motorista"
+                  <Controller
+                    name="assinatura_motorista"
+                    control={control}
+                    render={({ field }) => (
+                      <>
+                        <SignaturePad
+                          value={field.value}
+                          onChange={field.onChange}
+                          label="Assinatura do Motorista"
+                        />
+                        {errors.assinatura_motorista && (
+                          <p className="text-sm text-danger" role="alert">{errors.assinatura_motorista.message}</p>
+                        )}
+                      </>
+                    )}
                   />
-                  {errors.assinatura_motorista && (
-                    <p className="text-sm text-danger" role="alert">{errors.assinatura_motorista.message}</p>
-                  )}
-                </>
-              )}
-            />
-          </div>
-
-          <ObservationsField register={register("observacoes")} label="Observações da Devolução" />
-
-          {submitError && (
-            <p className="mt-4 text-sm text-danger" role="alert">{submitError}</p>
-          )}
-
-          <Button
-            type="submit"
-            disabled={isSubmitting}
-            className="mt-6 w-full"
-          >
-            Salvar
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+                </div>
+                {submitError && (
+                  <p className="mt-4 text-sm text-danger" role="alert">{submitError}</p>
+                )}
+                <div className="mt-6 flex gap-3">
+                  <Button type="button" variant="outline" onClick={() => { setStep(2); setDevStep2Error(null); }}>← Voltar</Button>
+                  <Button type="submit" disabled={isSubmitting} className="flex-1">
+                    {isSubmitting ? "Salvando..." : "Salvar Checklist"}
+                  </Button>
+                </div>
+              </>
+            )}
+          </form>
+        </CardContent>
+      </Card>
+      <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
+        <DialogContent showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle>Salvar checklist?</DialogTitle>
+            <DialogDescription>
+              Deseja confirmar o salvamento deste checklist? Após a confirmação, os dados não poderão ser alterados.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowSaveDialog(false)}>Cancelar</Button>
+            <Button onClick={handleConfirmSave} disabled={isConfirming}>Confirmar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
@@ -325,6 +443,13 @@ export default function ChecklistView() {
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
   const [devolucaoDirty, setDevolucaoDirty] = useState(false);
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [pendingEntregaData, setPendingEntregaData] = useState<ChecklistEntregaData | null>(null);
+  const [isEntregaConfirming, setIsEntregaConfirming] = useState(false);
+  const [entregaStep, setEntregaStep] = useState<1 | 2 | 3>(1);
+  const [etapa1Error, setEtapa1Error] = useState<string | null>(null);
+  const [etapa2Error, setEtapa2Error] = useState<string | null>(null);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
 
   const { data: checklist, isLoading, isError } = useQuery<ChecklistResponse>({
     queryKey: ["checklists", id ?? ""],
@@ -369,14 +494,41 @@ export default function ChecklistView() {
     }
   }, [checklist, entregaForm.reset]);
 
-  const onEntregaSubmit = async (data: ChecklistEntregaData) => {
-    setSubmitError(null);
-    if (!window.confirm("Deseja confirmar o salvamento deste checklist? Após a confirmação, os dados não poderão ser alterados.")) {
+  const handleNextFromStep1 = () => {
+    const itens = entregaForm.getValues("itens");
+    if (!itens.every((i) => i.status !== undefined)) {
+      setEtapa1Error("Todos os itens devem ser verificados antes de continuar.");
       return;
     }
+    setEtapa1Error(null);
+    setEntregaStep(2);
+  };
+
+  const handleNextFromStep2 = () => {
+    const data_entrega = entregaForm.getValues("data_entrega");
+    const nivel_combustivel = entregaForm.getValues("nivel_combustivel");
+    if (!data_entrega || !nivel_combustivel) {
+      setEtapa2Error("Preencha a data/horário e o nível de combustível.");
+      return;
+    }
+    setEtapa2Error(null);
+    setEntregaStep(3);
+  };
+
+  const onEntregaSubmit = (data: ChecklistEntregaData) => {
+    setSubmitError(null);
+    setPendingEntregaData(data);
+    setShowSaveDialog(true);
+  };
+
+  const handleConfirmEntregaSave = async () => {
+    if (!pendingEntregaData || isEntregaConfirming) return;
+    setIsEntregaConfirming(true);
+    setShowSaveDialog(false);
+    setSubmitError(null);
     try {
-      await apiClient.patch(`/v1/checklists/${id}/entrega`, data);
-      window.alert("Checklist salvo com sucesso.");
+      await apiClient.patch(`/v1/checklists/${id}/entrega`, pendingEntregaData);
+      toast.success("Checklist salvo com sucesso.");
       queryClient.invalidateQueries({ queryKey: ["checklists", id ?? ""] });
     } catch (error) {
       if (isAxiosError(error) && error.response?.data?.detail && typeof error.response.data.detail === "string") {
@@ -384,6 +536,9 @@ export default function ChecklistView() {
       } else {
         setSubmitError("Erro ao salvar checklist. Tente novamente.");
       }
+    } finally {
+      setIsEntregaConfirming(false);
+      setPendingEntregaData(null);
     }
   };
 
@@ -404,18 +559,18 @@ export default function ChecklistView() {
       link.setAttribute("download", `checklist-${id}.pdf`);
       document.body.appendChild(link);
       link.click();
-      window.alert("PDF gerado com sucesso.");
+      toast.success("PDF gerado com sucesso.");
     } catch (error) {
       if (isAxiosError(error) && error.response?.data) {
         try {
           const text = await (error.response.data as Blob).text();
           const json = JSON.parse(text);
-          window.alert(json.message || json.detail || "Erro ao gerar PDF.");
+          toast.error(json.message || json.detail || "Erro ao gerar PDF.");
         } catch {
-          window.alert("Erro ao gerar PDF. Tente novamente.");
+          toast.error("Erro ao gerar PDF. Tente novamente.");
         }
       } else {
-        window.alert("Erro ao gerar PDF. Tente novamente.");
+        toast.error("Erro ao gerar PDF. Tente novamente.");
       }
     } finally {
       link?.remove();
@@ -424,10 +579,12 @@ export default function ChecklistView() {
     }
   };
 
-  const onCancel = async () => {
-    if (!window.confirm("Deseja cancelar o preenchimento? Todos os dados informados serão descartados.")) {
-      return;
-    }
+  const onCancel = () => {
+    setShowCancelDialog(true);
+  };
+
+  const handleConfirmCancel = async () => {
+    setShowCancelDialog(false);
     setIsCancelling(true);
     try {
       await apiClient.delete(`/v1/checklists/${id}`);
@@ -435,7 +592,7 @@ export default function ChecklistView() {
     } catch (error) {
       if (isAxiosError(error) && error.response) {
         const data = error.response.data as { message?: string; detail?: string } | undefined;
-        window.alert(data?.message || data?.detail || "Erro ao cancelar checklist.");
+        toast.error(data?.message || data?.detail || "Erro ao cancelar checklist.");
       } else {
         navigate("/");
       }
@@ -531,86 +688,117 @@ export default function ChecklistView() {
             <CardTitle>Checklist de Entrega</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={entregaForm.handleSubmit(onEntregaSubmit)}>
-              <div className="space-y-2">
-                <Label htmlFor="data_entrega">Data e Horário da Entrega</Label>
-                <Input
-                  id="data_entrega"
-                  type="datetime-local"
-                  {...entregaForm.register("data_entrega")}
-                />
-                {entregaErrors.data_entrega && (
-                  <p className="text-sm text-danger" role="alert">{entregaErrors.data_entrega.message}</p>
-                )}
-              </div>
+            <form noValidate onSubmit={entregaForm.handleSubmit(onEntregaSubmit)}>
+              <ChecklistStepper currentStep={entregaStep} steps={CHECKLIST_STEPS} />
 
-              <ChecklistItems control={entregaForm.control} errors={entregaErrors} />
-              <FuelLevel control={entregaForm.control} error={entregaErrors.nivel_combustivel} />
-
-              <div className="mt-6">
-                <Controller
-                  name="avarias"
-                  control={entregaForm.control}
-                  render={({ field }) => (
-                    <DamageMap value={field.value} onChange={field.onChange} />
+              {entregaStep === 1 && (
+                <>
+                  <ChecklistItems control={entregaForm.control} errors={entregaErrors} />
+                  {etapa1Error && (
+                    <p role="alert" className="mt-2 text-sm text-danger">{etapa1Error}</p>
                   )}
-                />
-              </div>
-
-              <div className="mt-6 space-y-4">
-                <h3 className="text-lg font-semibold">Assinaturas</h3>
-                <Controller
-                  name="assinatura_responsavel"
-                  control={entregaForm.control}
-                  render={({ field }) => (
-                    <>
-                      <SignaturePad
-                        value={field.value}
-                        onChange={field.onChange}
-                        label="Assinatura do Responsável"
-                      />
-                      {entregaErrors.assinatura_responsavel && (
-                        <p className="text-sm text-danger" role="alert">
-                          {entregaErrors.assinatura_responsavel.message}
-                        </p>
-                      )}
-                    </>
-                  )}
-                />
-                <Controller
-                  name="assinatura_motorista"
-                  control={entregaForm.control}
-                  render={({ field }) => (
-                    <>
-                      <SignaturePad
-                        value={field.value}
-                        onChange={field.onChange}
-                        label="Assinatura do Motorista"
-                      />
-                      {entregaErrors.assinatura_motorista && (
-                        <p className="text-sm text-danger" role="alert">
-                          {entregaErrors.assinatura_motorista.message}
-                        </p>
-                      )}
-                    </>
-                  )}
-                />
-              </div>
-
-              <ObservationsField register={entregaForm.register("observacoes")} />
-
-              {submitError && (
-                <p className="mt-4 text-sm text-danger" role="alert">{submitError}</p>
+                  <div className="mt-6 flex gap-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={onCancel}
+                      disabled={isCancelling}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button type="button" className="flex-1" onClick={handleNextFromStep1}>
+                      Próximo →
+                    </Button>
+                  </div>
+                </>
               )}
 
-              <div className="mt-6 flex gap-3">
-                <Button type="submit" disabled={isEntregaSubmitting} className="flex-1">
-                  Salvar
-                </Button>
-                <Button type="button" variant="outline" onClick={onCancel} disabled={isEntregaSubmitting || isCancelling}>
-                  {isCancelling ? "Cancelando..." : "Cancelar"}
-                </Button>
-              </div>
+              {entregaStep === 2 && (
+                <>
+                  <div className="mt-6 space-y-2">
+                    <Label htmlFor="data_entrega">Data e Horário da Entrega</Label>
+                    <Input
+                      id="data_entrega"
+                      type="datetime-local"
+                      {...entregaForm.register("data_entrega")}
+                    />
+                    {entregaErrors.data_entrega && (
+                      <p className="text-sm text-danger" role="alert">{entregaErrors.data_entrega.message}</p>
+                    )}
+                  </div>
+                  <FuelLevel control={entregaForm.control} error={entregaErrors.nivel_combustivel} />
+                  <div className="mt-6">
+                    <Controller
+                      name="avarias"
+                      control={entregaForm.control}
+                      render={({ field }) => (
+                        <DamageMap value={field.value} onChange={field.onChange} />
+                      )}
+                    />
+                  </div>
+                  <ObservationsField register={entregaForm.register("observacoes")} />
+                  {etapa2Error && (
+                    <p role="alert" className="mt-2 text-sm text-danger">{etapa2Error}</p>
+                  )}
+                  <div className="mt-6 flex gap-3">
+                    <Button type="button" variant="outline" onClick={() => { setEntregaStep(1); setEtapa1Error(null); }}>← Voltar</Button>
+                    <Button type="button" className="flex-1" onClick={handleNextFromStep2}>Próximo →</Button>
+                  </div>
+                </>
+              )}
+
+              {entregaStep === 3 && (
+                <>
+                  <div className="mt-6 space-y-4">
+                    <h3 className="text-lg font-semibold">Assinaturas</h3>
+                    <Controller
+                      name="assinatura_responsavel"
+                      control={entregaForm.control}
+                      render={({ field }) => (
+                        <>
+                          <SignaturePad
+                            value={field.value}
+                            onChange={field.onChange}
+                            label="Assinatura do Responsável"
+                          />
+                          {entregaErrors.assinatura_responsavel && (
+                            <p className="text-sm text-danger" role="alert">
+                              {entregaErrors.assinatura_responsavel.message}
+                            </p>
+                          )}
+                        </>
+                      )}
+                    />
+                    <Controller
+                      name="assinatura_motorista"
+                      control={entregaForm.control}
+                      render={({ field }) => (
+                        <>
+                          <SignaturePad
+                            value={field.value}
+                            onChange={field.onChange}
+                            label="Assinatura do Motorista"
+                          />
+                          {entregaErrors.assinatura_motorista && (
+                            <p className="text-sm text-danger" role="alert">
+                              {entregaErrors.assinatura_motorista.message}
+                            </p>
+                          )}
+                        </>
+                      )}
+                    />
+                  </div>
+                  {submitError && (
+                    <p className="mt-4 text-sm text-danger" role="alert">{submitError}</p>
+                  )}
+                  <div className="mt-6 flex gap-3">
+                    <Button type="button" variant="outline" onClick={() => { setEntregaStep(2); setEtapa2Error(null); }}>← Voltar</Button>
+                    <Button type="submit" disabled={isEntregaSubmitting} className="flex-1">
+                      {isEntregaSubmitting ? "Salvando..." : "Salvar Checklist"}
+                    </Button>
+                  </div>
+                </>
+              )}
             </form>
           </CardContent>
         </Card>
@@ -623,6 +811,44 @@ export default function ChecklistView() {
       {isFillingDevolucao && <DevolucaoForm checklist={checklist} onDirtyChange={setDevolucaoDirty} />}
 
       {isFullyCompleted && <DevolucaoReadOnly checklist={checklist} />}
+
+      <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
+        <DialogContent showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle>Salvar checklist?</DialogTitle>
+            <DialogDescription>
+              Deseja confirmar o salvamento deste checklist? Após a confirmação, os dados não poderão ser alterados.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowSaveDialog(false)}>Cancelar</Button>
+            <Button onClick={handleConfirmEntregaSave} disabled={isEntregaConfirming || isEntregaSubmitting}>Confirmar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+        <DialogContent showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle>Cancelar checklist?</DialogTitle>
+            <DialogDescription>
+              Deseja cancelar o preenchimento? Todos os dados informados serão descartados.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCancelDialog(false)}>
+              Continuar editando
+            </Button>
+            <Button
+              className="bg-red-600 text-white hover:bg-red-700"
+              onClick={handleConfirmCancel}
+              disabled={isCancelling}
+            >
+              {isCancelling ? "Cancelando..." : "Descartar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

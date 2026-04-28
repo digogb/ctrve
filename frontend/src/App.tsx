@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { BrowserRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "@/components/ui/sonner";
 import AppRoutes from "./routes";
 import { AuthProvider, useAuthContext } from "./features/auth/AuthContext";
 
@@ -31,6 +32,7 @@ export default function App() {
       <BrowserRouter>
         <AuthProvider>
           <SessionGuard />
+          <Toaster position="top-right" richColors />
           <AppRoutes />
         </AuthProvider>
       </BrowserRouter>

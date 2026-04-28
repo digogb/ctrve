@@ -6,8 +6,7 @@ import type { ChecklistResponse } from "../../types/checklist";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
+import StatusBadge from "../../components/StatusBadge";
 
 const MSG_009 =
   "Nenhum checklist encontrado para a placa informada. Verifique o número da placa e tente novamente.";
@@ -24,17 +23,16 @@ function formatDate(iso: string): string {
   }).format(d);
 }
 
-const STATUS_LABELS: Record<ChecklistResponse["status"], string> = {
-  entregue: "Entregue",
-  devolvido: "Devolvido",
-};
-
-function statusLabel(status: ChecklistResponse["status"]): string {
-  return STATUS_LABELS[status] ?? status;
-}
-
-function statusVariant(status: ChecklistResponse["status"]): "default" | "secondary" {
-  return status === "devolvido" ? "secondary" : "default";
+function StatusIcon({ isLocked, status }: { isLocked: boolean; status: ChecklistResponse["status"] }) {
+  const bg = !isLocked ? "bg-amber-50" : status === "devolvido" ? "bg-green-50" : "bg-blue-50";
+  const color = !isLocked ? "text-amber-500" : status === "devolvido" ? "text-green-600" : "text-blue-600";
+  return (
+    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${bg}`}>
+      <svg xmlns="http://www.w3.org/2000/svg" className={`size-5 ${color}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+      </svg>
+    </div>
+  );
 }
 
 async function fetchChecklists(placa: string): Promise<ChecklistResponse[]> {
@@ -91,39 +89,35 @@ export default function ChecklistList() {
       )}
 
       {!isLoading && data.length > 0 && (
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nº</TableHead>
-                <TableHead>Placa</TableHead>
-                <TableHead>Data de Registro</TableHead>
-                <TableHead>Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.map((c) => (
-                <TableRow
-                  key={c.id}
-                  onClick={() => navigate(`/checklists/${c.id}`)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") navigate(`/checklists/${c.id}`);
-                  }}
-                  className="cursor-pointer"
-                  role="button"
-                  tabIndex={0}
-                  aria-label={`Checklist ${c.id} — ${c.placa}`}
-                >
-                  <TableCell className="font-medium">{c.id}</TableCell>
-                  <TableCell>{c.placa}</TableCell>
-                  <TableCell>{formatDate(c.created_at)}</TableCell>
-                  <TableCell>
-                    <Badge variant={statusVariant(c.status)}>{statusLabel(c.status)}</Badge>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+        <div className="space-y-2.5">
+          {data.map((c) => (
+            <div
+              key={c.id}
+              onClick={() => navigate(`/checklists/${c.id}`)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") navigate(`/checklists/${c.id}`);
+              }}
+              role="button"
+              tabIndex={0}
+              aria-label={`Checklist ${c.id} — ${c.placa}`}
+              className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md cursor-pointer transition"
+            >
+              <div className="flex items-center gap-4 min-w-0">
+                <StatusIcon isLocked={c.is_locked} status={c.status} />
+                <div className="min-w-0">
+                  <div className="font-semibold text-gray-800 truncate">
+                    {c.placa}
+                  </div>
+                  <div className="text-xs text-gray-400">
+                    Nº <span>{c.id}</span> · {c.unidade} · {formatDate(c.created_at)}
+                  </div>
+                </div>
+              </div>
+              <div className="shrink-0 ml-3">
+                <StatusBadge status={c.status} isLocked={c.is_locked} />
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>

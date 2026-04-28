@@ -1,5 +1,6 @@
 import { Navigate } from "react-router-dom";
 import { useAuthContext } from "../features/auth/AuthContext";
+import AppHeader from "./AppHeader";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -16,5 +17,10 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     return <Navigate to="/login" replace />;
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      <AppHeader />
+      {children}
+    </>
+  );
 }

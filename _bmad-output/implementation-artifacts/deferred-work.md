@@ -108,3 +108,24 @@
 - Endpoint `GET /checklists/{id}/pdf` sem `response_model`/`responses` no decorador `@router.get` — OpenAPI infere resposta como JSON em vez de `application/pdf`; adicionar `responses={200: {"content": {"application/pdf": {}}}}` em refactor de schema. [backend/app/api/routes/pdf.py]
 - `data_entrega.strftime` e `data_devolucao.strftime` no template renderizam UTC sem indicação de fuso — usuário BR vê horário -3h do real; parametrizar timezone (America/Sao_Paulo) quando localização for necessária. [backend/app/templates/pdf/checklist.html]
 - Padrão `item is mapping` espalhado em 4+ blocos do template — normalizar `itens`, `itens_devolucao` e `avarias` para listas de dicts simples em `pdf_service.py` antes de passar ao Jinja2, eliminando a ambiguidade. [backend/app/services/pdf_service.py]
+
+## Deferred from: code review of 6-3-formulario-em-etapas-e-refinamento (2026-04-27)
+
+- Validação de data parcial em `type="datetime-local"` — browser impede entrada parcial, mas JSDOM não; testar com datas inválidas explicitamente em story futura. [frontend/src/features/checklist/ChecklistView.tsx]
+- `entregaForm.reset` vs `reset` desestruturado na dep array de useEffect — funcionalmente idêntico; padronizar para desestruturado em refactor cross-component. [frontend/src/features/checklist/ChecklistView.tsx:494]
+- Etapa 3 (entrega/devolução) sem pré-validação manual de assinaturas — Zod valida no submit; erro aparece apenas após tentar salvar; melhorar UX com validação antecipada quando fluxo completo estabilizar. [frontend/src/features/checklist/ChecklistView.tsx]
+- Formulários de entrega (step 2) sem `setError` por campo específico — exibe mensagem genérica ao invés de destacar o campo inválido; DevolucaoForm já usa `setError`; uniformizar na story 6.4 ou refactor de UX. [frontend/src/features/checklist/ChecklistView.tsx]
+- `DamageMap` sem validação inline no step 2 — Zod captura no submit mas erro aparece longe do controle; tratar em story dedicada de avarias. [frontend/src/features/checklist/ChecklistView.tsx]
+
+## Deferred from: code review of 6-2-componentes-de-dominio (2026-04-27)
+
+- Lógica de cor duplicada entre `StatusBadge` e `StatusIcon` — extrair helper `getStatusColors(isLocked, status)` quando houver necessidade de manutenção. [frontend/src/features/checklist/ChecklistList.tsx, frontend/src/components/StatusBadge.tsx]
+- Botões OK/Não OK não permitem desmarcar (voltar para `undefined`) — implementar toggle `field.onChange(isOk ? undefined : "ok")` se requisito de "desfazer seleção" surgir. [frontend/src/features/checklist/ChecklistItems.tsx]
+- `border-gray-200` no estado Pendente pode ter baixo contraste sobre fundo branco — avaliar `border-gray-300` ou `border-gray-400` em refinamento visual. [frontend/src/features/checklist/ChecklistItems.tsx]
+
+## Deferred from: code review of 6-1-fundacao-visual-e-navegacao-global (2026-04-27)
+
+- `Toaster` dentro de `AuthProvider` em vez de nível mais alto — anti-pattern menor, re-renders desnecessários em refresh de token; mover para fora de AuthProvider quando refatorar App.tsx. [frontend/src/App.tsx]
+- `esteMes` timezone-sensitive — `getMonth()` usa fuso local do browser; checklist criado à meia-noite UTC em fuso negativo aparece no mês errado; parametrizar com Intl ou backend quando precisão for necessária. [frontend/src/features/dashboard/Dashboard.tsx]
+- Google Fonts via `@import url(...)` sem `<link rel="preconnect">` no HTML — render-blocking, impacto em LCP; migrar para `<link>` no index.html com preconnect em story de performance. [frontend/src/index.css]
+- `next-themes` adicionado como dependência de produção pelo template shadcn/sonner sem `ThemeProvider` configurado — Toaster usa fallback "system"; adicionar ThemeProvider ou trocar template sonner por versão sem next-themes quando necessário. [frontend/package.json]

@@ -39,7 +39,12 @@ vi.mock("../../../lib/apiClient", () => ({
   isAxiosError: vi.fn(() => false),
 }));
 
+vi.mock("sonner", () => ({
+  toast: { success: vi.fn(), error: vi.fn() },
+}));
+
 import apiClient, { isAxiosError } from "../../../lib/apiClient";
+import { toast } from "sonner";
 
 const MOCK_SIG = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
 
@@ -79,6 +84,32 @@ const BASE_CHECKLIST: ChecklistResponse = {
   created_at: "2026-04-23T10:00:00Z",
 };
 
+const FILLED_ENTREGA_CHECKLIST: ChecklistResponse = {
+  ...BASE_CHECKLIST,
+  is_locked: false,
+  itens: ALL_ITEM_NAMES.map((nome) => ({ nome, status: "ok" as const })),
+  nivel_combustivel: "3/4",
+  data_entrega: "2026-04-23T14:00:00Z",
+  assinatura_responsavel: null,
+  assinatura_motorista: null,
+};
+
+const COMPLETE_DEVOLUCAO_CHECKLIST: ChecklistResponse = {
+  ...BASE_CHECKLIST,
+  is_locked: true,
+  status: "entregue",
+  quilometragem_inicial: 10000,
+  nivel_combustivel: "3/4",
+  data_entrega: "2026-04-20T10:00:00Z",
+  itens: ALL_ITEM_NAMES.map((nome) => ({ nome, status: "ok" as const })),
+  itens_devolucao: ALL_ITEM_NAMES.map((nome) => ({ nome, status: "ok" as const })),
+  nivel_combustivel_devolucao: "2/4",
+  quilometragem_final: 12000,
+  data_devolucao: "2026-04-23T18:00:00Z",
+  assinatura_responsavel_devolucao: null,
+  assinatura_motorista_devolucao: null,
+};
+
 function renderAt(id: string) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
@@ -90,6 +121,18 @@ function renderAt(id: string) {
       </MemoryRouter>
     </QueryClientProvider>
   );
+}
+
+async function navigateEntregaToStep2() {
+  await waitFor(() => expect(screen.getAllByText("✓ OK")[0]).toBeInTheDocument());
+  fireEvent.click(screen.getByRole("button", { name: /próximo/i }));
+  await waitFor(() => expect(screen.getByLabelText(/data e horário da entrega/i)).toBeInTheDocument());
+}
+
+async function navigateEntregaToStep3() {
+  await navigateEntregaToStep2();
+  fireEvent.click(screen.getByRole("button", { name: /próximo/i }));
+  await waitFor(() => expect(screen.getByRole("heading", { name: /assinaturas/i, level: 3 })).toBeInTheDocument());
 }
 
 beforeEach(() => {
@@ -113,17 +156,18 @@ describe("ChecklistView", () => {
     renderAt("1");
 
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: /salvar/i })).toBeInTheDocument();
-      expect(screen.getByLabelText(/data e horário/i)).toBeInTheDocument();
+      expect(screen.getAllByText("✓ OK")[0]).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /próximo/i })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /cancelar/i })).toBeInTheDocument();
     });
   });
 
-  it("botão Salvar está habilitado no formulário de entrega", async () => {
+  it("botão Próximo está habilitado no formulário de entrega (etapa 1)", async () => {
     vi.mocked(apiClient.get).mockResolvedValue({ data: BASE_CHECKLIST });
     renderAt("1");
 
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: /salvar/i })).not.toBeDisabled();
+      expect(screen.getByRole("button", { name: /próximo/i })).not.toBeDisabled();
     });
   });
 
@@ -171,8 +215,9 @@ describe("ChecklistView", () => {
   });
 
   it("exibe mapa de avarias no modo editável", async () => {
-    vi.mocked(apiClient.get).mockResolvedValue({ data: BASE_CHECKLIST });
+    vi.mocked(apiClient.get).mockResolvedValue({ data: FILLED_ENTREGA_CHECKLIST });
     renderAt("1");
+    await navigateEntregaToStep2();
 
     await waitFor(() => {
       expect(screen.getByTestId("damage-map")).toBeInTheDocument();
@@ -235,11 +280,12 @@ describe("ChecklistView", () => {
   });
 
   it("exibe seção de assinaturas no modo editável", async () => {
-    vi.mocked(apiClient.get).mockResolvedValue({ data: BASE_CHECKLIST });
+    vi.mocked(apiClient.get).mockResolvedValue({ data: FILLED_ENTREGA_CHECKLIST });
     renderAt("1");
+    await navigateEntregaToStep3();
 
     await waitFor(() => {
-      expect(screen.getByText("Assinaturas")).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: /assinaturas/i, level: 3 })).toBeInTheDocument();
       expect(screen.getByText("Assinatura do Responsável")).toBeInTheDocument();
       expect(screen.getByText("Assinatura do Motorista")).toBeInTheDocument();
     });
@@ -264,7 +310,7 @@ describe("ChecklistView", () => {
     renderAt("1");
 
     await waitFor(() => {
-      expect(screen.getByText("Assinaturas")).toBeInTheDocument();
+      expect(screen.getAllByText("Assinaturas")[0]).toBeInTheDocument();
       const imgs = screen.getAllByRole("img");
       const sigImgs = imgs.filter(
         (img) =>
@@ -294,9 +340,8 @@ describe("ChecklistView", () => {
 
     await waitFor(() => {
       expect(screen.getByText("Checklist de Devolução")).toBeInTheDocument();
-      expect(screen.getByLabelText(/quilometragem final/i)).toBeInTheDocument();
-      expect(screen.getByLabelText(/data e horário da devolução/i)).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: /salvar/i })).not.toBeDisabled();
+      expect(screen.getAllByText("✓ OK")[0]).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /próximo/i })).not.toBeDisabled();
     });
   });
 
@@ -398,16 +443,13 @@ describe("ChecklistView", () => {
   // ── Story 4.2: Assinaturas na Devolução ───────────────────────────────────
 
   it("checklist locked+entregue exibe seção de assinaturas da devolução", async () => {
-    const devolucao: ChecklistResponse = {
-      ...BASE_CHECKLIST,
-      is_locked: true,
-      status: "entregue",
-      nivel_combustivel: "3/4",
-      data_entrega: "2026-04-23T14:00:00Z",
-      itens: [{ nome: "Documento Veicular", status: "ok" }],
-    };
-    vi.mocked(apiClient.get).mockResolvedValue({ data: devolucao });
+    vi.mocked(apiClient.get).mockResolvedValue({ data: COMPLETE_DEVOLUCAO_CHECKLIST });
     renderAt("1");
+
+    await waitFor(() => expect(screen.getAllByText("✓ OK")[0]).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: /próximo/i }));
+    await waitFor(() => expect(screen.getByLabelText(/quilometragem final/i)).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: /próximo/i }));
 
     await waitFor(() => {
       expect(screen.getByText("Assinaturas da Devolução")).toBeInTheDocument();
@@ -417,16 +459,13 @@ describe("ChecklistView", () => {
   });
 
   it("checklist locked+entregue exibe botões Limpar para assinaturas da devolução", async () => {
-    const devolucao: ChecklistResponse = {
-      ...BASE_CHECKLIST,
-      is_locked: true,
-      status: "entregue",
-      nivel_combustivel: "3/4",
-      data_entrega: "2026-04-23T14:00:00Z",
-      itens: [{ nome: "Documento Veicular", status: "ok" }],
-    };
-    vi.mocked(apiClient.get).mockResolvedValue({ data: devolucao });
+    vi.mocked(apiClient.get).mockResolvedValue({ data: COMPLETE_DEVOLUCAO_CHECKLIST });
     renderAt("1");
+
+    await waitFor(() => expect(screen.getAllByText("✓ OK")[0]).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: /próximo/i }));
+    await waitFor(() => expect(screen.getByLabelText(/quilometragem final/i)).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: /próximo/i }));
 
     await waitFor(() => {
       expect(screen.getByText("Assinaturas da Devolução")).toBeInTheDocument();
@@ -494,8 +533,9 @@ describe("ChecklistView", () => {
   // ── Story 4.3: Registrar Observações (RN-020) ─────────────────────────────
 
   it("formulário de entrega exibe campo de observações", async () => {
-    vi.mocked(apiClient.get).mockResolvedValue({ data: BASE_CHECKLIST });
+    vi.mocked(apiClient.get).mockResolvedValue({ data: FILLED_ENTREGA_CHECKLIST });
     renderAt("1");
+    await navigateEntregaToStep2();
 
     await waitFor(() => {
       expect(screen.getByLabelText("Observações")).toBeInTheDocument();
@@ -503,16 +543,11 @@ describe("ChecklistView", () => {
   });
 
   it("formulário de devolução exibe campo de observações da devolução", async () => {
-    const devolucao: ChecklistResponse = {
-      ...BASE_CHECKLIST,
-      is_locked: true,
-      status: "entregue",
-      nivel_combustivel: "3/4",
-      data_entrega: "2026-04-23T14:00:00Z",
-      itens: [{ nome: "Documento Veicular", status: "ok" }],
-    };
-    vi.mocked(apiClient.get).mockResolvedValue({ data: devolucao });
+    vi.mocked(apiClient.get).mockResolvedValue({ data: COMPLETE_DEVOLUCAO_CHECKLIST });
     renderAt("1");
+
+    await waitFor(() => expect(screen.getAllByText("✓ OK")[0]).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: /próximo/i }));
 
     await waitFor(() => {
       expect(screen.getByLabelText("Observações da Devolução")).toBeInTheDocument();
@@ -615,18 +650,18 @@ describe("ChecklistView", () => {
 
   // ── Story 5.1: Salvar Checklist ───────────────────────────────────────────
 
-  it("T6.1 — botão Salvar habilitado no formulário de entrega", async () => {
+  it("T6.1 — botão Próximo habilitado no formulário de entrega (etapa 1)", async () => {
     vi.mocked(apiClient.get).mockResolvedValue({ data: BASE_CHECKLIST });
     renderAt("1");
 
     await waitFor(() => {
-      const btn = screen.getByRole("button", { name: /salvar/i });
+      const btn = screen.getByRole("button", { name: /próximo/i });
       expect(btn).toBeInTheDocument();
       expect(btn).not.toBeDisabled();
     });
   });
 
-  it("T6.2 — botão Salvar habilitado no formulário de devolução", async () => {
+  it("T6.2 — botão Próximo habilitado no formulário de devolução (etapa 1)", async () => {
     const devolucao: ChecklistResponse = {
       ...BASE_CHECKLIST,
       is_locked: true,
@@ -639,30 +674,18 @@ describe("ChecklistView", () => {
     renderAt("1");
 
     await waitFor(() => {
-      const btn = screen.getByRole("button", { name: /salvar/i });
+      const btn = screen.getByRole("button", { name: /próximo/i });
       expect(btn).toBeInTheDocument();
       expect(btn).not.toBeDisabled();
     });
   });
 
   it("T6.3 — submit com assinaturas faltando exibe erro de validação", async () => {
-    const semSinaturas: ChecklistResponse = {
-      ...BASE_CHECKLIST,
-      is_locked: false,
-      itens: ALL_ITEM_NAMES.map((nome) => ({ nome, status: "ok" as const })),
-      nivel_combustivel: "3/4",
-      data_entrega: "2026-04-23T14:00:00Z",
-      assinatura_responsavel: null,
-      assinatura_motorista: null,
-    };
-    vi.mocked(apiClient.get).mockResolvedValue({ data: semSinaturas });
+    vi.mocked(apiClient.get).mockResolvedValue({ data: FILLED_ENTREGA_CHECKLIST });
     renderAt("1");
+    await navigateEntregaToStep3();
 
-    await waitFor(() => {
-      expect(screen.getByRole("button", { name: /salvar/i })).toBeInTheDocument();
-    });
-
-    fireEvent.click(screen.getByRole("button", { name: /salvar/i }));
+    fireEvent.click(screen.getByRole("button", { name: /salvar checklist/i }));
 
     await waitFor(() => {
       expect(
@@ -673,25 +696,21 @@ describe("ChecklistView", () => {
 
   it("T6.4 — submit bem-sucedido na entrega chama apiClient.patch", async () => {
     const filledChecklist: ChecklistResponse = {
-      ...BASE_CHECKLIST,
-      is_locked: false,
-      itens: ALL_ITEM_NAMES.map((nome) => ({ nome, status: "ok" as const })),
-      nivel_combustivel: "3/4",
-      data_entrega: "2026-04-23T14:00:00Z",
+      ...FILLED_ENTREGA_CHECKLIST,
       assinatura_responsavel: MOCK_SIG,
       assinatura_motorista: MOCK_SIG,
     };
     vi.mocked(apiClient.get).mockResolvedValue({ data: filledChecklist });
     vi.mocked(apiClient.patch).mockResolvedValue({ data: { ...filledChecklist, is_locked: true } });
-    vi.spyOn(window, "confirm").mockReturnValue(true);
-    vi.spyOn(window, "alert").mockImplementation(() => {});
     renderAt("1");
+    await navigateEntregaToStep3();
+
+    fireEvent.click(screen.getByRole("button", { name: /salvar checklist/i }));
 
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: /salvar/i })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /confirmar/i })).toBeInTheDocument();
     });
-
-    fireEvent.click(screen.getByRole("button", { name: /salvar/i }));
+    fireEvent.click(screen.getByRole("button", { name: /confirmar/i }));
 
     await waitFor(() => {
       expect(apiClient.patch).toHaveBeenCalledWith(
@@ -703,31 +722,26 @@ describe("ChecklistView", () => {
 
   it("T6.5 — submit bem-sucedido na devolução chama apiClient.patch", async () => {
     const devolucaoChecklist: ChecklistResponse = {
-      ...BASE_CHECKLIST,
-      is_locked: true,
-      status: "entregue",
-      quilometragem_inicial: 10000,
-      nivel_combustivel: "3/4",
-      data_entrega: "2026-04-20T10:00:00Z",
-      itens: ALL_ITEM_NAMES.map((nome) => ({ nome, status: "ok" as const })),
-      itens_devolucao: ALL_ITEM_NAMES.map((nome) => ({ nome, status: "ok" as const })),
-      nivel_combustivel_devolucao: "2/4",
-      quilometragem_final: 12000,
-      data_devolucao: "2026-04-23T14:00:00Z",
+      ...COMPLETE_DEVOLUCAO_CHECKLIST,
       assinatura_responsavel_devolucao: MOCK_SIG,
       assinatura_motorista_devolucao: MOCK_SIG,
     };
     vi.mocked(apiClient.get).mockResolvedValue({ data: devolucaoChecklist });
     vi.mocked(apiClient.patch).mockResolvedValue({ data: { ...devolucaoChecklist, status: "devolvido" } });
-    vi.spyOn(window, "confirm").mockReturnValue(true);
-    vi.spyOn(window, "alert").mockImplementation(() => {});
     renderAt("1");
 
-    await waitFor(() => {
-      expect(screen.getByRole("button", { name: /salvar/i })).toBeInTheDocument();
-    });
+    await waitFor(() => expect(screen.getAllByText("✓ OK")[0]).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: /próximo/i }));
+    await waitFor(() => expect(screen.getByLabelText(/quilometragem final/i)).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: /próximo/i }));
+    await waitFor(() => expect(screen.getByText("Assinaturas da Devolução")).toBeInTheDocument());
 
-    fireEvent.click(screen.getByRole("button", { name: /salvar/i }));
+    fireEvent.click(screen.getByRole("button", { name: /salvar checklist/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /confirmar/i })).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByRole("button", { name: /confirmar/i }));
 
     await waitFor(() => {
       expect(apiClient.patch).toHaveBeenCalledWith(
@@ -737,41 +751,27 @@ describe("ChecklistView", () => {
     });
   });
 
-  it("T6.6 — window.confirm é chamado antes do PATCH na entrega", async () => {
+  it("T6.6 — Dialog de confirmação é exibido antes do PATCH na entrega", async () => {
     const filledChecklist: ChecklistResponse = {
-      ...BASE_CHECKLIST,
-      is_locked: false,
-      itens: ALL_ITEM_NAMES.map((nome) => ({ nome, status: "ok" as const })),
-      nivel_combustivel: "3/4",
-      data_entrega: "2026-04-23T14:00:00Z",
+      ...FILLED_ENTREGA_CHECKLIST,
       assinatura_responsavel: MOCK_SIG,
       assinatura_motorista: MOCK_SIG,
     };
     vi.mocked(apiClient.get).mockResolvedValue({ data: filledChecklist });
-    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
     renderAt("1");
+    await navigateEntregaToStep3();
+
+    fireEvent.click(screen.getByRole("button", { name: /salvar checklist/i }));
 
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: /salvar/i })).toBeInTheDocument();
-    });
-
-    fireEvent.click(screen.getByRole("button", { name: /salvar/i }));
-
-    await waitFor(() => {
-      expect(confirmSpy).toHaveBeenCalledWith(
-        "Deseja confirmar o salvamento deste checklist? Após a confirmação, os dados não poderão ser alterados."
-      );
+      expect(screen.getByText(/salvar checklist\?/i)).toBeInTheDocument();
     });
     expect(apiClient.patch).not.toHaveBeenCalled();
   });
 
   it("T6.7 — erro do backend (400) exibe mensagem do detail na entrega", async () => {
     const filledChecklist: ChecklistResponse = {
-      ...BASE_CHECKLIST,
-      is_locked: false,
-      itens: ALL_ITEM_NAMES.map((nome) => ({ nome, status: "ok" as const })),
-      nivel_combustivel: "3/4",
-      data_entrega: "2026-04-23T14:00:00Z",
+      ...FILLED_ENTREGA_CHECKLIST,
       assinatura_responsavel: MOCK_SIG,
       assinatura_motorista: MOCK_SIG,
     };
@@ -779,14 +779,15 @@ describe("ChecklistView", () => {
     const axiosErr = { response: { data: { detail: "MSG-026" } } };
     vi.mocked(apiClient.patch).mockRejectedValue(axiosErr);
     vi.mocked(isAxiosError).mockReturnValue(true);
-    vi.spyOn(window, "confirm").mockReturnValue(true);
     renderAt("1");
+    await navigateEntregaToStep3();
+
+    fireEvent.click(screen.getByRole("button", { name: /salvar checklist/i }));
 
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: /salvar/i })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /confirmar/i })).toBeInTheDocument();
     });
-
-    fireEvent.click(screen.getByRole("button", { name: /salvar/i }));
+    fireEvent.click(screen.getByRole("button", { name: /confirmar/i }));
 
     await waitFor(() => {
       expect(screen.getByText("MSG-026")).toBeInTheDocument();
@@ -842,7 +843,6 @@ describe("ChecklistView", () => {
       }
       return Promise.resolve({ data: devolvido });
     });
-    vi.spyOn(window, "alert").mockImplementation(() => {});
     const createObjectURL = vi.fn(() => "blob:mock-url");
     const revokeObjectURL = vi.fn();
     window.URL.createObjectURL = createObjectURL;
@@ -860,7 +860,7 @@ describe("ChecklistView", () => {
         "/v1/checklists/1/pdf",
         { responseType: "blob" },
       );
-      expect(window.alert).toHaveBeenCalledWith("PDF gerado com sucesso.");
+      expect(toast.success).toHaveBeenCalledWith("PDF gerado com sucesso.");
       expect(revokeObjectURL).toHaveBeenCalledWith("blob:mock-url");
     });
   });
@@ -882,7 +882,6 @@ describe("ChecklistView", () => {
       return Promise.resolve({ data: locked });
     });
     vi.mocked(isAxiosError).mockReturnValue(true);
-    const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
     renderAt("1");
 
     await waitFor(() => {
@@ -892,23 +891,13 @@ describe("ChecklistView", () => {
     fireEvent.click(screen.getByRole("button", { name: /gerar pdf/i }));
 
     await waitFor(() => {
-      expect(alertSpy).toHaveBeenCalledWith("MSG-019");
+      expect(toast.error).toHaveBeenCalledWith("MSG-019");
     });
   });
 
   it("T6.8 — erro do backend (400) exibe mensagem do detail na devolução", async () => {
     const devolucaoChecklist: ChecklistResponse = {
-      ...BASE_CHECKLIST,
-      is_locked: true,
-      status: "entregue",
-      quilometragem_inicial: 10000,
-      nivel_combustivel: "3/4",
-      data_entrega: "2026-04-20T10:00:00Z",
-      itens: ALL_ITEM_NAMES.map((nome) => ({ nome, status: "ok" as const })),
-      itens_devolucao: ALL_ITEM_NAMES.map((nome) => ({ nome, status: "ok" as const })),
-      nivel_combustivel_devolucao: "2/4",
-      quilometragem_final: 12000,
-      data_devolucao: "2026-04-23T14:00:00Z",
+      ...COMPLETE_DEVOLUCAO_CHECKLIST,
       assinatura_responsavel_devolucao: MOCK_SIG,
       assinatura_motorista_devolucao: MOCK_SIG,
     };
@@ -916,17 +905,54 @@ describe("ChecklistView", () => {
     const axiosErr = { response: { data: { detail: "Erro de negócio específico." } } };
     vi.mocked(apiClient.patch).mockRejectedValue(axiosErr);
     vi.mocked(isAxiosError).mockReturnValue(true);
-    vi.spyOn(window, "confirm").mockReturnValue(true);
     renderAt("1");
 
-    await waitFor(() => {
-      expect(screen.getByRole("button", { name: /salvar/i })).toBeInTheDocument();
-    });
+    await waitFor(() => expect(screen.getAllByText("✓ OK")[0]).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: /próximo/i }));
+    await waitFor(() => expect(screen.getByLabelText(/quilometragem final/i)).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: /próximo/i }));
+    await waitFor(() => expect(screen.getByText("Assinaturas da Devolução")).toBeInTheDocument());
 
-    fireEvent.click(screen.getByRole("button", { name: /salvar/i }));
+    fireEvent.click(screen.getByRole("button", { name: /salvar checklist/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /confirmar/i })).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByRole("button", { name: /confirmar/i }));
 
     await waitFor(() => {
       expect(screen.getByText("Erro de negócio específico.")).toBeInTheDocument();
+    });
+  });
+
+  // ── Story 6.3: Navegação entre etapas ────────────────────────────────────
+
+  it("S6.3 — Próximo → sem itens marcados exibe erro e não avança para etapa 2", async () => {
+    vi.mocked(apiClient.get).mockResolvedValue({ data: BASE_CHECKLIST });
+    renderAt("1");
+
+    await waitFor(() => expect(screen.getByRole("button", { name: /próximo/i })).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: /próximo/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/todos os itens devem ser verificados/i)).toBeInTheDocument();
+    });
+    // Should still be in step 1
+    expect(screen.getByRole("button", { name: /cancelar/i })).toBeInTheDocument();
+    expect(screen.queryByLabelText(/data e horário da entrega/i)).not.toBeInTheDocument();
+  });
+
+  it("S6.3 — ← Voltar na etapa 2 retorna à etapa 1 com dados preservados", async () => {
+    vi.mocked(apiClient.get).mockResolvedValue({ data: FILLED_ENTREGA_CHECKLIST });
+    renderAt("1");
+    await navigateEntregaToStep2();
+
+    const voltarButtons = screen.getAllByRole("button", { name: /voltar/i });
+    fireEvent.click(voltarButtons[voltarButtons.length - 1]);
+
+    await waitFor(() => {
+      expect(screen.getAllByText("✓ OK")[0]).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /próximo/i })).toBeInTheDocument();
     });
   });
 
@@ -951,11 +977,13 @@ describe("ChecklistView", () => {
   it("clique em Cancelar com confirmação chama DELETE", async () => {
     vi.mocked(apiClient.get).mockResolvedValue({ data: BASE_CHECKLIST });
     vi.mocked(apiClient.delete).mockResolvedValue({});
-    vi.spyOn(window, "confirm").mockReturnValueOnce(true);
 
     renderAt("1");
     await waitFor(() => screen.getByRole("button", { name: /cancelar/i }));
     fireEvent.click(screen.getByRole("button", { name: /cancelar/i }));
+
+    await waitFor(() => expect(screen.getByText(/cancelar checklist\?/i)).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: /descartar/i }));
 
     await waitFor(() => {
       expect(apiClient.delete).toHaveBeenCalledWith("/v1/checklists/1");
@@ -964,15 +992,16 @@ describe("ChecklistView", () => {
 
   it("clique em Cancelar com negação não chama DELETE", async () => {
     vi.mocked(apiClient.get).mockResolvedValue({ data: BASE_CHECKLIST });
-    vi.mocked(apiClient.delete).mockResolvedValue({});
-    vi.spyOn(window, "confirm").mockReturnValueOnce(false);
 
     renderAt("1");
     await waitFor(() => screen.getByRole("button", { name: /cancelar/i }));
     fireEvent.click(screen.getByRole("button", { name: /cancelar/i }));
 
+    await waitFor(() => expect(screen.getByRole("button", { name: /continuar editando/i })).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: /continuar editando/i }));
+
     expect(apiClient.delete).not.toHaveBeenCalled();
-    expect(screen.getByRole("button", { name: /cancelar/i })).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByRole("button", { name: /cancelar/i })).toBeInTheDocument());
   });
 
   it("exibe botão Voltar quando checklist não está salvo", async () => {
@@ -1031,10 +1060,8 @@ describe("ChecklistView", () => {
     vi.spyOn(window, "confirm").mockReturnValueOnce(false);
     renderAt("1");
 
-    await waitFor(() => screen.getByLabelText(/data e horário/i));
-    fireEvent.change(screen.getByLabelText(/data e horário/i), {
-      target: { value: "2026-04-27T10:00" },
-    });
+    await waitFor(() => screen.getAllByText("✓ OK")[0]);
+    fireEvent.click(screen.getAllByText("✓ OK")[0]);
 
     fireEvent.click(screen.getByRole("button", { name: /voltar/i }));
 
@@ -1059,10 +1086,8 @@ describe("ChecklistView", () => {
       </QueryClientProvider>
     );
 
-    await waitFor(() => screen.getByLabelText(/data e horário da entrega/i));
-    fireEvent.change(screen.getByLabelText(/data e horário da entrega/i), {
-      target: { value: "2026-04-27T10:00" },
-    });
+    await waitFor(() => screen.getAllByText("✓ OK")[0]);
+    fireEvent.click(screen.getAllByText("✓ OK")[0]);
     fireEvent.click(screen.getByRole("button", { name: /voltar/i }));
 
     expect(screen.getByRole("button", { name: /voltar/i })).toBeInTheDocument();
@@ -1082,10 +1107,9 @@ describe("ChecklistView", () => {
     vi.spyOn(window, "confirm").mockReturnValueOnce(false);
     renderAt("1");
 
-    await waitFor(() => screen.getByLabelText(/quilometragem final/i));
-    fireEvent.change(screen.getByLabelText(/quilometragem final/i), {
-      target: { value: "11000" },
-    });
+    // DevolucaoForm step 1: click OK on first item to make form dirty
+    await waitFor(() => screen.getAllByText("✓ OK")[0]);
+    fireEvent.click(screen.getAllByText("✓ OK")[0]);
 
     fireEvent.click(screen.getByRole("button", { name: /voltar/i }));
 
@@ -1112,10 +1136,8 @@ describe("ChecklistView", () => {
       </QueryClientProvider>
     );
 
-    await waitFor(() => screen.getByLabelText(/data e horário/i));
-    fireEvent.change(screen.getByLabelText(/data e horário/i), {
-      target: { value: "2026-04-27T10:00" },
-    });
+    await waitFor(() => screen.getAllByText("✓ OK")[0]);
+    fireEvent.click(screen.getAllByText("✓ OK")[0]);
     fireEvent.click(screen.getByRole("button", { name: /voltar/i }));
 
     await waitFor(() => {
