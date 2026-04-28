@@ -6,11 +6,12 @@ const FUEL_OPTIONS = ["1/4", "2/4", "3/4", "4/4"] as const;
 interface FuelLevelProps {
   control: Control<ChecklistEntregaData>;
   error?: FieldError;
+  className?: string;
 }
 
-export default function FuelLevel({ control, error }: FuelLevelProps) {
+export default function FuelLevel({ control, error, className = "mt-6" }: FuelLevelProps) {
   return (
-    <section className="mt-6">
+    <section className={className}>
       <h3 className="mb-3 text-lg font-semibold">Nível de Combustível</h3>
       <Controller
         name="nivel_combustivel"

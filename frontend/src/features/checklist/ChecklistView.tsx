@@ -329,7 +329,7 @@ function DevolucaoForm({
 
             {step === 2 && (
               <>
-                <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:items-start">
                   <div className="space-y-2">
                     <Label htmlFor="quilometragem_final">Quilometragem Final</Label>
                     <Input
@@ -353,8 +353,8 @@ function DevolucaoForm({
                       <p className="text-sm text-danger" role="alert">{errors.data_devolucao.message}</p>
                     )}
                   </div>
+                  <FuelLevel control={control} error={errors.nivel_combustivel} className="sm:col-span-2 lg:col-span-1" />
                 </div>
-                <FuelLevel control={control} error={errors.nivel_combustivel} />
                 <ObservationsField register={register("observacoes")} label="Observações da Devolução" />
                 {devStep2Error && (
                   <p role="alert" className="mt-2 text-sm text-danger">{devStep2Error}</p>
@@ -715,18 +715,20 @@ export default function ChecklistView() {
 
               {entregaStep === 2 && (
                 <>
-                  <div className="mt-6 space-y-2">
-                    <Label htmlFor="data_entrega">Data e Horário da Entrega</Label>
-                    <Input
-                      id="data_entrega"
-                      type="datetime-local"
-                      {...entregaForm.register("data_entrega")}
-                    />
-                    {entregaErrors.data_entrega && (
-                      <p className="text-sm text-danger" role="alert">{entregaErrors.data_entrega.message}</p>
-                    )}
+                  <div className="mt-6 grid gap-6 sm:grid-cols-2 sm:items-start">
+                    <div className="space-y-2">
+                      <Label htmlFor="data_entrega">Data e Horário da Entrega</Label>
+                      <Input
+                        id="data_entrega"
+                        type="datetime-local"
+                        {...entregaForm.register("data_entrega")}
+                      />
+                      {entregaErrors.data_entrega && (
+                        <p className="text-sm text-danger" role="alert">{entregaErrors.data_entrega.message}</p>
+                      )}
+                    </div>
+                    <FuelLevel control={entregaForm.control} error={entregaErrors.nivel_combustivel} className="" />
                   </div>
-                  <FuelLevel control={entregaForm.control} error={entregaErrors.nivel_combustivel} />
                   <div className="mt-6">
                     <Controller
                       name="avarias"
