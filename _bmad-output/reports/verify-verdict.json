@@ -1,0 +1,32 @@
+{
+  "script": "consolidate-results",
+  "version": "1.0.0",
+  "output_folder": "/home/rodgb/projetos/ctrve/_bmad-output",
+  "timestamp": "2026-04-28T10:28:49.290923+00:00",
+  "status": "pass",
+  "verdict": "GO",
+  "metrics": {
+    "coverage_percent": 87.32,
+    "coverage_threshold": 80.0,
+    "defects_alta": 0,
+    "defects_media": 0,
+    "defects_baixa": 0,
+    "security_critical": 0,
+    "security_high": 0,
+    "security_medium": 0,
+    "security_low": 0
+  },
+  "reports_analyzed": {
+    "layer1": "/home/rodgb/projetos/ctrve/_bmad-output/reports/verify-layer1-automated.md",
+    "test_cycle": "/home/rodgb/projetos/ctrve/_bmad-output/reports/test-cycle-1.md",
+    "security": "/home/rodgb/projetos/ctrve/_bmad-output/reports/security-report.md"
+  },
+  "findings": [],
+  "summary": {
+    "total": 0,
+    "critical": 0,
+    "high": 0,
+    "medium": 0,
+    "low": 0
+  }
+}

@@ -68,27 +68,65 @@ describe("response interceptor — refresh em 401 (RN-002)", () => {
     expect(response.data).toEqual({ data: "ok" });
   });
 
-  it("401 sem _retry faz POST /refresh e repete request com novo token", async () => {
-    const mockAxiosGlobal = new MockAdapter(axios);
+  it("401 com _retry=true não tenta refresh (evita loop)", async () => {
+    // Simula request que já passou por retry — deve rejeitar direto
+    mockAxios.onGet("/v1/loop").reply((config) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (config as any)._retry = true;
+      return [401, { detail: "MSG-002" }];
+    });
+    await expect(apiClient.get("/v1/loop")).rejects.toMatchObject({
+      response: { status: 401 },
+    });
+  });
 
-    // Primeira chamada retorna 401; após refresh, retorna 200
+  it("401 sem _retry tenta refresh e repete request com novo token", async () => {
+    const mockAxiosGlobal = new MockAdapter(axios);
     let callCount = 0;
     mockAxios.onGet("/v1/protegido").reply(() => {
       callCount++;
       if (callCount === 1) return [401, { detail: "MSG-002" }];
-      return [200, { data: "ok" }];
+      return [200, { data: "secreto" }];
     });
-
     mockAxiosGlobal
       .onPost("/api/v1/auth/refresh")
       .reply(200, { access_token: "novo-token" });
 
-    try {
-      await apiClient.get("/v1/protegido");
-    } catch {
-      // pode rejeitar dependendo do ambiente de teste
-    }
+    const response = await apiClient.get("/v1/protegido");
+    expect(response.data).toEqual({ data: "secreto" });
+    expect(getAccessToken()).toBe("novo-token");
+    mockAxiosGlobal.restore();
+  });
 
+  it("refresh falha sem sessão prévia — não dispara session-expired", async () => {
+    const mockAxiosGlobal = new MockAdapter(axios);
+    const eventSpy = vi.fn();
+    window.addEventListener("session-expired", eventSpy);
+
+    mockAxios.onGet("/v1/protegido").reply(401, { detail: "MSG-002" });
+    mockAxiosGlobal.onPost("/api/v1/auth/refresh").reply(401, {});
+
+    await expect(apiClient.get("/v1/protegido")).rejects.toBeDefined();
+    expect(eventSpy).not.toHaveBeenCalled();
+
+    window.removeEventListener("session-expired", eventSpy);
+    mockAxiosGlobal.restore();
+  });
+
+  it("refresh falha com sessão ativa — dispara evento session-expired (RN-002)", async () => {
+    setAccessToken("token-ativo");
+    const mockAxiosGlobal = new MockAdapter(axios);
+    const eventSpy = vi.fn();
+    window.addEventListener("session-expired", eventSpy);
+
+    mockAxios.onGet("/v1/protegido").reply(401, { detail: "MSG-002" });
+    mockAxiosGlobal.onPost("/api/v1/auth/refresh").reply(401, {});
+
+    await expect(apiClient.get("/v1/protegido")).rejects.toBeDefined();
+    expect(eventSpy).toHaveBeenCalledTimes(1);
+    expect(getAccessToken()).toBeNull();
+
+    window.removeEventListener("session-expired", eventSpy);
     mockAxiosGlobal.restore();
   });
 });

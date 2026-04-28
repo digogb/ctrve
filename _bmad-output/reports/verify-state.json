@@ -1,0 +1,30 @@
+{
+  "stage": 6,
+  "status": "approved",
+  "timestamp": "2026-04-28T10:29:44.410407+00:00",
+  "approved_by": "Rodrigo Barbosa",
+  "feature": "CTRVE Epics 1-6 (Stories 1.1-6.3)",
+  "stages_completed": [
+    "stage-1-precheck",
+    "stage-2-automated",
+    "stage-3-functional",
+    "stage-4-security",
+    "stage-5-consolidation",
+    "stage-6-gate"
+  ],
+  "verdict": "APROVADO",
+  "coverage": {
+    "backend": 97.0,
+    "frontend": 87.32,
+    "threshold": 80
+  },
+  "defects": {
+    "alta": 0,
+    "media": 0,
+    "baixa": 0
+  },
+  "security": {
+    "critical_real": 0,
+    "false_positives": 14
+  }
+}

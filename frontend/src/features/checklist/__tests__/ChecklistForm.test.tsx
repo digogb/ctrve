@@ -136,4 +136,58 @@ describe("ChecklistForm — Informações Gerais", () => {
       expect(screen.getByRole("alert")).toHaveTextContent(/checklist de entrega aberto/i);
     });
   });
+
+  it("campos obrigatórios vazios exibem erros de validação ao submeter (RN-005)", async () => {
+    renderForm();
+    // submete sem preencher nenhum campo
+    await userEvent.click(screen.getByRole("button", { name: /criar/i }));
+
+    // React Hook Form popula erros de campo após re-render
+    await waitFor(() => {
+      expect(screen.getByText(/informe a placa/i)).toBeInTheDocument();
+    });
+    expect(apiClient.post).not.toHaveBeenCalled();
+  });
+
+  it("erro MSG-006 do servidor exibe mensagem no campo placa (RN-006)", async () => {
+    const err = Object.assign(new axios.AxiosError(), {
+      response: {
+        status: 422,
+        data: { detail: "MSG-006", fields: ["placa"] },
+      },
+    });
+    vi.mocked(apiClient.post).mockRejectedValueOnce(err);
+    renderForm();
+    await fillValidForm();
+    await userEvent.click(screen.getByRole("button", { name: /criar/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/formato de placa inválido/i)).toBeInTheDocument();
+    });
+  });
+
+  it("erro genérico do servidor exibe mensagem padrão", async () => {
+    const err = Object.assign(new axios.AxiosError(), {
+      response: { status: 500, data: {} },
+    });
+    vi.mocked(apiClient.post).mockRejectedValueOnce(err);
+    renderForm();
+    await fillValidForm();
+    await userEvent.click(screen.getByRole("button", { name: /criar/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("alert")).toHaveTextContent(/erro ao criar checklist/i);
+    });
+  });
+
+  it("erro de rede (sem response) exibe mensagem de comunicação", async () => {
+    vi.mocked(apiClient.post).mockRejectedValueOnce(new Error("Network Error"));
+    renderForm();
+    await fillValidForm();
+    await userEvent.click(screen.getByRole("button", { name: /criar/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("alert")).toHaveTextContent(/erro de comunicação/i);
+    });
+  });
 });
