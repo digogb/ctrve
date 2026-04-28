@@ -6,6 +6,7 @@ import type { ChecklistResponse } from "../../types/checklist";
 import { Badge } from "@/components/ui/badge";
 
 const STATUS_CONFIG = {
+  em_preenchimento: { label: "Em preenchimento", color: "bg-amber-400" },
   entregue: { label: "Entregue", color: "bg-blue-500" },
   devolvido: { label: "Devolvido", color: "bg-green-600" },
 } satisfies Record<string, { label: string; color: string }>;
