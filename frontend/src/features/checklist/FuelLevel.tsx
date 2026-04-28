@@ -1,5 +1,6 @@
 import { Controller, type Control, type FieldError } from "react-hook-form";
 import type { ChecklistEntregaData } from "./checklistSchema";
+import { Label } from "@/components/ui/label";
 
 const FUEL_OPTIONS = ["1/4", "2/4", "3/4", "4/4"] as const;
 
@@ -12,7 +13,7 @@ interface FuelLevelProps {
 export default function FuelLevel({ control, error, className = "mt-6" }: FuelLevelProps) {
   return (
     <section className={className}>
-      <h3 className="mb-3 text-lg font-semibold">Nível de Combustível</h3>
+      <Label className="mb-2 block">Nível de Combustível</Label>
       <Controller
         name="nivel_combustivel"
         control={control}
